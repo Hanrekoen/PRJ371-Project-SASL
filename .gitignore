@@ -7,3 +7,6 @@
 **/Build/
 **/Builds/
 **/UserSettings/
+
+# Ignore Visual Studio cache
+.vs/

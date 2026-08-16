@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 8a63dfd83766dae4db9c8c0e1b2faa6e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {fileID: 2800000, guid: 11be21f3f1f4bac46a48d14a031f3d60, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/SDK/Runtime/Infrastructure/Protocol/Messages/Inbound/UserIdleWarningPayload.cs
+  uploadId: 974114

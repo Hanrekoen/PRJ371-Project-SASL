@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6d95fe950c0c4b65be263b027aa96e94
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/SDK/Modules/ClientVoiceActivity/Sentis/Convai.Modules.ClientVoiceActivity.Sentis.asmdef
+  uploadId: 974114

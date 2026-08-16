@@ -1,0 +1,23 @@
+{
+    "name": "Convai.Modules.Gaze.Editor",
+    "rootNamespace": "Convai.Modules.Gaze.Editor",
+    "references": [
+        "Convai.Editor",
+        "Convai.Domain",
+        "Convai.Domain.Embodiment",
+        "Convai.Runtime",
+        "Convai.Modules.Gaze",
+        "Convai.Shared.Unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

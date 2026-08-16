@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0692592517d12424ba9fec21f96841dc, type: 3}
+  m_Name: ConvaiConfigurationContent
+  m_EditorClassIdentifier: Convai.Editor::Convai.Editor.ConfigurationWindow.Content.ConvaiConfigurationContent
+  _welcomeHeader: Convai WebRTC SDK (Beta)
+  _welcomeSubheader: Operational Dashboard
+  _betaNotice: You are using the first major WebRTC-based beta release. Use this
+    dashboard to verify setup health and unblock integration quickly.
+  _quickStartInstructions: '1. Set API key in Edit > Project Settings > Convai SDK.
+
+    2.
+    Run GameObject > Convai > Setup Required Components.
+
+    3. Validate scene setup
+    and fix any blockers shown below.'
+  _contactHeader: Need Help?
+  _contactSubheader: Support and Community Resources
+  _contactBody: If you hit integration issues, check the docs first and then reach
+    out to support. Include logs and reproduction steps for faster help.
+  _contactButtonLabel: Open Support Resources

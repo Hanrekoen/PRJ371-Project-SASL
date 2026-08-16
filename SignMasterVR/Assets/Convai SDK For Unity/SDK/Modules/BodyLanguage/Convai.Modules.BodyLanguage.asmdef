@@ -1,0 +1,19 @@
+{
+    "name": "Convai.Modules.BodyLanguage",
+    "rootNamespace": "Convai.Modules.BodyLanguage",
+    "references": [
+        "Convai.Domain",
+        "Convai.Domain.Embodiment",
+        "Convai.Runtime",
+        "Convai.Shared.Unity"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

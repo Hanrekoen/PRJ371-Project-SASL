@@ -1,0 +1,3033 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e269b39c8e9499c8b7febc3548e30fa, type: 3}
+  m_Name: ConvaiLipSyncDefaultMap_MetaHuman
+  m_EditorClassIdentifier: 
+  _targetProfileId: metahuman
+  _description: "Official Convai SDK default mapping for MetaHuman facial rigs. Provided by Convai as a ready-to-use baseline for mapping Convai lip sync output to MetaHuman expression targets."
+  _mappings:
+  - sourceBlendshape: CTRL_expressions_browDownL
+    targetNames:
+    - CTRL_expressions_browDownL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_browDownR
+    targetNames:
+    - CTRL_expressions_browDownR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_browLateralL
+    targetNames:
+    - CTRL_expressions_browLateralL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_browLateralR
+    targetNames:
+    - CTRL_expressions_browLateralR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_browRaiseInL
+    targetNames:
+    - CTRL_expressions_browRaiseInL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_browRaiseInR
+    targetNames:
+    - CTRL_expressions_browRaiseInR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_browRaiseOuterL
+    targetNames:
+    - CTRL_expressions_browRaiseOuterL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_browRaiseOuterR
+    targetNames:
+    - CTRL_expressions_browRaiseOuterR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_earUpL
+    targetNames:
+    - CTRL_expressions_earUpL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_earUpR
+    targetNames:
+    - CTRL_expressions_earUpR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeBlinkL
+    targetNames:
+    - CTRL_expressions_eyeBlinkL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeBlinkR
+    targetNames:
+    - CTRL_expressions_eyeBlinkR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeCheekRaiseL
+    targetNames:
+    - CTRL_expressions_eyeCheekRaiseL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeCheekRaiseR
+    targetNames:
+    - CTRL_expressions_eyeCheekRaiseR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeFaceScrunchL
+    targetNames:
+    - CTRL_expressions_eyeFaceScrunchL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeFaceScrunchR
+    targetNames:
+    - CTRL_expressions_eyeFaceScrunchR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyelashesDownINL
+    targetNames:
+    - CTRL_expressions_eyelashesDownINL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyelashesDownINR
+    targetNames:
+    - CTRL_expressions_eyelashesDownINR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyelashesDownOUTL
+    targetNames:
+    - CTRL_expressions_eyelashesDownOUTL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyelashesDownOUTR
+    targetNames:
+    - CTRL_expressions_eyelashesDownOUTR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyelashesUpINL
+    targetNames:
+    - CTRL_expressions_eyelashesUpINL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyelashesUpINR
+    targetNames:
+    - CTRL_expressions_eyelashesUpINR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyelashesUpOUTL
+    targetNames:
+    - CTRL_expressions_eyelashesUpOUTL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyelashesUpOUTR
+    targetNames:
+    - CTRL_expressions_eyelashesUpOUTR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLidPressL
+    targetNames:
+    - CTRL_expressions_eyeLidPressL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLidPressR
+    targetNames:
+    - CTRL_expressions_eyeLidPressR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLookDownL
+    targetNames:
+    - CTRL_expressions_eyeLookDownL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLookDownR
+    targetNames:
+    - CTRL_expressions_eyeLookDownR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLookLeftL
+    targetNames:
+    - CTRL_expressions_eyeLookLeftL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLookLeftR
+    targetNames:
+    - CTRL_expressions_eyeLookLeftR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLookRightL
+    targetNames:
+    - CTRL_expressions_eyeLookRightL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLookRightR
+    targetNames:
+    - CTRL_expressions_eyeLookRightR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLookUpL
+    targetNames:
+    - CTRL_expressions_eyeLookUpL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLookUpR
+    targetNames:
+    - CTRL_expressions_eyeLookUpR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLowerLidDownL
+    targetNames:
+    - CTRL_expressions_eyeLowerLidDownL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLowerLidDownR
+    targetNames:
+    - CTRL_expressions_eyeLowerLidDownR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLowerLidUpL
+    targetNames:
+    - CTRL_expressions_eyeLowerLidUpL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeLowerLidUpR
+    targetNames:
+    - CTRL_expressions_eyeLowerLidUpR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeParallelLookDirection
+    targetNames:
+    - CTRL_expressions_eyeParallelLookDirection
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyePupilNarrowL
+    targetNames:
+    - CTRL_expressions_eyePupilNarrowL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyePupilNarrowR
+    targetNames:
+    - CTRL_expressions_eyePupilNarrowR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyePupilWideL
+    targetNames:
+    - CTRL_expressions_eyePupilWideL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyePupilWideR
+    targetNames:
+    - CTRL_expressions_eyePupilWideR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeRelaxL
+    targetNames:
+    - CTRL_expressions_eyeRelaxL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeRelaxR
+    targetNames:
+    - CTRL_expressions_eyeRelaxR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeSquintInnerL
+    targetNames:
+    - CTRL_expressions_eyeSquintInnerL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeSquintInnerR
+    targetNames:
+    - CTRL_expressions_eyeSquintInnerR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeUpperLidUpL
+    targetNames:
+    - CTRL_expressions_eyeUpperLidUpL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeUpperLidUpR
+    targetNames:
+    - CTRL_expressions_eyeUpperLidUpR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeWidenL
+    targetNames:
+    - CTRL_expressions_eyeWidenL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_eyeWidenR
+    targetNames:
+    - CTRL_expressions_eyeWidenR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawBack
+    targetNames:
+    - CTRL_expressions_jawBack
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawChinCompressL
+    targetNames:
+    - CTRL_expressions_jawChinCompressL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawChinCompressR
+    targetNames:
+    - CTRL_expressions_jawChinCompressR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawChinRaiseDL
+    targetNames:
+    - CTRL_expressions_jawChinRaiseDL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawChinRaiseDR
+    targetNames:
+    - CTRL_expressions_jawChinRaiseDR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawChinRaiseUL
+    targetNames:
+    - CTRL_expressions_jawChinRaiseUL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawChinRaiseUR
+    targetNames:
+    - CTRL_expressions_jawChinRaiseUR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawClenchL
+    targetNames:
+    - CTRL_expressions_jawClenchL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawClenchR
+    targetNames:
+    - CTRL_expressions_jawClenchR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawFwd
+    targetNames:
+    - CTRL_expressions_jawFwd
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawLeft
+    targetNames:
+    - CTRL_expressions_jawLeft
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawOpen
+    targetNames:
+    - CTRL_expressions_jawOpen
+    multiplier: 0.5
+    offset: 0
+    curveExponent: 0.8
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 0.55
+  - sourceBlendshape: CTRL_expressions_jawOpenExtreme
+    targetNames:
+    - CTRL_expressions_jawOpenExtreme
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_jawRight
+    targetNames:
+    - CTRL_expressions_jawRight
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCheekBlowL
+    targetNames:
+    - CTRL_expressions_mouthCheekBlowL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCheekBlowR
+    targetNames:
+    - CTRL_expressions_mouthCheekBlowR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCheekSuckL
+    targetNames:
+    - CTRL_expressions_mouthCheekSuckL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCheekSuckR
+    targetNames:
+    - CTRL_expressions_mouthCheekSuckR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerDepressL
+    targetNames:
+    - CTRL_expressions_mouthCornerDepressL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerDepressR
+    targetNames:
+    - CTRL_expressions_mouthCornerDepressR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerDownL
+    targetNames:
+    - CTRL_expressions_mouthCornerDownL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerDownR
+    targetNames:
+    - CTRL_expressions_mouthCornerDownR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerNarrowL
+    targetNames:
+    - CTRL_expressions_mouthCornerNarrowL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerNarrowR
+    targetNames:
+    - CTRL_expressions_mouthCornerNarrowR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerPullL
+    targetNames:
+    - CTRL_expressions_mouthCornerPullL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerPullR
+    targetNames:
+    - CTRL_expressions_mouthCornerPullR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerRounderDL
+    targetNames:
+    - CTRL_expressions_mouthCornerRounderDL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerRounderDR
+    targetNames:
+    - CTRL_expressions_mouthCornerRounderDR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerRounderUL
+    targetNames:
+    - CTRL_expressions_mouthCornerRounderUL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerRounderUR
+    targetNames:
+    - CTRL_expressions_mouthCornerRounderUR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerSharpenDL
+    targetNames:
+    - CTRL_expressions_mouthCornerSharpenDL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerSharpenDR
+    targetNames:
+    - CTRL_expressions_mouthCornerSharpenDR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerSharpenUL
+    targetNames:
+    - CTRL_expressions_mouthCornerSharpenUL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerSharpenUR
+    targetNames:
+    - CTRL_expressions_mouthCornerSharpenUR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerUpL
+    targetNames:
+    - CTRL_expressions_mouthCornerUpL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerUpR
+    targetNames:
+    - CTRL_expressions_mouthCornerUpR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerWideL
+    targetNames:
+    - CTRL_expressions_mouthCornerWideL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthCornerWideR
+    targetNames:
+    - CTRL_expressions_mouthCornerWideR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthDimpleL
+    targetNames:
+    - CTRL_expressions_mouthDimpleL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthDimpleR
+    targetNames:
+    - CTRL_expressions_mouthDimpleR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthDown
+    targetNames:
+    - CTRL_expressions_mouthDown
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthFunnelDL
+    targetNames:
+    - CTRL_expressions_mouthFunnelDL
+    multiplier: 1.1
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthFunnelDR
+    targetNames:
+    - CTRL_expressions_mouthFunnelDR
+    multiplier: 1.1
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthFunnelUL
+    targetNames:
+    - CTRL_expressions_mouthFunnelUL
+    multiplier: 1.1
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthFunnelUR
+    targetNames:
+    - CTRL_expressions_mouthFunnelUR
+    multiplier: 1.1
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLeft
+    targetNames:
+    - CTRL_expressions_mouthLeft
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsBlowL
+    targetNames:
+    - CTRL_expressions_mouthLipsBlowL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsBlowR
+    targetNames:
+    - CTRL_expressions_mouthLipsBlowR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPressL
+    targetNames:
+    - CTRL_expressions_mouthLipsPressL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.95
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPressR
+    targetNames:
+    - CTRL_expressions_mouthLipsPressR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.95
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPullDL
+    targetNames:
+    - CTRL_expressions_mouthLipsPullDL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPullDR
+    targetNames:
+    - CTRL_expressions_mouthLipsPullDR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPullUL
+    targetNames:
+    - CTRL_expressions_mouthLipsPullUL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPullUR
+    targetNames:
+    - CTRL_expressions_mouthLipsPullUR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPurseDL
+    targetNames:
+    - CTRL_expressions_mouthLipsPurseDL
+    multiplier: 1.1
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPurseDR
+    targetNames:
+    - CTRL_expressions_mouthLipsPurseDR
+    multiplier: 1.1
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPurseUL
+    targetNames:
+    - CTRL_expressions_mouthLipsPurseUL
+    multiplier: 1.1
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPurseUR
+    targetNames:
+    - CTRL_expressions_mouthLipsPurseUR
+    multiplier: 1.1
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPushDL
+    targetNames:
+    - CTRL_expressions_mouthLipsPushDL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPushDR
+    targetNames:
+    - CTRL_expressions_mouthLipsPushDR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPushUL
+    targetNames:
+    - CTRL_expressions_mouthLipsPushUL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsPushUR
+    targetNames:
+    - CTRL_expressions_mouthLipsPushUR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsStickyLPh1
+    targetNames:
+    - CTRL_expressions_mouthLipsStickyLPh1
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsStickyLPh2
+    targetNames:
+    - CTRL_expressions_mouthLipsStickyLPh2
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsStickyLPh3
+    targetNames:
+    - CTRL_expressions_mouthLipsStickyLPh3
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsStickyRPh1
+    targetNames:
+    - CTRL_expressions_mouthLipsStickyRPh1
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsStickyRPh2
+    targetNames:
+    - CTRL_expressions_mouthLipsStickyRPh2
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsStickyRPh3
+    targetNames:
+    - CTRL_expressions_mouthLipsStickyRPh3
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThickDL
+    targetNames:
+    - CTRL_expressions_mouthLipsThickDL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThickDR
+    targetNames:
+    - CTRL_expressions_mouthLipsThickDR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThickInwardDL
+    targetNames:
+    - CTRL_expressions_mouthLipsThickInwardDL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThickInwardDR
+    targetNames:
+    - CTRL_expressions_mouthLipsThickInwardDR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThickInwardUL
+    targetNames:
+    - CTRL_expressions_mouthLipsThickInwardUL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThickInwardUR
+    targetNames:
+    - CTRL_expressions_mouthLipsThickInwardUR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThickUL
+    targetNames:
+    - CTRL_expressions_mouthLipsThickUL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThickUR
+    targetNames:
+    - CTRL_expressions_mouthLipsThickUR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThinDL
+    targetNames:
+    - CTRL_expressions_mouthLipsThinDL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThinDR
+    targetNames:
+    - CTRL_expressions_mouthLipsThinDR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThinInwardDL
+    targetNames:
+    - CTRL_expressions_mouthLipsThinInwardDL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThinInwardDR
+    targetNames:
+    - CTRL_expressions_mouthLipsThinInwardDR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThinInwardUL
+    targetNames:
+    - CTRL_expressions_mouthLipsThinInwardUL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThinInwardUR
+    targetNames:
+    - CTRL_expressions_mouthLipsThinInwardUR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThinUL
+    targetNames:
+    - CTRL_expressions_mouthLipsThinUL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsThinUR
+    targetNames:
+    - CTRL_expressions_mouthLipsThinUR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsTightenDL
+    targetNames:
+    - CTRL_expressions_mouthLipsTightenDL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsTightenDR
+    targetNames:
+    - CTRL_expressions_mouthLipsTightenDR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsTightenUL
+    targetNames:
+    - CTRL_expressions_mouthLipsTightenUL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsTightenUR
+    targetNames:
+    - CTRL_expressions_mouthLipsTightenUR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsTogetherDL
+    targetNames:
+    - CTRL_expressions_mouthLipsTogetherDL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsTogetherDR
+    targetNames:
+    - CTRL_expressions_mouthLipsTogetherDR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsTogetherUL
+    targetNames:
+    - CTRL_expressions_mouthLipsTogetherUL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsTogetherUR
+    targetNames:
+    - CTRL_expressions_mouthLipsTogetherUR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsTowardsDL
+    targetNames:
+    - CTRL_expressions_mouthLipsTowardsDL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.95
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsTowardsDR
+    targetNames:
+    - CTRL_expressions_mouthLipsTowardsDR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.95
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsTowardsUL
+    targetNames:
+    - CTRL_expressions_mouthLipsTowardsUL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.95
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLipsTowardsUR
+    targetNames:
+    - CTRL_expressions_mouthLipsTowardsUR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.95
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLowerLipBiteL
+    targetNames:
+    - CTRL_expressions_mouthLowerLipBiteL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLowerLipBiteR
+    targetNames:
+    - CTRL_expressions_mouthLowerLipBiteR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLowerLipDepressL
+    targetNames:
+    - CTRL_expressions_mouthLowerLipDepressL
+    multiplier: 1.1
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLowerLipDepressR
+    targetNames:
+    - CTRL_expressions_mouthLowerLipDepressR
+    multiplier: 1.1
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLowerLipRollInL
+    targetNames:
+    - CTRL_expressions_mouthLowerLipRollInL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLowerLipRollInR
+    targetNames:
+    - CTRL_expressions_mouthLowerLipRollInR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLowerLipRollOutL
+    targetNames:
+    - CTRL_expressions_mouthLowerLipRollOutL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLowerLipRollOutR
+    targetNames:
+    - CTRL_expressions_mouthLowerLipRollOutR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLowerLipShiftLeft
+    targetNames:
+    - CTRL_expressions_mouthLowerLipShiftLeft
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLowerLipShiftRight
+    targetNames:
+    - CTRL_expressions_mouthLowerLipShiftRight
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLowerLipTowardsTeethL
+    targetNames:
+    - CTRL_expressions_mouthLowerLipTowardsTeethL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthLowerLipTowardsTeethR
+    targetNames:
+    - CTRL_expressions_mouthLowerLipTowardsTeethR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthPressDL
+    targetNames:
+    - CTRL_expressions_mouthPressDL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.95
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthPressDR
+    targetNames:
+    - CTRL_expressions_mouthPressDR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.95
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthPressUL
+    targetNames:
+    - CTRL_expressions_mouthPressUL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.95
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthPressUR
+    targetNames:
+    - CTRL_expressions_mouthPressUR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.95
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthRight
+    targetNames:
+    - CTRL_expressions_mouthRight
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthSharpCornerPullL
+    targetNames:
+    - CTRL_expressions_mouthSharpCornerPullL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthSharpCornerPullR
+    targetNames:
+    - CTRL_expressions_mouthSharpCornerPullR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStickyDC
+    targetNames:
+    - CTRL_expressions_mouthStickyDC
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStickyDINL
+    targetNames:
+    - CTRL_expressions_mouthStickyDINL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStickyDINR
+    targetNames:
+    - CTRL_expressions_mouthStickyDINR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStickyDOUTL
+    targetNames:
+    - CTRL_expressions_mouthStickyDOUTL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStickyDOUTR
+    targetNames:
+    - CTRL_expressions_mouthStickyDOUTR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStickyUC
+    targetNames:
+    - CTRL_expressions_mouthStickyUC
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStickyUINL
+    targetNames:
+    - CTRL_expressions_mouthStickyUINL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStickyUINR
+    targetNames:
+    - CTRL_expressions_mouthStickyUINR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStickyUOUTL
+    targetNames:
+    - CTRL_expressions_mouthStickyUOUTL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStickyUOUTR
+    targetNames:
+    - CTRL_expressions_mouthStickyUOUTR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStretchL
+    targetNames:
+    - CTRL_expressions_mouthStretchL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStretchLipsCloseL
+    targetNames:
+    - CTRL_expressions_mouthStretchLipsCloseL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStretchLipsCloseR
+    targetNames:
+    - CTRL_expressions_mouthStretchLipsCloseR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthStretchR
+    targetNames:
+    - CTRL_expressions_mouthStretchR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUp
+    targetNames:
+    - CTRL_expressions_mouthUp
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUpperLipBiteL
+    targetNames:
+    - CTRL_expressions_mouthUpperLipBiteL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUpperLipBiteR
+    targetNames:
+    - CTRL_expressions_mouthUpperLipBiteR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUpperLipRaiseL
+    targetNames:
+    - CTRL_expressions_mouthUpperLipRaiseL
+    multiplier: 1.1
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUpperLipRaiseR
+    targetNames:
+    - CTRL_expressions_mouthUpperLipRaiseR
+    multiplier: 1.1
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUpperLipRollInL
+    targetNames:
+    - CTRL_expressions_mouthUpperLipRollInL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUpperLipRollInR
+    targetNames:
+    - CTRL_expressions_mouthUpperLipRollInR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUpperLipRollOutL
+    targetNames:
+    - CTRL_expressions_mouthUpperLipRollOutL
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUpperLipRollOutR
+    targetNames:
+    - CTRL_expressions_mouthUpperLipRollOutR
+    multiplier: 1.05
+    offset: 0
+    curveExponent: 0.9
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUpperLipShiftLeft
+    targetNames:
+    - CTRL_expressions_mouthUpperLipShiftLeft
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUpperLipShiftRight
+    targetNames:
+    - CTRL_expressions_mouthUpperLipShiftRight
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUpperLipTowardsTeethL
+    targetNames:
+    - CTRL_expressions_mouthUpperLipTowardsTeethL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_mouthUpperLipTowardsTeethR
+    targetNames:
+    - CTRL_expressions_mouthUpperLipTowardsTeethR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckDigastricDown
+    targetNames:
+    - CTRL_expressions_neckDigastricDown
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckDigastricUp
+    targetNames:
+    - CTRL_expressions_neckDigastricUp
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckMastoidContractL
+    targetNames:
+    - CTRL_expressions_neckMastoidContractL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckMastoidContractR
+    targetNames:
+    - CTRL_expressions_neckMastoidContractR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckStretchL
+    targetNames:
+    - CTRL_expressions_neckStretchL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckStretchR
+    targetNames:
+    - CTRL_expressions_neckStretchR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckSwallowPh1
+    targetNames:
+    - CTRL_expressions_neckSwallowPh1
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckSwallowPh2
+    targetNames:
+    - CTRL_expressions_neckSwallowPh2
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckSwallowPh3
+    targetNames:
+    - CTRL_expressions_neckSwallowPh3
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckSwallowPh4
+    targetNames:
+    - CTRL_expressions_neckSwallowPh4
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckThroatDown
+    targetNames:
+    - CTRL_expressions_neckThroatDown
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckThroatExhale
+    targetNames:
+    - CTRL_expressions_neckThroatExhale
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckThroatInhale
+    targetNames:
+    - CTRL_expressions_neckThroatInhale
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_neckThroatUp
+    targetNames:
+    - CTRL_expressions_neckThroatUp
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_noseNasolabialDeepenL
+    targetNames:
+    - CTRL_expressions_noseNasolabialDeepenL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_noseNasolabialDeepenR
+    targetNames:
+    - CTRL_expressions_noseNasolabialDeepenR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_noseNostrilCompressL
+    targetNames:
+    - CTRL_expressions_noseNostrilCompressL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_noseNostrilCompressR
+    targetNames:
+    - CTRL_expressions_noseNostrilCompressR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_noseNostrilDepressL
+    targetNames:
+    - CTRL_expressions_noseNostrilDepressL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_noseNostrilDepressR
+    targetNames:
+    - CTRL_expressions_noseNostrilDepressR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_noseNostrilDilateL
+    targetNames:
+    - CTRL_expressions_noseNostrilDilateL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_noseNostrilDilateR
+    targetNames:
+    - CTRL_expressions_noseNostrilDilateR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_noseWrinkleL
+    targetNames:
+    - CTRL_expressions_noseWrinkleL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_noseWrinkleR
+    targetNames:
+    - CTRL_expressions_noseWrinkleR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_noseWrinkleUpperL
+    targetNames:
+    - CTRL_expressions_noseWrinkleUpperL
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_noseWrinkleUpperR
+    targetNames:
+    - CTRL_expressions_noseWrinkleUpperR
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_teethBackD
+    targetNames:
+    - CTRL_expressions_teethBackD
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_teethBackU
+    targetNames:
+    - CTRL_expressions_teethBackU
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_teethDownD
+    targetNames:
+    - CTRL_expressions_teethDownD
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_teethDownU
+    targetNames:
+    - CTRL_expressions_teethDownU
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_teethFwdD
+    targetNames:
+    - CTRL_expressions_teethFwdD
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_teethFwdU
+    targetNames:
+    - CTRL_expressions_teethFwdU
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_teethLeftD
+    targetNames:
+    - CTRL_expressions_teethLeftD
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_teethLeftU
+    targetNames:
+    - CTRL_expressions_teethLeftU
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_teethRightD
+    targetNames:
+    - CTRL_expressions_teethRightD
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_teethRightU
+    targetNames:
+    - CTRL_expressions_teethRightU
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_teethUpD
+    targetNames:
+    - CTRL_expressions_teethUpD
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_teethUpU
+    targetNames:
+    - CTRL_expressions_teethUpU
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueBendDown
+    targetNames:
+    - CTRL_expressions_tongueBendDown
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueBendUp
+    targetNames:
+    - CTRL_expressions_tongueBendUp
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueDown
+    targetNames:
+    - CTRL_expressions_tongueDown
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueIn
+    targetNames:
+    - CTRL_expressions_tongueIn
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueLeft
+    targetNames:
+    - CTRL_expressions_tongueLeft
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueNarrow
+    targetNames:
+    - CTRL_expressions_tongueNarrow
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueOut
+    targetNames:
+    - CTRL_expressions_tongueOut
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tonguePress
+    targetNames:
+    - CTRL_expressions_tonguePress
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueRight
+    targetNames:
+    - CTRL_expressions_tongueRight
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueRoll
+    targetNames:
+    - CTRL_expressions_tongueRoll
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueThick
+    targetNames:
+    - CTRL_expressions_tongueThick
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueThin
+    targetNames:
+    - CTRL_expressions_tongueThin
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueTipDown
+    targetNames:
+    - CTRL_expressions_tongueTipDown
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueTipLeft
+    targetNames:
+    - CTRL_expressions_tongueTipLeft
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueTipRight
+    targetNames:
+    - CTRL_expressions_tongueTipRight
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueTipUp
+    targetNames:
+    - CTRL_expressions_tongueTipUp
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueTwistLeft
+    targetNames:
+    - CTRL_expressions_tongueTwistLeft
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueTwistRight
+    targetNames:
+    - CTRL_expressions_tongueTwistRight
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueUp
+    targetNames:
+    - CTRL_expressions_tongueUp
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  - sourceBlendshape: CTRL_expressions_tongueWide
+    targetNames:
+    - CTRL_expressions_tongueWide
+    multiplier: 1
+    offset: 0
+    curveExponent: 1
+    enabled: 1
+    useOverrideValue: 0
+    overrideValue: 0
+    ignoreGlobalModifiers: 0
+    clampMinValue: 0
+    clampMaxValue: 1
+  _globalMultiplier: 0.9
+  _globalOffset: 0
+  _allowUnmappedPassthrough: 1
+

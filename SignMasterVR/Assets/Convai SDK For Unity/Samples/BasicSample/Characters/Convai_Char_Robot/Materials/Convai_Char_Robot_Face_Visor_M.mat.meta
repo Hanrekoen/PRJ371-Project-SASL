@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b680241ed74704947862379caa46a2af
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Samples/BasicSample/Characters/Convai_Char_Robot/Materials/Convai_Char_Robot_Face_Visor_M.mat
+  uploadId: 974114

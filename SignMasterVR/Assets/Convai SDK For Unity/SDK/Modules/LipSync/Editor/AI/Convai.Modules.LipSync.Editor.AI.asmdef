@@ -1,0 +1,20 @@
+{
+    "name": "Convai.Modules.LipSync.Editor.AI",
+    "rootNamespace": "Convai.Modules.LipSync.Editor.AI",
+    "references": [
+        "Convai.Domain",
+        "Convai.Editor",
+        "Convai.Editor.AI",
+        "Convai.Runtime",
+        "Convai.Modules.LipSync",
+        "Unity.AI.Assistant.Runtime",
+        "Unity.AI.MCP.Editor"
+    ],
+    "includePlatforms": ["Editor"],
+    "overrideReferences": true,
+    "precompiledReferences": ["Newtonsoft.Json.dll"],
+    "autoReferenced": true,
+    "defineConstraints": ["CONVAI_UNITY_MCP"],
+    "versionDefines": [{"name":"com.unity.ai.assistant","expression":"[2.13.0-pre.2,3.0.0)","define":"CONVAI_UNITY_MCP"}],
+    "noEngineReferences": false
+}

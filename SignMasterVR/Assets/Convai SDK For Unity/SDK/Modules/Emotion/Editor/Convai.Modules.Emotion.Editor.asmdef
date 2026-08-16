@@ -1,0 +1,23 @@
+{
+    "name": "Convai.Modules.Emotion.Editor",
+    "rootNamespace": "Convai.Modules.Emotion.Editor",
+    "references": [
+        "Convai.Editor",
+        "Convai.Domain",
+        "Convai.Domain.Embodiment",
+        "Convai.Runtime",
+        "Convai.Modules.Emotion",
+        "Convai.Shared.Unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

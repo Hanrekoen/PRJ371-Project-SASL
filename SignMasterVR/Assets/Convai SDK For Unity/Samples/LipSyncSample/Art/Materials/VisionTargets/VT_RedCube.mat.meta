@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 350a639b617d846a78afc36953ad5c3e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Samples/LipSyncSample/Art/Materials/VisionTargets/VT_RedCube.mat
+  uploadId: 974114

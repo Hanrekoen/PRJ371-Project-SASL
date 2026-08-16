@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 551b3629916e9454bb3c3ad0a157773d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Plugins/client-sdk-unity-web/Runtime/Scripts/Room/Track/LocalVideoTrack.cs
+  uploadId: 974114

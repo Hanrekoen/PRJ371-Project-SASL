@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: a5b9d84702e06274d9871e36c2806450
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Samples/LipSyncSample/Characters/Sofia/Prefabs/Sofia.prefab
+  uploadId: 974114

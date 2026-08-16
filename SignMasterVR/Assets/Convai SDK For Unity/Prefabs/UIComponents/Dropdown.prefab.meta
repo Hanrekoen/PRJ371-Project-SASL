@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6c33572a421e79c41bac2a44367d85eb
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Prefabs/UIComponents/Dropdown.prefab
+  uploadId: 974114

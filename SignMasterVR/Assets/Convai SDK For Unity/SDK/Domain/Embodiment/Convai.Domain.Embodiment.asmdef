@@ -1,0 +1,16 @@
+{
+    "name": "Convai.Domain.Embodiment",
+    "rootNamespace": "Convai.Domain.Embodiment",
+    "references": [
+        "Convai.Domain"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

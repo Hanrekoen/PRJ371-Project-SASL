@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 86333eb4b3f814fc99e38155e6031fc2
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Samples/LipSyncSample/Art/Materials/VisionTargets/VT_GreenCapsule.mat
+  uploadId: 974114

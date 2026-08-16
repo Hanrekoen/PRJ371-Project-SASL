@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 4a89e8678d0341d43908acca4f2c6a33
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Samples/BasicSample/Characters/Convai_Char_Robot/Prefab/Convai_Char_Robot.prefab
+  uploadId: 974114

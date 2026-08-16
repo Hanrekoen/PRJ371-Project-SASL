@@ -1,0 +1,37 @@
+{
+    "name": "Convai.Modules.BodyLanguage.Editor.AI",
+    "rootNamespace": "Convai.Modules.BodyLanguage.Editor.AI",
+    "references": [
+        "Convai.Domain",
+        "Convai.Domain.Embodiment",
+        "Convai.Editor",
+        "Convai.Editor.AI",
+        "Convai.Runtime",
+        "Convai.Modules.BodyLanguage",
+        "Convai.Modules.BodyLanguage.Editor",
+        "Convai.Shared.Unity",
+        "Unity.AI.Assistant.Runtime",
+        "Unity.AI.MCP.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "CONVAI_UNITY_MCP"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.ai.assistant",
+            "expression": "[2.13.0-pre.2,3.0.0)",
+            "define": "CONVAI_UNITY_MCP"
+        }
+    ],
+    "noEngineReferences": false
+}

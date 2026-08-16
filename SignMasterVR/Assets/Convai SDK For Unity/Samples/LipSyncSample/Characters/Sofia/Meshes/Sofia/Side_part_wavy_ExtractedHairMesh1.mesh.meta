@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 924cfa2006e9b654181b9e0fcb0cb2d1
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 4300000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Samples/LipSyncSample/Characters/Sofia/Meshes/Sofia/Side_part_wavy_ExtractedHairMesh1.mesh
+  uploadId: 974114

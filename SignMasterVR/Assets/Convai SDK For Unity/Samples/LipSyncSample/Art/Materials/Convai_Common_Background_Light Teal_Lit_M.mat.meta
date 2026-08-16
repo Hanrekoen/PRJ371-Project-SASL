@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: fae4c47678ee09b4a9a6d7018eeac2d0
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Samples/LipSyncSample/Art/Materials/Convai_Common_Background_Light
+    Teal_Lit_M.mat
+  uploadId: 974114

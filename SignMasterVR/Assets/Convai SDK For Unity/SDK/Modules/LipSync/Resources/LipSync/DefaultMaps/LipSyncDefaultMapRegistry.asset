@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cae9f96d041a48f181496ec11b15d09d, type: 3}
+  m_Name: LipSyncDefaultMapRegistry
+  m_EditorClassIdentifier: 
+  _entries:
+  - _profileId: arkit
+    _defaultMap: {fileID: 11400000, guid: 72ac40a64996b054da875b76f1bec0e2, type: 2}
+    _rigProfileId: 
+  - _profileId: arkit
+    _defaultMap: {fileID: 11400000, guid: 723dcc0a54572524cb370f44facc55e1, type: 2}
+    _rigProfileId: cc4_extended
+  - _profileId: cc4_extended
+    _defaultMap: {fileID: 11400000, guid: 4a6a64db478f45bb876c79820fa58b8f, type: 2}
+    _rigProfileId: 
+  - _profileId: metahuman
+    _defaultMap: {fileID: 11400000, guid: bfbaf969f6bb7c54b811e1c100a85007, type: 2}
+    _rigProfileId: 

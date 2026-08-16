@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: a9ddcc680397e3b4f815150b3abd1c7b
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 12385, guid: 0000000000000000e000000000000000, type: 0}
+  disableValidation: 0
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/SDK/Editor/ConfigurationWindow/WindowStyles/ConvaiConfigurationWindowStylesheet.uss
+  uploadId: 974114

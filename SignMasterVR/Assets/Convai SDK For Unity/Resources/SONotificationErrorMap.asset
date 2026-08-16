@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7e8d9c0a1f2436586978091a2b3c4d5, type: 3}
+  m_Name: SONotificationErrorMap
+  m_EditorClassIdentifier: 
+  Rules:
+  - ErrorPattern: connection.auth_failed
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: 426ae0f45074eaa252d64fa3b69a5761, type: 2}
+  - ErrorPattern: connection.invalid_token
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: 426ae0f45074eaa252d64fa3b69a5761, type: 2}
+  - ErrorPattern: config.api_key_missing
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: 426ae0f45074eaa252d64fa3b69a5761, type: 2}
+  - ErrorPattern: connection.rate_limited
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: b3543922a1ad1b0138f08b296450c5cb, type: 2}
+  - ErrorPattern: server.usage_limit_reached
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: b3543922a1ad1b0138f08b296450c5cb, type: 2}
+  - ErrorPattern: audio.mic_unavailable
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: e32e52ed4f72d2de9aa292316003769f, type: 2}
+  - ErrorPattern: audio.mic_permission_denied
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: 6acbecadc10c005dbcd52a16f1d27f75, type: 2}
+  - ErrorPattern: audio.mic_publish_failed
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: 6acbecadc10c005dbcd52a16f1d27f75, type: 2}
+  - ErrorPattern: connection.timeout
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: 254c06e8dc7089eb7f5363dcffca7cf9, type: 2}
+  - ErrorPattern: connection.network_error
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: 254c06e8dc7089eb7f5363dcffca7cf9, type: 2}
+  - ErrorPattern: connection.service_unavailable
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: 254c06e8dc7089eb7f5363dcffca7cf9, type: 2}
+  - ErrorPattern: connection.server_error
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: 254c06e8dc7089eb7f5363dcffca7cf9, type: 2}
+  - ErrorPattern: transport.livekit_error
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: 254c06e8dc7089eb7f5363dcffca7cf9, type: 2}
+  - ErrorPattern: connection.failed
+    MatchType: 0
+    Notification: {fileID: 11400000, guid: 254c06e8dc7089eb7f5363dcffca7cf9, type: 2}
+  - ErrorPattern: connection.
+    MatchType: 1
+    Notification: {fileID: 11400000, guid: 254c06e8dc7089eb7f5363dcffca7cf9, type: 2}
+  - ErrorPattern: transport.
+    MatchType: 1
+    Notification: {fileID: 11400000, guid: 254c06e8dc7089eb7f5363dcffca7cf9, type: 2}
+  - ErrorPattern: server.
+    MatchType: 1
+    Notification: {fileID: 11400000, guid: 254c06e8dc7089eb7f5363dcffca7cf9, type: 2}
+  - ErrorPattern: audio.
+    MatchType: 1
+    Notification: {fileID: 11400000, guid: 6acbecadc10c005dbcd52a16f1d27f75, type: 2}
+  - ErrorPattern: config.
+    MatchType: 1
+    Notification: {fileID: 11400000, guid: 426ae0f45074eaa252d64fa3b69a5761, type: 2}

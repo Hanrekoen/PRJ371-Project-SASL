@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1c46167f565c69d4d8c3f128f9551386
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Samples/LipSyncSample/Characters/Sofia/Materials/Sofia/Female_Brow_Base_Transparency.mat
+  uploadId: 974114

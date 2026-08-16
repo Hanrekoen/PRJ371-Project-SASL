@@ -1,0 +1,30 @@
+{
+    "name": "Convai.Editor.Embodiment",
+    "rootNamespace": "Convai.Editor.Embodiment",
+    "references": [
+        "Convai.Editor",
+        "Convai.Domain",
+        "Convai.Domain.Embodiment",
+        "Convai.Runtime",
+        "Convai.Modules.ConversationFlow",
+        "Convai.Modules.Emotion",
+        "Convai.Modules.Emotion.Editor",
+        "Convai.Modules.Gaze",
+        "Convai.Modules.Embodiment",
+        "Convai.Modules.BodyAnimation",
+        "Convai.Modules.BodyAnimation.Editor",
+        "Convai.Modules.Gaze.Editor",
+        "Convai.Shared.Unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

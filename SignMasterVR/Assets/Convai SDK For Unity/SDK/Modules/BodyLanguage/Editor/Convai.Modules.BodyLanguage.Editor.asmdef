@@ -1,0 +1,22 @@
+{
+    "name": "Convai.Modules.BodyLanguage.Editor",
+    "rootNamespace": "Convai.Modules.BodyLanguage.Editor",
+    "references": [
+        "Convai.Editor",
+        "Convai.Modules.BodyLanguage",
+        "Convai.Domain",
+        "Convai.Domain.Embodiment",
+        "Convai.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,19 @@
+{
+    "name": "Convai.Modules.Gaze",
+    "rootNamespace": "Convai.Modules.Gaze",
+    "references": [
+        "Convai.Domain",
+        "Convai.Domain.Embodiment",
+        "Convai.Runtime",
+        "Convai.Shared.Unity"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

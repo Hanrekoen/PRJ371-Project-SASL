@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 798064a644a1c1c4e92344b4d08a944b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Resources/Art/UI/Fonts/Inter/Inter_18pt-Medium
+    SDF.asset
+  uploadId: 974114

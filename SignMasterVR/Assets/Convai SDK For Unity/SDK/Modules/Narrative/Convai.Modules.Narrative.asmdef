@@ -1,0 +1,20 @@
+{
+    "name": "Convai.Modules.Narrative",
+    "rootNamespace": "Convai.Modules.Narrative",
+    "references": [
+        "Convai.Domain",
+        "Convai.RestAPI",
+        "Convai.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [
+        "WebGL"
+    ],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

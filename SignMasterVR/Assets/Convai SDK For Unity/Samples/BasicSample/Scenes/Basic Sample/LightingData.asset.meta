@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f25ae01793ee06d468150b42e2fd6e7b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 112000000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Samples/BasicSample/Scenes/Basic Sample/LightingData.asset
+  uploadId: 974114

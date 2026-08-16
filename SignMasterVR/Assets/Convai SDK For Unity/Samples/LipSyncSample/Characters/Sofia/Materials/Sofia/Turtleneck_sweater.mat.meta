@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 2faa824f3ea03fe41b86cbb84a9aa33a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Samples/LipSyncSample/Characters/Sofia/Materials/Sofia/Turtleneck_sweater.mat
+  uploadId: 974114

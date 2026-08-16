@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 66e9ca8254853430d8870d5324f260c9
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Samples/LipSyncSample/Art/Materials/VisionTargets/VT_TallCylinder.mat
+  uploadId: 974114

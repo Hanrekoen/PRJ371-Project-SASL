@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c8d8bf4f5d94f0ebf5b2e8e31642c1a, type: 3}
+  m_Name: ConvaiEditorSettings
+  m_EditorClassIdentifier: 
+  _convaiConfigurationWindowStyleSheet: {fileID: -4733365628477956816, guid: 5baa54a59b0c7d44394c08317613d092, type: 3}
+  _unityStyleSheet: {fileID: -4733365628477956816, guid: 62dd20662e9534341948688eca68fa17, type: 3}
+  _convaiSettingsSectionsStyleSheet: {fileID: 7433441132597879392, guid: c3b70b4ed99545f4a8d22c5cc784bd44, type: 3}
+  _convaiCharacterInspectorUxml: {fileID: 9197481963319205126, guid: 7c19e7b554eca4fb1b28cb5f2cc3ec78, type: 3}
+  _convaiEditorStylesSheet: {fileID: 7433441132597879392, guid: fa1ad6e98a24348ea8307974b0703cb1, type: 3}
+  _convaiIconTexture: {fileID: 2800000, guid: 11be21f3f1f4bac46a48d14a031f3d60, type: 3}
+  _convaiLogoTextureBlack: {fileID: 2800000, guid: 886c6a6f9ffe89e4895ee33d4033717e, type: 3}
+  _convaiLogoTextureWhite: {fileID: 2800000, guid: b688e0950e2692e4187f9358cfb18984, type: 3}
+  _convaiThumbnailTexture: {fileID: 2800000, guid: e546454da4a96f84ba96098ee158baae, type: 3}

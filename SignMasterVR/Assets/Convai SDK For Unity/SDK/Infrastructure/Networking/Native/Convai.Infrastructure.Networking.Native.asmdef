@@ -1,0 +1,22 @@
+{
+    "name": "Convai.Transport.Native",
+    "rootNamespace": "Convai.Infrastructure.Networking",
+    "references": [
+        "Convai.Domain",
+        "Convai.RestAPI",
+        "Convai.Runtime",
+        "LiveKit",
+        "Newtonsoft.Json"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [
+        "WebGL"
+    ],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 38c904b02365c604ea9e3903e83f4cc4
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Prefabs/TranscriptUI/TranscriptUI_Chat_WorldSpace.prefab
+  uploadId: 974114

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 723a70eddae15154c9712c0e9d99d16b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Samples/LipSyncSample/Characters/Sofia/Materials/Sofia/Std_Tearline_R.mat
+  uploadId: 974114

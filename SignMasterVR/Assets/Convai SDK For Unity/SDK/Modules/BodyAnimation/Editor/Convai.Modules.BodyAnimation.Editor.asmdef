@@ -1,0 +1,23 @@
+{
+    "name": "Convai.Modules.BodyAnimation.Editor",
+    "rootNamespace": "Convai.Modules.BodyAnimation.Editor",
+    "references": [
+        "Convai.Editor",
+        "Convai.Domain",
+        "Convai.Domain.Embodiment",
+        "Convai.Runtime",
+        "Convai.Modules.BodyAnimation",
+        "Convai.Shared.Unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

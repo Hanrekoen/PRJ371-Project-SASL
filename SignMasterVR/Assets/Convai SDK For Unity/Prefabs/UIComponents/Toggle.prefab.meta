@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 7b928a83ae204b44881d21c48c9bac50
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235621
+  packageName: NPC AI Engine - Dialog, actions, voice and lipsync - Convai
+  packageVersion: 4.5.0
+  assetPath: Assets/Convai SDK For Unity/Prefabs/UIComponents/Toggle.prefab
+  uploadId: 974114
