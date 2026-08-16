@@ -1,11 +1,12 @@
 # Force consistent line endings
 * text=auto
 
-# Unity files should always use LF
+# Unity text files should always use LF
 *.cs text eol=lf
 *.unity text eol=lf
 *.meta text eol=lf
 *.shader text eol=lf
+*.json text eol=lf
 
 # Images and binaries should be treated as binary
 *.png binary
