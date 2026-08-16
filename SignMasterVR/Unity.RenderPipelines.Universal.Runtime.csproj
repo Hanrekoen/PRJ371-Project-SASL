@@ -111,8 +111,8 @@
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Runtime\RendererFeatures\ScreenSpaceAmbientOcclusion.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Runtime\History\TaaHistory.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Runtime\FrameData\UniversalPostProcessingData.cs" />
-    <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Runtime\FrameData\UniversalShadowData.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Runtime\Overrides\Bloom.cs" />
+    <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Runtime\FrameData\UniversalShadowData.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Runtime\Debug\DebugDisplaySettingsRendering.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Runtime\SupportedOnRenderer.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Runtime\UniversalRenderer.cs" />
@@ -839,12 +839,12 @@
       <HintPath>Library\PackageCache\com.unity.testtools.codecoverage@19a841221620\lib\ReportGenerator\ReportGeneratorMerged.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Cecil">
-      <HintPath>Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Library\PackageCache\com.unity.nuget.newtonsoft-json@4dfd81071c64\Runtime\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Android.Types">

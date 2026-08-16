@@ -77,20 +77,15 @@
     <Compile Include="Assets\VRTemplateAssets\Scripts\AnchorVisuals.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Convai SDK For Unity\SDK\link.xml" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile-2-Pass.shader" />
     <None Include="Assets\VRTemplateAssets\Shaders\FauxBlurURP.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap.shader" />
-    <None Include="Assets\Convai SDK For Unity\LICENSE.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Mobile.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF SSD.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
-    <None Include="Assets\Convai SDK For Unity\Samples\LipSyncSample\Characters\Sofia\Sofia_ImportInfo.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\SDFFunctions.hlsl" />
-    <None Include="Assets\Convai SDK For Unity\LIVEKIT-LICENSE.txt" />
-    <None Include="Assets\Convai SDK For Unity\Plugins\client-sdk-unity-livekit\Resources\Shaders\YuvToRgb.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
     <None Include="Assets\VRTemplateAssets\Shaders\Grid.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Custom-Atlas.shader" />
@@ -99,7 +94,6 @@
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
-    <None Include="Assets\Convai SDK For Unity\LIVEKIT-NOTICE.txt" />
     <None Include="Assets\Convai\Plugins\client-sdk-unity-livekit\Runtime\Plugins\ffi-windows-x86_64\livekit_ffi.dll" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
@@ -649,12 +643,12 @@
       <HintPath>Library\PackageCache\com.unity.testtools.codecoverage@19a841221620\lib\ReportGenerator\ReportGeneratorMerged.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Cecil">
-      <HintPath>Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Library\PackageCache\com.unity.nuget.newtonsoft-json@4dfd81071c64\Runtime\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Android.Types">
@@ -1177,10 +1171,6 @@
       <HintPath>Library\ScriptAssemblies\Unity.XR.ARSubsystems.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.TestTools.CodeCoverage.Editor.OpenCover.Model">
-      <HintPath>Library\ScriptAssemblies\Unity.TestTools.CodeCoverage.Editor.OpenCover.Model.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Unity.AI.Navigation.Updater">
       <HintPath>Library\ScriptAssemblies\Unity.AI.Navigation.Updater.dll</HintPath>
       <Private>False</Private>
@@ -1191,6 +1181,10 @@
     </Reference>
     <Reference Include="Unity.EditorCoroutines.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.EditorCoroutines.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.TestTools.CodeCoverage.Editor.OpenCover.Model">
+      <HintPath>Library\ScriptAssemblies\Unity.TestTools.CodeCoverage.Editor.OpenCover.Model.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.XR.ARFoundation.VisualScripting">
@@ -1281,12 +1275,12 @@
       <HintPath>Library\ScriptAssemblies\Unity.XR.Simulation.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.TestTools.CodeCoverage.Editor.OpenCover.Mono.Reflection">
-      <HintPath>Library\ScriptAssemblies\Unity.TestTools.CodeCoverage.Editor.OpenCover.Mono.Reflection.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Unity.XR.CompositionLayers.UIInteraction.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.XR.CompositionLayers.UIInteraction.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.TestTools.CodeCoverage.Editor.OpenCover.Mono.Reflection">
+      <HintPath>Library\ScriptAssemblies\Unity.TestTools.CodeCoverage.Editor.OpenCover.Mono.Reflection.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.InputSystem">
@@ -1427,17 +1421,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="LiveKit.csproj">
-      <Project>{879E2C3A-9055-FAD8-4B5F-7A249258E1A0}</Project>
-      <Name>LiveKit</Name>
-    </ProjectReference>
     <ProjectReference Include="Unity.TextMeshPro.csproj">
       <Project>{9EB51F8F-8C81-2EBF-B564-7E5647B738BC}</Project>
       <Name>Unity.TextMeshPro</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Modules.BodyAnimation.Editor.csproj">
-      <Project>{925E6AAB-6584-FFF6-7572-CE4250A9F007}</Project>
-      <Name>Convai.Modules.BodyAnimation.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Rendering.LightTransport.Editor.csproj">
       <Project>{95D67944-7F4B-E178-B277-51685DCC399C}</Project>
@@ -1447,65 +1433,29 @@
       <Project>{055C8640-64A0-2B90-FC69-F1A999459CF1}</Project>
       <Name>Unity.RenderPipelines.Core.ShaderLibrary</Name>
     </ProjectReference>
-    <ProjectReference Include="Convai.Modules.Emotion.csproj">
-      <Project>{6BB026DE-1E41-3529-C800-BB8282F5F1C2}</Project>
-      <Name>Convai.Modules.Emotion</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Transport.Native.csproj">
-      <Project>{1B33E8C4-2A92-EA7E-493F-B4F9FCB1D386}</Project>
-      <Name>Convai.Transport.Native</Name>
-    </ProjectReference>
     <ProjectReference Include="PPv2URPConverters.csproj">
       <Project>{4A25C60D-1C2D-6E0C-3697-F477F893FC5A}</Project>
       <Name>PPv2URPConverters</Name>
-    </ProjectReference>
-    <ProjectReference Include="Reallusion.CCiC.Editor.csproj">
-      <Project>{33B1DCDC-7635-F453-5561-E2E690BFC6A8}</Project>
-      <Name>Reallusion.CCiC.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.Core.Runtime.Shared.csproj">
       <Project>{2281DF16-BB82-C141-897D-0808AAD99DEA}</Project>
       <Name>Unity.RenderPipelines.Core.Runtime.Shared</Name>
     </ProjectReference>
-    <ProjectReference Include="Convai.Modules.Narrative.csproj">
-      <Project>{E0EFCE65-92C1-7131-82EF-EA9B120977E4}</Project>
-      <Name>Convai.Modules.Narrative</Name>
-    </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.Universal.2D.Runtime.csproj">
       <Project>{B49CE724-B9DD-DB16-3875-7D6488C9C272}</Project>
       <Name>Unity.RenderPipelines.Universal.2D.Runtime</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Shared.Unity.csproj">
-      <Project>{C6EC0DCF-8527-EADD-FF34-A44887A7C130}</Project>
-      <Name>Convai.Shared.Unity</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Editor.Embodiment.csproj">
-      <Project>{B2BDACD2-A0DA-A1BE-F094-569D0F673EB0}</Project>
-      <Name>Convai.Editor.Embodiment</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.Interaction.Toolkit.Samples.StarterAssets.csproj">
       <Project>{408EAEA1-1F31-9417-367C-85084B1DC1E8}</Project>
       <Name>Unity.XR.Interaction.Toolkit.Samples.StarterAssets</Name>
     </ProjectReference>
-    <ProjectReference Include="Convai.Sample.csproj">
-      <Project>{C4012E37-714F-53AF-D426-6FBEC884563D}</Project>
-      <Name>Convai.Sample</Name>
-    </ProjectReference>
     <ProjectReference Include="Unity.UnifiedRayTracing.Runtime.csproj">
       <Project>{E73F2512-6B28-74EF-5373-A86E71F8FE20}</Project>
       <Name>Unity.UnifiedRayTracing.Runtime</Name>
     </ProjectReference>
-    <ProjectReference Include="Convai.Transport.WebGL.csproj">
-      <Project>{C6DF29C5-3FAE-8248-A5D7-5AFD86826B03}</Project>
-      <Name>Convai.Transport.WebGL</Name>
-    </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.csproj">
       <Project>{A65BAE95-9BDC-6CE9-3E89-6A47FBF2C8F4}</Project>
       <Name>Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Modules.Emotion.Editor.csproj">
-      <Project>{CE92839E-8747-A546-FCC7-DECF8701FB97}</Project>
-      <Name>Convai.Modules.Emotion.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.TextMeshPro.Editor.csproj">
       <Project>{C7152634-15FF-23A0-FD5D-D99E8F7863DD}</Project>
@@ -1515,10 +1465,6 @@
       <Project>{EFBA6F5F-FEA3-F50F-230C-CC9A56C70416}</Project>
       <Name>Unity.RenderPipelines.GPUDriven.Runtime</Name>
     </ProjectReference>
-    <ProjectReference Include="Convai.Modules.Embodiment.csproj">
-      <Project>{2264744A-A5B5-BE7B-C361-73C1F6A61585}</Project>
-      <Name>Convai.Modules.Embodiment</Name>
-    </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.Universal.Shaders.csproj">
       <Project>{51851676-3401-6715-4AE2-F044B873C614}</Project>
       <Name>Unity.RenderPipelines.Universal.Shaders</Name>
@@ -1527,33 +1473,17 @@
       <Project>{A428D760-B3B0-DDD4-FC62-E6EFC5BECE90}</Project>
       <Name>UnityEngine.UI</Name>
     </ProjectReference>
-    <ProjectReference Include="Convai.Domain.Embodiment.csproj">
-      <Project>{0A86478B-0DD8-89FF-BB5B-8AF54DF52E53}</Project>
-      <Name>Convai.Domain.Embodiment</Name>
-    </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.Universal.Runtime.csproj">
       <Project>{7A6E6BD5-4E27-AF06-8136-6DCAFD4371E0}</Project>
       <Name>Unity.RenderPipelines.Universal.Runtime</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Editor.csproj">
-      <Project>{9D48D2EC-8551-FD7F-A4D2-77A94A2A3907}</Project>
-      <Name>Convai.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.Universal.Config.Runtime.csproj">
       <Project>{FB6C016A-C366-8FE4-5C01-FA87E21EB8D8}</Project>
       <Name>Unity.RenderPipelines.Universal.Config.Runtime</Name>
     </ProjectReference>
-    <ProjectReference Include="Convai.Modules.ConversationFlow.csproj">
-      <Project>{26956F62-1204-754E-0721-E0ACC3268580}</Project>
-      <Name>Convai.Modules.ConversationFlow</Name>
-    </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.Core.Editor.Shared.csproj">
       <Project>{494DD4C9-8728-3C75-326D-48728E4B6819}</Project>
       <Name>Unity.RenderPipelines.Core.Editor.Shared</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Modules.BodyAnimation.csproj">
-      <Project>{0C8D8A4F-3281-E751-B044-2A66C343D9BF}</Project>
-      <Name>Convai.Modules.BodyAnimation</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.Interaction.Toolkit.Samples.Hands.csproj">
       <Project>{3E4A7DD1-59DE-F18C-6602-2F4A6B8A18A1}</Project>
@@ -1563,25 +1493,9 @@
       <Project>{DE2E023B-E38F-2144-4216-698225768CC1}</Project>
       <Name>Unity.RenderPipelines.Core.Editor</Name>
     </ProjectReference>
-    <ProjectReference Include="LiveKitBridge.csproj">
-      <Project>{8FFCBD37-18E5-F661-5690-5E6F62DCA4F8}</Project>
-      <Name>LiveKitBridge</Name>
-    </ProjectReference>
     <ProjectReference Include="UnityEditor.UI.Analytics.csproj">
       <Project>{E83F1F36-8D70-6DF3-0574-F15C87CEDBBF}</Project>
       <Name>UnityEditor.UI.Analytics</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Modules.Vision.csproj">
-      <Project>{EB831F2E-06E7-9CE8-7305-7AEF6D3E9B2E}</Project>
-      <Name>Convai.Modules.Vision</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Modules.BodyLanguage.Editor.csproj">
-      <Project>{DC1D1256-0708-721B-A2FE-57E887917673}</Project>
-      <Name>Convai.Modules.BodyLanguage.Editor</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Modules.LipSync.csproj">
-      <Project>{92F99834-1685-BDDE-032D-D37C393118CA}</Project>
-      <Name>Convai.Modules.LipSync</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.Universal.2D.Editor.Overrides.csproj">
       <Project>{5C487C95-E18C-F533-CA67-C521A72BDCEE}</Project>
@@ -1591,33 +1505,9 @@
       <Project>{C5B0F90F-CFD5-9065-653E-D30CFBC70C43}</Project>
       <Name>Unity.RenderPipelines.Universal.Editor</Name>
     </ProjectReference>
-    <ProjectReference Include="Convai.Domain.csproj">
-      <Project>{3F62A6DD-9256-C470-A799-6A26E0C38E57}</Project>
-      <Name>Convai.Domain</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Runtime.csproj">
-      <Project>{A017B147-2E51-0CBA-E2A0-50B47E6FA1C5}</Project>
-      <Name>Convai.Runtime</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Modules.Gaze.csproj">
-      <Project>{B5C2E17A-4567-1FBC-D5F9-761FB3F67A0D}</Project>
-      <Name>Convai.Modules.Gaze</Name>
-    </ProjectReference>
     <ProjectReference Include="Unity.RenderPipelines.Core.Runtime.csproj">
       <Project>{D49A6810-06D2-4F5D-4BA1-FA3E9A12E8A9}</Project>
       <Name>Unity.RenderPipelines.Core.Runtime</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Modules.Gaze.Editor.csproj">
-      <Project>{F2721E56-3A69-2710-9478-8C21960EA905}</Project>
-      <Name>Convai.Modules.Gaze.Editor</Name>
-    </ProjectReference>
-    <ProjectReference Include="Reallusion.CCiC.Runtime.csproj">
-      <Project>{5D6BD47A-173D-E6FA-2F4D-2ACCA4BD7B23}</Project>
-      <Name>Reallusion.CCiC.Runtime</Name>
-    </ProjectReference>
-    <ProjectReference Include="Editor.csproj">
-      <Project>{8CA761C6-C233-2263-0855-4DC49CFA90E3}</Project>
-      <Name>Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.XR.Hands.Samples.VisualizerSample.csproj">
       <Project>{A5B59CA4-5F4A-A300-2DD1-B3FABEB120E1}</Project>
@@ -1635,10 +1525,6 @@
       <Project>{971B3703-5C7A-D2FD-8E16-7BB0C2FB50FE}</Project>
       <Name>Unity.Multiplayer.Center.Editor</Name>
     </ProjectReference>
-    <ProjectReference Include="Convai.Modules.BodyLanguage.csproj">
-      <Project>{3DBEF65D-8C7F-CA02-5F80-13E9FB7665AE}</Project>
-      <Name>Convai.Modules.BodyLanguage</Name>
-    </ProjectReference>
     <ProjectReference Include="Unity.XR.Interaction.Toolkit.Samples.StarterAssets.Editor.csproj">
       <Project>{CCE6D169-0116-0277-1408-0DFAD9B4210F}</Project>
       <Name>Unity.XR.Interaction.Toolkit.Samples.StarterAssets.Editor</Name>
@@ -1647,25 +1533,13 @@
       <Project>{FE721FDD-2A6C-D1A6-F142-CE442FAA8B31}</Project>
       <Name>Unity.RenderPipeline.Universal.ShaderLibrary</Name>
     </ProjectReference>
-    <ProjectReference Include="Convai.RestAPI.csproj">
-      <Project>{19CEE57B-9B3E-F7F5-2D47-646F32D35206}</Project>
-      <Name>Convai.RestAPI</Name>
-    </ProjectReference>
     <ProjectReference Include="Unity.ShaderGraph.Editor.csproj">
       <Project>{F62BD2CF-B776-C832-0484-AA0794FB7E23}</Project>
       <Name>Unity.ShaderGraph.Editor</Name>
     </ProjectReference>
-    <ProjectReference Include="Convai.Runtime.UI.csproj">
-      <Project>{5E4A22B3-F144-AA07-3445-CCCDC4D9AFE7}</Project>
-      <Name>Convai.Runtime.UI</Name>
-    </ProjectReference>
     <ProjectReference Include="Unity.XR.Interaction.Toolkit.Samples.Hands.Editor.csproj">
       <Project>{636C2763-93D5-1438-381D-FE92A6986DFD}</Project>
       <Name>Unity.XR.Interaction.Toolkit.Samples.Hands.Editor</Name>
-    </ProjectReference>
-    <ProjectReference Include="Convai.Sample.Camera.csproj">
-      <Project>{6A8F733D-CCA6-EFF3-2140-D6BFF1015230}</Project>
-      <Name>Convai.Sample.Camera</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.UI.csproj">
       <Project>{0DD13C5C-1244-7EE3-0427-24793EE9BDF0}</Project>

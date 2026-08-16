@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b87ae7d9f754ca2a8ef38f8b6bdb32f, type: 3}
+  m_Name: ConvaiRoomManagerProfile
+  m_EditorClassIdentifier: Convai.Runtime::Convai.Runtime.ConvaiRoomManagerProfile
+  _connectionType: 0
+  _videoTrackName: 
+  _serverEndpoint: 0
+  _connectOnStart: 1
+  _turnTakingOptions:
+    <Mode>k__BackingField: 0
+    <TurnDetection>k__BackingField: 0
+    <CustomTurnDetection>k__BackingField:
+      <StopSecs>k__BackingField: 3
+      <PreSpeechMs>k__BackingField: 0
+      <MaxDurationSecs>k__BackingField: 8
+    <InitialServerStt>k__BackingField: 0
+    <LocalAudioPolicy>k__BackingField:
+      <StartMutedInPushToTalk>k__BackingField: 1
+      <EnableAcousticEchoCancellation>k__BackingField: 0
+      <PushToTalkStartupMode>k__BackingField: 0
+    <PushToTalkPolicy>k__BackingField:
+      <ReleaseTailMs>k__BackingField: 1000
+      <EnableServerSttToggle>k__BackingField: 1
+      <InterruptBotOnPress>k__BackingField: 1
+      <RequireTurnCompletionBeforeNextPress>k__BackingField: 1
+      <TurnCompletionTimeoutMs>k__BackingField: 5000
+      <AllowSpeechStoppedFallbackAfterSpeechStart>k__BackingField: 0
+    <BargeIn>k__BackingField:
+      <SmoothInterruption>k__BackingField: 1
+      <FadeOutSeconds>k__BackingField: 0.12
+      <ClientDetection>k__BackingField: 0
+  _userVadSettings:
+    <UseServerDefault>k__BackingField: 1
+    <Confidence>k__BackingField: 0.7
+    <StartSecs>k__BackingField: 0.2
+    <StopSecs>k__BackingField: 0.2
+    <MinVolume>k__BackingField: 0.6
+  _visionContextMode: 0
+  _visionInputSettings:
+    _sampleIntervalSeconds: 1
+    _framesPerTurn: 5
+    _bufferFrames: 0
+    _samplingWindows: []
+    _stalenessSeconds: 10
+    _maxResolution: 0
+    _replacePreviousVisionContext: 1
+  _visionRespondModes:
+    _vision: 0
+    _contextUpdate: 1
+    _trigger: 2
+    _sceneMetadata: 0
+  _roomRejoinTtlSeconds: 60
+  _resumePolicy: 1
+  _maxReconnectAttempts: 3
+  _spawnAgentOnRejoin: 1
+  _startWaitTimeoutMs: 5000
+  _autoMicStartDelaySeconds: 0.5

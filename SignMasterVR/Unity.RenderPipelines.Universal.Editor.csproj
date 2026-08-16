@@ -121,8 +121,8 @@
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Editor\2D\ShaderGraph\Targets\UniversalMeshLitInfo.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Editor\Converter\InitializeConverterContext.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Editor\ShaderGUI\ShaderGraphLitGUI.cs" />
-    <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Editor\2D\Shadows\ShadowCaster2DShapeTool.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Editor\2D\CompositeShadowCaster2DEditor.cs" />
+    <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Editor\2D\Shadows\ShadowCaster2DShapeTool.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Editor\2D\Converter\URP2DConverterUtility.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Editor\ShaderGUI\ShadergraphSpriteGUI.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503\Editor\ShaderGUI\ShaderGraphTerrainLitGUI.cs" />
@@ -956,12 +956,12 @@
       <HintPath>Library\PackageCache\com.unity.testtools.codecoverage@19a841221620\lib\ReportGenerator\ReportGeneratorMerged.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Cecil">
-      <HintPath>Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Library\PackageCache\com.unity.nuget.newtonsoft-json@4dfd81071c64\Runtime\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Android.Types">
