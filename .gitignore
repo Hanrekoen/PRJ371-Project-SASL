@@ -8,5 +8,38 @@
 **/Builds/
 **/UserSettings/
 
-# Ignore Visual Studio cache
+# Visual Studio / VS Code
 .vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Auto-generated project files
+*.csproj
+*.unityproj
+*.sln
+*.tmp
+*.pidb
+*.booproj
+*.svd
+
+# Crash reports
+*.stackdump
+
+# Other
+*.apk
+*.aab
+*.app
+*.exe
+*.dll
+*.pdb
+*.mdb
+*.so
+*.dylib
+*.class

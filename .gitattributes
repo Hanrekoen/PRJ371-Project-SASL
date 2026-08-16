@@ -1,0 +1,19 @@
+# Force consistent line endings
+* text=auto
+
+# Unity files should always use LF
+*.cs text eol=lf
+*.unity text eol=lf
+*.meta text eol=lf
+*.shader text eol=lf
+
+# Images and binaries should be treated as binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.fbx binary
+*.mp4 binary
+*.wav binary
+*.ogg binary
+*.dll binary
+*.exe binary
