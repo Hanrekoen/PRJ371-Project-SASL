@@ -83,8 +83,8 @@
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Runtime\GPUDriven\InstanceData\InstanceAllocator.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Runtime\GPUDriven\OcclusionCullingCommonShaderVariables.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Runtime\GPUDriven\InstanceCuller.cs" />
-    <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Runtime\GPUDriven\Debug\DebugDisplayGPUResidentDrawer.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Runtime\GPUDriven\InstanceData\InstanceData.cs" />
+    <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Runtime\GPUDriven\Debug\DebugDisplayGPUResidentDrawer.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Runtime\GPUDriven\InstanceData\InstanceDataSystemBurst.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Runtime\GPUDriven\LODGroupDataPoolBurst.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Runtime\GPUDriven\InstanceData\InstanceType.cs" />

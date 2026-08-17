@@ -83,8 +83,8 @@
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Editor\ShaderStripping\ShaderStrippingWatcher.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Editor\Lighting\ISerializedLight.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Editor\Lighting\LightUnit\LightUnitSliderSettings.cs" />
-    <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Editor\Lighting\ProbeVolume\ProbeGIBaking.Dilate.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Editor\BuildProcessors\SettingsStrippers\GPUResidentDrawerResourcesStripper.cs" />
+    <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Editor\Lighting\ProbeVolume\ProbeGIBaking.Dilate.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Editor\Analytics\VolumeProfileOverridesAnalytic.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Editor\Lighting\LightUnit\LightUnitSlider.cs" />
     <Compile Include="Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3\Editor\Tools\Deprecated.cs" />

@@ -68,8 +68,8 @@
     <Compile Include="Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d\UnityEditor.TestRunner\TestRunner\Utils\CachingTestListProvider.cs" />
     <Compile Include="Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d\UnityEditor.TestRunner\UnityTestProtocol\UnityTestProtocolListener.cs" />
     <Compile Include="Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d\UnityEditor.TestRunner\TestLaunchers\PlatformSetup\Switch2PlatformSetup.cs" />
-    <Compile Include="Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d\UnityEditor.TestRunner\UnityTestProtocol\IUtpMessageReporter.cs" />
     <Compile Include="Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d\UnityEditor.TestRunner\TestRunner\Utils\EditorCompilationInterfaceProxy.cs" />
+    <Compile Include="Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d\UnityEditor.TestRunner\UnityTestProtocol\IUtpMessageReporter.cs" />
     <Compile Include="Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d\UnityEditor.TestRunner\GUI\GuiHelper.cs" />
     <Compile Include="Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d\UnityEditor.TestRunner\TestRun\Tasks\FileCleanupVerifierTaskBase.cs" />
     <Compile Include="Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d\UnityEditor.TestRunner\RequirePlatformSupportAttribute.cs" />
