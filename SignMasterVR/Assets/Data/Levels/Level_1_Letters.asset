@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77f05490ba1263444b198726810bde1f, type: 3}
+  m_Name: Level_1_Letters
+  m_EditorClassIdentifier: Assembly-CSharp::SignMasterVR.Lessons.LevelData
+  levelNumber: 1
+  levelName: Letters
+  description: Learn the 26 letters of the SASL manual alphabet.
+  gestures:
+  - {fileID: 11400000, guid: fe0ef674fe7f6ae4e907a598d1e6efb4, type: 2}
+  - {fileID: 11400000, guid: 76ce33a9d1cf6a546b59d3422ec6d5c8, type: 2}
+  - {fileID: 11400000, guid: 3cf980d6d4b287043ab9ae26990f061d, type: 2}
+  - {fileID: 11400000, guid: 105f9e3f06f6f1f41ba69dbf24740ecf, type: 2}
+  - {fileID: 11400000, guid: 6955558360bd5d641bc51fbb392b9bf8, type: 2}
+  - {fileID: 11400000, guid: 5e97e1107c0b3f946869e2a097e2c627, type: 2}
+  - {fileID: 11400000, guid: a4a0e171b085a404c90d07567a9802f0, type: 2}
+  - {fileID: 11400000, guid: 901c778d5b5abfd4aabd1a44674f861c, type: 2}
+  - {fileID: 11400000, guid: 4e16f587f1a0d8c49a24c316a533e464, type: 2}
+  - {fileID: 11400000, guid: efed3e47bca7298418363cee2623bfb4, type: 2}
+  - {fileID: 11400000, guid: 087c43b23c1f81540bfac2260dd7d7b8, type: 2}
+  - {fileID: 11400000, guid: de679e53b71810e42b6d995c45b75e7c, type: 2}
+  - {fileID: 11400000, guid: fc5fdd1876b2eb34abbae92cd287042d, type: 2}
+  - {fileID: 11400000, guid: a09b0747171818c47af8670fde06bcc5, type: 2}
+  - {fileID: 11400000, guid: a9b1503019800eb438737e10d570022e, type: 2}
+  - {fileID: 11400000, guid: ff8a8709f936e0c40998a42de9674ce1, type: 2}
+  - {fileID: 11400000, guid: ca2f5ac1db72561479134408aa0628f8, type: 2}
+  - {fileID: 11400000, guid: fa69dd15cb2429b48ae870965bedcd11, type: 2}
+  - {fileID: 11400000, guid: 5aa089754c66dc84f91070afadbae38e, type: 2}
+  - {fileID: 11400000, guid: fd9394c295df5404f88eb818811aa0f5, type: 2}
+  - {fileID: 11400000, guid: 47efe85fbfbc88947a02477a7ae1ad4b, type: 2}
+  - {fileID: 11400000, guid: 14408482e852fd0409a1a08f0c7b363b, type: 2}
+  - {fileID: 11400000, guid: 4f7d146a179948e45aee0baadfd75a93, type: 2}
+  - {fileID: 11400000, guid: 0c1e1cc6fc248a24d9949c0295b8048d, type: 2}
+  - {fileID: 11400000, guid: bcddb279afd03e147b7624763700f165, type: 2}
+  - {fileID: 11400000, guid: 9d09514d652c91148b3c6660ff4d685d, type: 2}
+  requiredPreviousLevel: {fileID: 0}
