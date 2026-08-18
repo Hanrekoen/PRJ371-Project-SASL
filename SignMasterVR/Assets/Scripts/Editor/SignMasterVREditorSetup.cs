@@ -28,7 +28,8 @@ namespace SignMasterVR.EditorTools
     ///   Tools > SignMasterVR > 2 Build Placeholder Tutor Prefab
     ///   Tools > SignMasterVR > 3 Build Lesson UI Prefab
     ///   Tools > SignMasterVR > 4 Wire Up Current Scene
-    /// ...or just run "RUN ALL (0-4)" once everything below has compiled cleanly.
+    ///   Tools > SignMasterVR > 5 Improve Player Rig (stationary, positioned)
+    /// ...or just run "RUN ALL (0-5)" once everything below has compiled cleanly.
     ///
     /// Safe to re-run any step — each one looks for what it already built
     /// instead of duplicating it.
@@ -372,7 +373,15 @@ namespace SignMasterVR.EditorTools
                 canvasInstance.transform.position = new Vector3(0, 1.5f, 1.2f);
             }
             Canvas canvas = canvasInstance.GetComponent<Canvas>();
-            if (canvas != null && Camera.main != null) canvas.worldCamera = Camera.main;
+            if (canvas != null)
+            {
+                // Look for the actual camera under the Player rig first — Camera.main depends on
+                // the camera being tagged "MainCamera", which isn't guaranteed on every XR
+                // template version. Falls back to Camera.main if no Player rig is in the scene.
+                GameObject playerRig = GameObject.Find("Player");
+                Camera cam = playerRig != null ? playerRig.GetComponentInChildren<Camera>(true) : null;
+                canvas.worldCamera = cam != null ? cam : Camera.main;
+            }
 
             if (Object.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
             {
@@ -412,7 +421,85 @@ namespace SignMasterVR.EditorTools
             Debug.Log("[SignMasterVR] Scene wired. Press Play, then press C (test correct) / X (test wrong), or click the on-screen buttons, to walk through all 26 letters. Remember to save the scene (Ctrl+S).");
         }
 
-        [MenuItem("Tools/SignMasterVR/RUN ALL (0-4)")]
+        // ------------------------------------------------------------------
+        // STEP 5 — Improve the existing Player rig (stationary, positioned,
+        // facing the tutor). Does not create a Player — only touches one if
+        // it's already in the scene (yours is the VR template's
+        // "Complete XR Origin Set Up Hands Variant" prefab, confirmed by
+        // reading your project).
+        // ------------------------------------------------------------------
+        private static readonly string[] LocomotionObjectNames =
+        {
+            "continuousmoveprovider", "continuousturnprovider", "snapturnprovider",
+            "teleportationprovider", "climbprovider", "grabmoveprovider",
+            "twohandedgrabmoveprovider", "gravityprovider", "charactercontrollerdriver",
+        };
+
+        [MenuItem("Tools/SignMasterVR/5 Improve Player Rig (stationary, positioned)")]
+        public static void ImprovePlayerRig()
+        {
+            GameObject player = GameObject.Find("Player");
+            if (player == null)
+            {
+                Debug.LogWarning("[SignMasterVR] No GameObject named \"Player\" found in the open scene — nothing to improve. Make sure the VR template's Player/XR Origin rig has already been added to this scene.");
+                return;
+            }
+
+            // Stand the learner on the LearnerStandingMark, facing the tutor (the tutor sits at
+            // z=+2.5 facing -Z, so the player should sit at the mark facing +Z — Unity's default
+            // forward, so no rotation needed once we zero it out).
+            Vector3 standMark = new Vector3(0f, player.transform.position.y, -2f);
+            player.transform.position = standMark;
+            player.transform.rotation = Quaternion.identity;
+
+            // Belt-and-braces: explicitly disable any locomotion-provider objects by their
+            // standard XR Interaction Toolkit names, in case they're still active. This doesn't
+            // guess at component types (which vary by package version) — it matches on the
+            // well-known default GameObject names, normalized (spaces/hyphens/case ignored), so
+            // it's very unlikely to catch anything that isn't actually a locomotion provider.
+            int disabledCount = 0;
+            foreach (Transform t in player.GetComponentsInChildren<Transform>(true))
+            {
+                if (!t.gameObject.activeSelf) continue;
+                string normalized = Normalize(t.name);
+                foreach (var keyword in LocomotionObjectNames)
+                {
+                    if (normalized == keyword)
+                    {
+                        t.gameObject.SetActive(false);
+                        disabledCount++;
+                        Debug.Log($"[SignMasterVR] Disabled locomotion object \"{t.name}\" under Player.");
+                        break;
+                    }
+                }
+            }
+
+            // Make sure the Lesson UI actually points at this rig's real camera rather than
+            // relying on the "MainCamera" tag, which some XR template versions don't set.
+            GameObject canvasInstance = GameObject.Find("LessonCanvas");
+            Camera cam = player.GetComponentInChildren<Camera>(true);
+            if (canvasInstance != null && cam != null)
+            {
+                var canvas = canvasInstance.GetComponent<Canvas>();
+                if (canvas != null) canvas.worldCamera = cam;
+            }
+
+            EditorUtility.SetDirty(player);
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+            Debug.Log($"[SignMasterVR] Player moved to the standing mark and rotated to face the tutor. Disabled {disabledCount} locomotion object(s) by name" +
+                (cam != null ? $"; Lesson UI now points at \"{cam.name}\"." : ". No camera found under Player — check the rig manually.") +
+                " Double-check the Player hierarchy in the Inspector — name-matching is safe but not infallible.");
+        }
+
+        private static string Normalize(string name)
+        {
+            var sb = new System.Text.StringBuilder();
+            foreach (char c in name)
+                if (char.IsLetterOrDigit(c)) sb.Append(char.ToLowerInvariant(c));
+            return sb.ToString();
+        }
+
+        [MenuItem("Tools/SignMasterVR/RUN ALL (0-5)")]
         public static void RunAll()
         {
             BuildClassroomEnvironment();
@@ -420,6 +507,7 @@ namespace SignMasterVR.EditorTools
             BuildTutorPrefab();
             BuildLessonUI();
             WireUpScene();
+            ImprovePlayerRig();
         }
 
         // ------------------------------------------------------------------
