@@ -3,11 +3,21 @@ using UnityEngine;
 namespace SignMasterVR.Lessons
 {
     /// <summary>
-    /// Auto-starts a level when the scene plays — convenient for solo Editor
-    /// testing this week where there's no main menu yet. Added automatically by
-    /// Tools > SignMasterVR > 4 Wire Up Current Scene. Once a MainMenu scene
-    /// exists, disable this and call lessonManager.StartLevel(chosenLevel) from
-    /// a "Start Lesson" button instead.
+    /// Carries which level to start across the MainMenu -> Classroom scene load.
+    /// MainMenuController sets this before calling SceneManager.LoadScene();
+    /// LessonBootstrap reads and clears it on the other side.
+    /// </summary>
+    public static class LessonLaunchContext
+    {
+        public static LevelData SelectedLevel;
+    }
+
+    /// <summary>
+    /// Starts a level when the Classroom scene plays. If MainMenuController sent a
+    /// specific level via LessonLaunchContext, that's used; otherwise falls back to
+    /// `levelToStart` (handy for solo Editor testing — press Play directly on the
+    /// Classroom scene and it still starts Level 1 without going through the menu).
+    /// Added automatically by Tools > SignMasterVR > 4 Wire Up Current Scene.
     /// </summary>
     public class LessonBootstrap : MonoBehaviour
     {
@@ -16,10 +26,13 @@ namespace SignMasterVR.Lessons
 
         private void Start()
         {
-            if (lessonManager != null && levelToStart != null)
-                lessonManager.StartLevel(levelToStart);
+            LevelData level = LessonLaunchContext.SelectedLevel != null ? LessonLaunchContext.SelectedLevel : levelToStart;
+            LessonLaunchContext.SelectedLevel = null;
+
+            if (lessonManager != null && level != null)
+                lessonManager.StartLevel(level);
             else
-                Debug.LogWarning("[LessonBootstrap] Missing lessonManager or levelToStart reference.");
+                Debug.LogWarning("[LessonBootstrap] Missing lessonManager or level to start.");
         }
     }
 }

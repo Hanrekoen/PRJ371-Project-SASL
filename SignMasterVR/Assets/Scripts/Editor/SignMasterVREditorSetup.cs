@@ -29,7 +29,8 @@ namespace SignMasterVR.EditorTools
     ///   Tools > SignMasterVR > 3 Build Lesson UI Prefab
     ///   Tools > SignMasterVR > 4 Wire Up Current Scene
     ///   Tools > SignMasterVR > 5 Improve Player Rig (stationary, positioned)
-    /// ...or just run "RUN ALL (0-5)" once everything below has compiled cleanly.
+    ///   Tools > SignMasterVR > 6 Build Main Menu Scene
+    /// ...or just run "RUN ALL (0-6)" once everything below has compiled cleanly.
     ///
     /// Safe to re-run any step — each one looks for what it already built
     /// instead of duplicating it.
@@ -52,6 +53,8 @@ namespace SignMasterVR.EditorTools
         [MenuItem("Tools/SignMasterVR/0 Build Classroom Environment")]
         public static void BuildClassroomEnvironment()
         {
+            if (!RequireActiveSceneIsNotMainMenu()) return;
+
             Material ground = LoadOrFallback("Assets/Room/Materials/Ground.mat", new Color(0.55f, 0.55f, 0.6f));
             Material wallMat = LoadOrFallback("Assets/Room/Materials/Walls.mat", new Color(0.85f, 0.85f, 0.82f));
             Material tableTop = LoadOrFallback("Assets/Room/Materials/TableTop.mat", new Color(0.4f, 0.25f, 0.15f));
@@ -346,6 +349,8 @@ namespace SignMasterVR.EditorTools
         [MenuItem("Tools/SignMasterVR/4 Wire Up Current Scene")]
         public static void WireUpScene()
         {
+            if (!RequireActiveSceneIsNotMainMenu()) return;
+
             LevelData level1 = AssetDatabase.LoadAssetAtPath<LevelData>(Level1Path);
             GameObject tutorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(TutorPrefabPath);
             GameObject canvasPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(CanvasPrefabPath);
@@ -438,6 +443,8 @@ namespace SignMasterVR.EditorTools
         [MenuItem("Tools/SignMasterVR/5 Improve Player Rig (stationary, positioned)")]
         public static void ImprovePlayerRig()
         {
+            if (!RequireActiveSceneIsNotMainMenu()) return;
+
             GameObject player = GameObject.Find("Player");
             if (player == null)
             {
@@ -499,7 +506,135 @@ namespace SignMasterVR.EditorTools
             return sb.ToString();
         }
 
-        [MenuItem("Tools/SignMasterVR/RUN ALL (0-5)")]
+        // ------------------------------------------------------------------
+        // STEP 6 — Main Menu scene (Start Lesson / Levels / Reset Progress)
+        // ------------------------------------------------------------------
+        [MenuItem("Tools/SignMasterVR/6 Build Main Menu Scene")]
+        public static void BuildMainMenuScene()
+        {
+            LevelData level1 = AssetDatabase.LoadAssetAtPath<LevelData>(Level1Path);
+            if (level1 == null)
+            {
+                Debug.LogError("[SignMasterVR] Run Step 1 first — Level 1 data not found.");
+                return;
+            }
+
+            EnsureFolder("Assets/Scenes");
+            const string scenePath = "Assets/Scenes/MainMenu.unity";
+
+            // Build the menu in its own scene, loaded ADDITIVELY so your currently open scene
+            // (e.g. ClassRoom) and any unsaved work in it are never touched or discarded.
+            Scene menuScene = default;
+            bool wasAlreadyOpen = false;
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var s = SceneManager.GetSceneAt(i);
+                if (s.path == scenePath) { menuScene = s; wasAlreadyOpen = true; break; }
+            }
+            bool createdNewScene = false;
+            if (!wasAlreadyOpen)
+            {
+                menuScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+                createdNewScene = true;
+            }
+
+            // Everything below is wrapped so that no matter what happens — including an error we
+            // haven't seen before — this additive scene ALWAYS gets saved-and-closed at the end
+            // instead of being left behind as a stray, unsaved "Untitled" scene sitting open next
+            // to whatever you were actually working on (which is what happened previously).
+            try
+            {
+                if (FindInScene(menuScene, "Main Camera") == null)
+                {
+                    GameObject camGO = new GameObject("Main Camera");
+                    var cam = camGO.AddComponent<Camera>();
+                    cam.clearFlags = CameraClearFlags.SolidColor;
+                    cam.backgroundColor = new Color(0.05f, 0.05f, 0.08f);
+                    camGO.tag = "MainCamera";
+                    SceneManager.MoveGameObjectToScene(camGO, menuScene);
+                }
+
+                if (FindInScene(menuScene, "EventSystem") == null)
+                {
+                    GameObject es = new GameObject("EventSystem");
+                    es.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                    es.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+                    SceneManager.MoveGameObjectToScene(es, menuScene);
+                }
+
+                GameObject canvasGO = FindInScene(menuScene, "MenuCanvas");
+                if (canvasGO == null)
+                {
+                    canvasGO = new GameObject("MenuCanvas", typeof(RectTransform));
+                    SceneManager.MoveGameObjectToScene(canvasGO, menuScene);
+                }
+                var canvas = canvasGO.GetComponent<Canvas>() ?? canvasGO.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay; // simple 2D menu — no world-space wiring needed for a PC/Editor demo
+                var scaler = canvasGO.GetComponent<CanvasScaler>() ?? canvasGO.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1280, 720);
+                if (canvasGO.GetComponent<GraphicRaycaster>() == null) canvasGO.AddComponent<GraphicRaycaster>();
+                RectTransform canvasRect = canvasGO.GetComponent<RectTransform>();
+
+                CreateText(canvasRect, "TitleText", "SIGNMASTER VR", 56, TextAlignmentOptions.Center,
+                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -110), new Vector2(800, 100));
+                CreateText(canvasRect, "SubtitleText", "Learn South African Sign Language", 22, TextAlignmentOptions.Center,
+                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -180), new Vector2(800, 40));
+
+                Button startBtn = CreateButton(canvasRect, "StartLessonButton", "START LESSON",
+                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 30), new Vector2(320, 64), new Color(0.2f, 0.55f, 0.3f));
+                Button levelsBtn = CreateButton(canvasRect, "LevelsButton", "LEVELS",
+                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -50), new Vector2(320, 64), new Color(0.2f, 0.4f, 0.6f));
+                Button resetBtn = CreateButton(canvasRect, "ResetProgressButton", "RESET PROGRESS",
+                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 50), new Vector2(280, 44), new Color(0.5f, 0.2f, 0.2f));
+
+                GameObject levelListPanel = CreatePanel(canvasRect, "LevelListPanel", new Color(0, 0, 0, 0.9f),
+                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(500, 400));
+                RectTransform listRect = levelListPanel.GetComponent<RectTransform>();
+                Button level1Btn = CreateButton(listRect, "Level1Button", "LEVEL 1 - LETTERS",
+                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -70), new Vector2(400, 60), new Color(0.2f, 0.55f, 0.3f));
+                TMP_Text level1Status = CreateText(listRect, "Level1StatusText", "", 16, TextAlignmentOptions.Center,
+                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -115), new Vector2(400, 30));
+                Button backBtn = CreateButton(listRect, "BackButton", "BACK",
+                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 40), new Vector2(160, 44), new Color(0.35f, 0.35f, 0.35f));
+                levelListPanel.SetActive(false);
+
+                GameObject menuSystem = FindInScene(menuScene, "MenuSystem");
+                if (menuSystem == null) { menuSystem = new GameObject("MenuSystem"); SceneManager.MoveGameObjectToScene(menuSystem, menuScene); }
+                if (menuSystem.GetComponent<ProgressManager>() == null) menuSystem.AddComponent<ProgressManager>();
+
+                var menuController = canvasGO.GetComponent<MainMenuController>() ?? canvasGO.AddComponent<MainMenuController>();
+                menuController.levels = new[] { level1 };
+                menuController.classroomSceneName = "ClassRoom";
+                menuController.levelListPanel = levelListPanel;
+                menuController.levelRows = new[] { new MainMenuController.LevelRow { level = level1, statusText = level1Status } };
+
+                WireButton(canvasRect, "StartLessonButton", menuController.StartFirstLevel);
+                WireButton(canvasRect, "LevelsButton", menuController.ShowLevelList);
+                WireButton(canvasRect, "ResetProgressButton", menuController.ResetProgress);
+                WireButton(listRect, "Level1Button", menuController.StartFirstLevel);
+                WireButton(listRect, "BackButton", menuController.HideLevelList);
+
+                Debug.Log("[SignMasterVR] Main Menu hierarchy built, saving...");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError("[SignMasterVR] Building the Main Menu scene hit an error partway through — see the exception below. The scene will still be saved (with whatever was built so far) and closed rather than left open and unsaved.");
+                Debug.LogException(ex);
+            }
+            finally
+            {
+                bool saved = EditorSceneManager.SaveScene(menuScene, scenePath);
+                if (!saved)
+                    Debug.LogError($"[SignMasterVR] EditorSceneManager.SaveScene reported failure for {scenePath}. Check for additional Unity errors above, and that Assets/Scenes/ isn't read-only or locked by another process (e.g. OneDrive sync).");
+                else
+                    Debug.Log($"[SignMasterVR] Main Menu scene saved at {scenePath}. Open it directly (with ClassRoom NOT also loaded) and press Play to test, or add both MainMenu (first) and ClassRoom to File > Build Profiles > Scenes In Build once you're ready for an actual build.");
+
+                if (createdNewScene) EditorSceneManager.CloseScene(menuScene, true);
+            }
+        }
+
+        [MenuItem("Tools/SignMasterVR/RUN ALL (0-6)")]
         public static void RunAll()
         {
             BuildClassroomEnvironment();
@@ -508,11 +643,30 @@ namespace SignMasterVR.EditorTools
             BuildLessonUI();
             WireUpScene();
             ImprovePlayerRig();
+            BuildMainMenuScene();
         }
 
         // ------------------------------------------------------------------
         // Helpers
         // ------------------------------------------------------------------
+        /// <summary>
+        /// Steps 0/4/5 build permanent classroom content (Environment, Tutor, LessonCanvas,
+        /// LessonSystem, Player edits) into whatever scene happens to be active — which caused a
+        /// real bug: running them while MainMenu.unity was the active scene duplicated the whole
+        /// classroom into it. This refuses to run those steps while MainMenu is active instead of
+        /// silently building in the wrong place. Always double-check ClassRoom is your active
+        /// scene (bold in the Hierarchy) before running Tools > SignMasterVR steps 0/4/5.
+        /// </summary>
+        private static bool RequireActiveSceneIsNotMainMenu()
+        {
+            if (SceneManager.GetActiveScene().name == "MainMenu")
+            {
+                Debug.LogError("[SignMasterVR] Active scene is \"MainMenu\" — this step builds classroom content and must only run while ClassRoom.unity is your active scene. Open/select ClassRoom (it should be bold in the Hierarchy) and run this again.");
+                return false;
+            }
+            return true;
+        }
+
         private static void EnsureFolder(string path)
         {
             if (AssetDatabase.IsValidFolder(path)) return;
@@ -592,10 +746,11 @@ namespace SignMasterVR.EditorTools
             go.transform.localPosition = localPos;
             go.transform.localScale = localScale;
             var renderer = go.GetComponent<Renderer>();
-            var mat = new Material(renderer.sharedMaterial);
-            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
-            else if (mat.HasProperty("_Color")) mat.SetColor("_Color", color);
-            renderer.sharedMaterial = mat;
+            // Build a proper URP-shaded material rather than cloning CreatePrimitive()'s default
+            // material — that default can still reference the Built-in pipeline's Standard
+            // shader in a URP project, which renders bright pink/magenta (Unity's "incompatible
+            // shader" error color) regardless of what color you set on it.
+            renderer.sharedMaterial = LoadOrFallback(null, color);
             return go.transform;
         }
 
@@ -704,6 +859,19 @@ namespace SignMasterVR.EditorTools
             foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
                 if (r.sharedMaterial == mat) return true;
             return false;
+        }
+
+        /// <summary>Finds a root (or direct child of a root) GameObject by name within a specific loaded scene — used to keep Step 6 idempotent when the MainMenu scene is built additively alongside whatever else is open.</summary>
+        private static GameObject FindInScene(Scene scene, string name)
+        {
+            if (!scene.IsValid()) return null;
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                if (root.name == name) return root;
+                var t = root.transform.Find(name);
+                if (t != null) return t.gameObject;
+            }
+            return null;
         }
 
         /// <summary>Creates (or reuses, by name) a 3D world-space TextMeshPro label — used for the classroom's branding text. Uses a RectTransform because TextMeshPro (3D) requires one even outside a Canvas.</summary>
