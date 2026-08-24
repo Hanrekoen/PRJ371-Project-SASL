@@ -52,6 +52,22 @@ namespace SignMasterVR.EditorTools
     ///     and assigns it to that letter's GestureData.referenceImage, so the
     ///     Lesson UI's reference-image panel actually shows the handshape.
     ///     Not part of RUN ALL since it depends on those PNGs existing.
+    ///   Tools > SignMasterVR > 10 Assign Real Idle Animation
+    ///     -- run this once you've dropped a Mixamo Idle animation (FBX for
+    ///     Unity, Without Skin, exported from the SAME rig session as
+    ///     character.fbx so bone names still start with mixamorig8:) into
+    ///     Assets/Animations/Tutor/Idle.fbx. Replaces the placeholder
+    ///     head-wiggle Idle state's motion with the real full-body clip, so
+    ///     the tutor settles into an actual rest pose instead of the T-pose.
+    ///     Not part of RUN ALL since it depends on that FBX existing.
+    ///   Tools > SignMasterVR > 11 Assign Feedback Audio
+    ///     -- run this once you've dropped Correct.wav, TryAgain.wav and
+    ///     LevelComplete.wav (mp3/ogg also fine) into Assets/Audio/Feedback/.
+    ///     Wires them into the AudioManager on "LessonSystem" under the keys
+    ///     every GestureData/LessonManager call already expects, so the three
+    ///     feedback stings just start playing -- no other wiring needed.
+    ///     Not part of RUN ALL since it depends on ClassRoom already being
+    ///     wired (Step 4) and those audio files existing.
     /// ...or just run "RUN ALL (0-6)" once everything below has compiled cleanly.
     ///
     /// Safe to re-run any step — each one looks for what it already built
@@ -69,6 +85,7 @@ namespace SignMasterVR.EditorTools
         private const string AnimatorControllerPath = AnimFolder + "/TutorAnimator.controller";
         private const string CharacterTextureFolder = "Assets/Texture_and_materials/Character";
         private const string AlphabetImageFolder = "Assets/Texture_and_materials/Alphabet";
+        private const string FeedbackAudioFolder = "Assets/Audio/Feedback";
 
         // ------------------------------------------------------------------
         // STEP 0 — Classroom environment (floor, walls, board, desk, shelves,
@@ -1206,6 +1223,153 @@ namespace SignMasterVR.EditorTools
             string msg = $"[SignMasterVR] Assigned reference images to {assigned}/26 letters.";
             if (missingGesture > 0) msg += $" {missingGesture} letter(s) had no GestureData asset yet — run Step 1 first.";
             if (missingImage > 0) msg += $" {missingImage} letter(s) had no Letter_X.png in {AlphabetImageFolder} — drop the missing PNGs there and re-run.";
+            Debug.Log(msg);
+        }
+
+        // ------------------------------------------------------------------
+        // STEP 10 — Wire the real Mixamo idle animation into the "Idle"
+        // Animator state (currently just a tiny placeholder head-wiggle),
+        // so the tutor rests in a real pose instead of the T-pose.
+        // ------------------------------------------------------------------
+        private const string IdleFbxPath = AnimFolder + "/Idle.fbx";
+
+        [MenuItem("Tools/SignMasterVR/10 Assign Real Idle Animation")]
+        public static void AssignRealIdleAnimation()
+        {
+            var fbxImporter = AssetImporter.GetAtPath(IdleFbxPath) as ModelImporter;
+            if (fbxImporter == null)
+            {
+                Debug.LogError($"[SignMasterVR] No FBX found at {IdleFbxPath}. Export an \"Idle\" animation from Mixamo (FBX for Unity, Without Skin) using the SAME character/rig session as character.fbx, and drop it there as Idle.fbx.");
+                return;
+            }
+
+            bool changed = false;
+            if (fbxImporter.animationType != ModelImporterAnimationType.Generic) { fbxImporter.animationType = ModelImporterAnimationType.Generic; changed = true; }
+            if (fbxImporter.avatarSetup != ModelImporterAvatarSetup.NoAvatar) { fbxImporter.avatarSetup = ModelImporterAvatarSetup.NoAvatar; changed = true; }
+            if (changed)
+            {
+                EditorUtility.SetDirty(fbxImporter);
+                fbxImporter.SaveAndReimport();
+            }
+
+            AnimationClip idleClip = null;
+            foreach (var obj in AssetDatabase.LoadAllAssetsAtPath(IdleFbxPath))
+            {
+                if (obj is AnimationClip clip && !clip.name.StartsWith("__preview__"))
+                {
+                    idleClip = clip;
+                    break;
+                }
+            }
+
+            if (idleClip == null)
+            {
+                Debug.LogError($"[SignMasterVR] {IdleFbxPath} imported but contained no AnimationClip. Re-check the Mixamo export included the animation (not just the skeleton).");
+                return;
+            }
+
+            // Quick sanity check: this only plays correctly if it was exported
+            // from the same rig session as character.fbx (bone names must
+            // match exactly, e.g. "mixamorig8:Hips" on both).
+            var bindings = AnimationUtility.GetCurveBindings(idleClip);
+            bool looksCompatible = bindings.Length == 0;
+            foreach (var b in bindings)
+            {
+                if (b.path.Contains("mixamorig") || b.path.Length == 0) { looksCompatible = true; break; }
+            }
+            if (!looksCompatible)
+            {
+                Debug.LogWarning($"[SignMasterVR] {IdleFbxPath}'s clip \"{idleClip.name}\" has curve paths that don't look like they match character.fbx's \"mixamorig8:\" skeleton. If the tutor doesn't move when you press Play, this animation was probably exported from a different Mixamo upload/session — re-download Idle from the same character.");
+            }
+
+            SetLooping(idleClip, true);
+            EditorUtility.SetDirty(idleClip);
+
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(AnimatorControllerPath);
+            if (controller == null)
+            {
+                Debug.LogError($"[SignMasterVR] No AnimatorController found at {AnimatorControllerPath}. Run Step 2 first.");
+                return;
+            }
+
+            var sm = controller.layers[0].stateMachine;
+            var idleState = FindOrAddState(sm, "Idle", idleClip);
+            controller.layers[0].stateMachine.defaultState = idleState;
+            EditorUtility.SetDirty(controller);
+
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[SignMasterVR] Idle state now plays \"{idleClip.name}\" ({bindings.Length} curves, looping). Press Play and give it a second for the Animator to settle into it.");
+        }
+
+        // ------------------------------------------------------------------
+        // STEP 11 — Wire the three generic feedback stings ("Correct",
+        // "TryAgain", "LevelComplete") into the AudioManager that Step 4 put
+        // on "LessonSystem". GestureData already defaults every letter's
+        // successAudioKey/tryAgainAudioKey to these same two keys, and
+        // LessonManager.CompleteLevel() already calls Play("LevelComplete")
+        // -- this step is purely "find the clip, add it to the list", no
+        // other code changes needed.
+        // ------------------------------------------------------------------
+        private static readonly string[] FeedbackKeys = { "Correct", "TryAgain", "LevelComplete" };
+        private static readonly string[] AudioExtensions = { ".wav", ".mp3", ".ogg" };
+
+        [MenuItem("Tools/SignMasterVR/11 Assign Feedback Audio")]
+        public static void AssignFeedbackAudio()
+        {
+            if (!RequireActiveSceneIsNotMainMenu()) return;
+
+            GameObject managerGO = GameObject.Find("LessonSystem");
+            if (managerGO == null)
+            {
+                Debug.LogError("[SignMasterVR] No \"LessonSystem\" GameObject in the active scene. Run Step 4 (Wire Up Current Scene) first, with ClassRoom.unity open.");
+                return;
+            }
+
+            var audio = managerGO.GetComponent<AudioManager>();
+            if (audio == null)
+            {
+                Debug.LogError("[SignMasterVR] \"LessonSystem\" has no AudioManager component. Run Step 4 first.");
+                return;
+            }
+
+            int assigned = 0;
+            var missing = new List<string>();
+
+            foreach (var key in FeedbackKeys)
+            {
+                AudioClip clip = null;
+                string foundPath = null;
+                foreach (var ext in AudioExtensions)
+                {
+                    string candidate = $"{FeedbackAudioFolder}/{key}{ext}";
+                    clip = AssetDatabase.LoadAssetAtPath<AudioClip>(candidate);
+                    if (clip != null) { foundPath = candidate; break; }
+                }
+
+                if (clip == null)
+                {
+                    missing.Add(key);
+                    continue;
+                }
+
+                int existingIndex = audio.clips.FindIndex(e => e.key == key);
+                var entry = new AudioManager.ClipEntry { key = key, clip = clip };
+                if (existingIndex >= 0) audio.clips[existingIndex] = entry;
+                else audio.clips.Add(entry);
+
+                assigned++;
+                Debug.Log($"[SignMasterVR] \"{key}\" -> {foundPath}");
+            }
+
+            if (audio.source == null)
+                audio.source = managerGO.GetComponent<AudioSource>() ?? managerGO.AddComponent<AudioSource>();
+
+            EditorUtility.SetDirty(audio);
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+
+            string msg = $"[SignMasterVR] Assigned {assigned}/{FeedbackKeys.Length} feedback clips to AudioManager. Remember to save the scene (Ctrl+S).";
+            if (missing.Count > 0)
+                msg += $" Missing: {string.Join(", ", missing)} -- drop {string.Join("/", missing)}.wav (or .mp3/.ogg) into {FeedbackAudioFolder}/ and re-run.";
             Debug.Log(msg);
         }
 
