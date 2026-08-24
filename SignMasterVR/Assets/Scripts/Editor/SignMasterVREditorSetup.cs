@@ -1361,8 +1361,17 @@ namespace SignMasterVR.EditorTools
                 Debug.Log($"[SignMasterVR] \"{key}\" -> {foundPath}");
             }
 
-            if (audio.source == null)
-                audio.source = managerGO.GetComponent<AudioSource>() ?? managerGO.AddComponent<AudioSource>();
+            var existingSource = managerGO.GetComponent<AudioSource>();
+            if (existingSource == null)
+            {
+                existingSource = managerGO.AddComponent<AudioSource>();
+                existingSource.playOnAwake = false;
+                Debug.Log("[SignMasterVR] No AudioSource on \"LessonSystem\" — added one.");
+                EditorUtility.SetDirty(existingSource);
+                EditorUtility.SetDirty(managerGO);
+            }
+            audio.source = existingSource;
+            Debug.Log($"[SignMasterVR] AudioManager.source is now {(audio.source != null ? "assigned" : "STILL NULL -- this is a bug, tell Claude")} (instance id {(audio.source != null ? audio.source.GetInstanceID().ToString() : "n/a")}).");
 
             EditorUtility.SetDirty(audio);
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());

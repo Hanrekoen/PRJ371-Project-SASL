@@ -3068,7 +3068,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f427477ecf4fab4fb321089ce473cf6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SignMasterVR.Core.AudioManager
-  clips: []
+  clips:
+  - key: Correct
+    clip: {fileID: 8300000, guid: bdacd589b8e27c2438f9e86311205607, type: 3}
+  - key: TryAgain
+    clip: {fileID: 8300000, guid: 4afc1dde92e89ae4dac32daf9f65254c, type: 3}
+  - key: LevelComplete
+    clip: {fileID: 8300000, guid: e17322bc6f1d50440bac00211da892bb, type: 3}
   source: {fileID: 0}
 --- !u!114 &1683347010
 MonoBehaviour:
