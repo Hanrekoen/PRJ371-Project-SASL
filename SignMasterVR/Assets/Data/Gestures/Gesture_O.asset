@@ -15,7 +15,7 @@ MonoBehaviour:
   gestureId: O
   displayName: Letter O
   tutorAnimationTrigger: Active
-  referenceImage: {fileID: 0}
+  referenceImage: {fileID: 21300000, guid: 616795fe02f872c45b6e3b537c988646, type: 3}
   requiredConfidence: 0.75
   successMessage: Excellent!
   successAudioKey: Correct

@@ -1,5 +1,8 @@
 using System;
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 namespace SignMasterVR.ML
 {
@@ -29,8 +32,22 @@ namespace SignMasterVR.ML
         private void Update()
         {
             if (!enableKeyboardShortcuts) return;
+#if ENABLE_INPUT_SYSTEM
+            // This project's Player Settings (Edit > Project Settings > Player >
+            // Active Input Handling) use the new Input System exclusively, so the
+            // legacy UnityEngine.Input class throws InvalidOperationException on
+            // every call — that's what was flooding the Console. ENABLE_INPUT_SYSTEM
+            // is a scripting define Unity sets automatically whenever the Input
+            // System package is active, so this picks the right API without
+            // needing any Project Settings change.
+            var kb = Keyboard.current;
+            if (kb == null) return;
+            if (kb.cKey.wasPressedThisFrame) TestCorrect();
+            if (kb.xKey.wasPressedThisFrame) TestWrong();
+#else
             if (Input.GetKeyDown(KeyCode.C)) TestCorrect();
             if (Input.GetKeyDown(KeyCode.X)) TestWrong();
+#endif
         }
     }
 }

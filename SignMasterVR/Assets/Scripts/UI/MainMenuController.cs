@@ -13,6 +13,7 @@ namespace SignMasterVR.UI
     /// already list-based so adding Level 2+ later is just adding entries,
     /// not restructuring this script.
     /// </summary>
+    [RequireComponent(typeof(Canvas))]
     public class MainMenuController : MonoBehaviour
     {
         [System.Serializable]

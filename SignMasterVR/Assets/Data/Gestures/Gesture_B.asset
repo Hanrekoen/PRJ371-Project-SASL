@@ -15,7 +15,7 @@ MonoBehaviour:
   gestureId: B
   displayName: Letter B
   tutorAnimationTrigger: Active
-  referenceImage: {fileID: 0}
+  referenceImage: {fileID: 21300000, guid: 529ce107efb411f47a354f6f12166971, type: 3}
   requiredConfidence: 0.75
   successMessage: Excellent!
   successAudioKey: Correct

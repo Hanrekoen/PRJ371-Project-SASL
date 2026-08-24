@@ -15,7 +15,7 @@ MonoBehaviour:
   gestureId: Z
   displayName: Letter Z
   tutorAnimationTrigger: Active
-  referenceImage: {fileID: 0}
+  referenceImage: {fileID: 21300000, guid: 6a997671e37df4b4bbca3e197e563bf9, type: 3}
   requiredConfidence: 0.75
   successMessage: Excellent!
   successAudioKey: Correct
