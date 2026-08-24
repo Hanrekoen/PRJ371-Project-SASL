@@ -68,6 +68,14 @@ namespace SignMasterVR.EditorTools
     ///     feedback stings just start playing -- no other wiring needed.
     ///     Not part of RUN ALL since it depends on ClassRoom already being
     ///     wired (Step 4) and those audio files existing.
+    ///   Tools > SignMasterVR > 12 Apply Neon Menu Style
+    ///     -- restyles the ALREADY-BUILT Main Menu in place: neon cyan text,
+    ///     near-black background, Reset Progress in neon pink. Safe to
+    ///     re-run any time -- only touches colors on existing objects, never
+    ///     rebuilds/duplicates them. Not part of RUN ALL since it depends on
+    ///     Step 6 already having built MainMenu.unity. (The Lesson canvas's
+    ///     bigger size/fonts/cyan text needs no equivalent step -- just
+    ///     re-run Step 3, which rebuilds that whole prefab from scratch.)
     /// ...or just run "RUN ALL (0-6)" once everything below has compiled cleanly.
     ///
     /// Safe to re-run any step — each one looks for what it already built
@@ -86,6 +94,12 @@ namespace SignMasterVR.EditorTools
         private const string CharacterTextureFolder = "Assets/Texture_and_materials/Character";
         private const string AlphabetImageFolder = "Assets/Texture_and_materials/Alphabet";
         private const string FeedbackAudioFolder = "Assets/Audio/Feedback";
+
+        // Shared neon UI palette (Lesson canvas + Main Menu cosmetic pass).
+        private static readonly Color NeonCyan = new Color(0.05f, 0.95f, 1f);
+        private static readonly Color NeonPink = new Color(1f, 0.1f, 0.65f);
+        private static readonly Color MenuNearBlack = new Color(0.02f, 0.02f, 0.04f);
+        private static readonly Color MenuPanelDark = new Color(0.06f, 0.08f, 0.1f, 0.95f);
 
         // ------------------------------------------------------------------
         // STEP 0 — Classroom environment (floor, walls, board, desk, shelves,
@@ -331,40 +345,47 @@ namespace SignMasterVR.EditorTools
             canvasGO.AddComponent<GraphicRaycaster>();
 
             RectTransform canvasRect = canvasGO.GetComponent<RectTransform>();
-            canvasRect.sizeDelta = new Vector2(800, 500);
-            canvasGO.transform.localScale = Vector3.one * 0.002f; // ~1.6m wide panel in world space
+            canvasRect.sizeDelta = new Vector2(1000, 650);
+            canvasGO.transform.localScale = Vector3.one * 0.0023f; // ~2.3m wide panel in world space
 
-            TMP_Text levelTitle = CreateText(canvasRect, "LevelTitleText", "LEVEL 1\nLETTERS", 28,
-                TextAlignmentOptions.TopLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(220, -40), new Vector2(400, 80));
-            TMP_Text gestureName = CreateText(canvasRect, "GestureNameText", "A", 64,
-                TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 60), new Vector2(400, 100));
-            TMP_Text progressText = CreateText(canvasRect, "ProgressText", "1 / 26", 22,
-                TextAlignmentOptions.TopRight, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-20, -40), new Vector2(200, 40));
+            // Layout deliberately spread out with generous gaps between elements -- the first pass
+            // packed everything too tight once fonts got bigger (title crowded the letter, buttons
+            // crowded each other and the bottom edge).
+            TMP_Text levelTitle = CreateText(canvasRect, "LevelTitleText", "LEVEL 1\nLETTERS", 40,
+                TextAlignmentOptions.TopLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(40, -30), new Vector2(420, 100), NeonCyan);
+            TMP_Text gestureName = CreateText(canvasRect, "GestureNameText", "A", 68,
+                TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 130), new Vector2(700, 120), NeonCyan);
+            TMP_Text progressText = CreateText(canvasRect, "ProgressText", "1 / 26", 30,
+                TextAlignmentOptions.TopRight, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-30, -30), new Vector2(220, 50), NeonCyan);
 
             GameObject imageGO = CreateImage(canvasRect, "ReferenceImage",
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -60), new Vector2(200, 200));
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -75), new Vector2(260, 260));
             Image referenceImage = imageGO.GetComponent<Image>();
             referenceImage.enabled = false;
 
             GameObject feedbackPanel = CreatePanel(canvasRect, "FeedbackPanel", new Color(0, 0, 0, 0.6f),
-                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 90), new Vector2(500, 140));
-            TMP_Text feedbackText = CreateText(feedbackPanel.GetComponent<RectTransform>(), "FeedbackText", "", 32,
-                TextAlignmentOptions.Center, new Vector2(0, 0.4f), new Vector2(1, 1), Vector2.zero, Vector2.zero);
-            TMP_Text feedbackConfidence = CreateText(feedbackPanel.GetComponent<RectTransform>(), "FeedbackConfidenceText", "", 20,
-                TextAlignmentOptions.Center, new Vector2(0, 0f), new Vector2(1, 0.4f), Vector2.zero, Vector2.zero);
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 115), new Vector2(620, 170));
+            TMP_Text feedbackText = CreateText(feedbackPanel.GetComponent<RectTransform>(), "FeedbackText", "", 44,
+                TextAlignmentOptions.Center, new Vector2(0, 0.4f), new Vector2(1, 1), Vector2.zero, Vector2.zero, NeonCyan);
+            TMP_Text feedbackConfidence = CreateText(feedbackPanel.GetComponent<RectTransform>(), "FeedbackConfidenceText", "", 28,
+                TextAlignmentOptions.Center, new Vector2(0, 0f), new Vector2(1, 0.4f), Vector2.zero, Vector2.zero, NeonCyan);
             feedbackPanel.SetActive(false);
 
             GameObject levelCompletePanel = CreatePanel(canvasRect, "LevelCompletePanel", new Color(0, 0, 0, 0.85f),
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(600, 300));
-            TMP_Text levelCompleteText = CreateText(levelCompletePanel.GetComponent<RectTransform>(), "LevelCompleteText", "", 30,
-                TextAlignmentOptions.Center, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(740, 370));
+            TMP_Text levelCompleteText = CreateText(levelCompletePanel.GetComponent<RectTransform>(), "LevelCompleteText", "", 42,
+                TextAlignmentOptions.Center, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, NeonCyan);
             levelCompletePanel.SetActive(false);
 
             // Debug test buttons (Phase 15 - Fake ML). Wired to FakeGestureRecognizer in Step 4.
+            // Left as semantic green/red (not part of the neon cosmetic pass) so pass/fail stays obvious.
+            // NOTE: CreateButton's RectTransform keeps Unity's default pivot (0.5, 0.5), so anchoredPos.x
+            // below is each button's CENTER, not its left edge, measured from the canvas's left edge (anchor 0,0).
+            // Centered as a pair on the 1000-wide canvas: pair spans x=260..740 (center x=500), 40px gap between them.
             CreateButton(canvasRect, "TestCorrectButton", "TEST CORRECT",
-                new Vector2(0, 0), new Vector2(0, 0), new Vector2(110, 40), new Vector2(180, 50), new Color(0.2f, 0.6f, 0.2f));
+                new Vector2(0, 0), new Vector2(0, 0), new Vector2(370, 55), new Vector2(220, 54), new Color(0.2f, 0.6f, 0.2f), Color.white);
             CreateButton(canvasRect, "TestWrongButton", "TEST WRONG",
-                new Vector2(0, 0), new Vector2(0, 0), new Vector2(310, 40), new Vector2(180, 50), new Color(0.6f, 0.2f, 0.2f));
+                new Vector2(0, 0), new Vector2(0, 0), new Vector2(630, 55), new Vector2(220, 54), new Color(0.6f, 0.2f, 0.2f), Color.white);
 
             UIManager ui = canvasGO.AddComponent<UIManager>();
             ui.levelTitleText = levelTitle;
@@ -416,7 +437,12 @@ namespace SignMasterVR.EditorTools
             {
                 canvasInstance = (GameObject)PrefabUtility.InstantiatePrefab(canvasPrefab);
                 canvasInstance.name = "LessonCanvas";
-                canvasInstance.transform.position = new Vector3(0, 1.5f, 1.2f);
+                // Mounted on the wall just in front of LearningBoard (Step 0: centered at
+                // x=0, y=1.7, z=4.85, 3m x 1.6m) rather than floating close to the player --
+                // sits ~0.15m in front of its face, raised above the board's own vertical
+                // center for a comfortable eye-level read (a bit of overhang past the top
+                // of the board is fine -- it's a floating panel, not physically mounted).
+                canvasInstance.transform.position = new Vector3(0, 2f, 4.7f);
             }
             Canvas canvas = canvasInstance.GetComponent<Canvas>();
             if (canvas != null)
@@ -599,7 +625,7 @@ namespace SignMasterVR.EditorTools
                     GameObject camGO = new GameObject("Main Camera");
                     var cam = camGO.AddComponent<Camera>();
                     cam.clearFlags = CameraClearFlags.SolidColor;
-                    cam.backgroundColor = new Color(0.05f, 0.05f, 0.08f);
+                    cam.backgroundColor = MenuNearBlack;
                     camGO.tag = "MainCamera";
                     SceneManager.MoveGameObjectToScene(camGO, menuScene);
                 }
@@ -634,26 +660,28 @@ namespace SignMasterVR.EditorTools
                 Debug.Log("[SignMasterVR] checkpoint: MenuCanvas + Canvas/Scaler/Raycaster created OK.");
 
                 CreateText(canvasRect, "TitleText", "SIGNMASTER VR", 56, TextAlignmentOptions.Center,
-                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -110), new Vector2(800, 100));
+                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -110), new Vector2(800, 100), NeonCyan);
                 CreateText(canvasRect, "SubtitleText", "Learn South African Sign Language", 22, TextAlignmentOptions.Center,
-                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -180), new Vector2(800, 40));
+                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -180), new Vector2(800, 40), NeonCyan);
 
                 Button startBtn = CreateButton(canvasRect, "StartLessonButton", "START LESSON",
-                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 30), new Vector2(320, 64), new Color(0.2f, 0.55f, 0.3f));
+                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 30), new Vector2(320, 64), MenuPanelDark, NeonCyan);
                 Button levelsBtn = CreateButton(canvasRect, "LevelsButton", "LEVELS",
-                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -50), new Vector2(320, 64), new Color(0.2f, 0.4f, 0.6f));
+                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -50), new Vector2(320, 64), MenuPanelDark, NeonCyan);
+                // Reset Progress is the one deliberately styled in neon pink -- a destructive action
+                // gets the accent color, doubling as the "dash of pink" cosmetic ask.
                 Button resetBtn = CreateButton(canvasRect, "ResetProgressButton", "RESET PROGRESS",
-                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 50), new Vector2(280, 44), new Color(0.5f, 0.2f, 0.2f));
+                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 50), new Vector2(280, 44), NeonPink, Color.white);
 
-                GameObject levelListPanel = CreatePanel(canvasRect, "LevelListPanel", new Color(0, 0, 0, 0.9f),
+                GameObject levelListPanel = CreatePanel(canvasRect, "LevelListPanel", new Color(0.02f, 0.02f, 0.05f, 0.92f),
                     new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(500, 400));
                 RectTransform listRect = levelListPanel.GetComponent<RectTransform>();
                 Button level1Btn = CreateButton(listRect, "Level1Button", "LEVEL 1 - LETTERS",
-                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -70), new Vector2(400, 60), new Color(0.2f, 0.55f, 0.3f));
+                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -70), new Vector2(400, 60), MenuPanelDark, NeonCyan);
                 TMP_Text level1Status = CreateText(listRect, "Level1StatusText", "", 16, TextAlignmentOptions.Center,
-                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -115), new Vector2(400, 30));
+                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -115), new Vector2(400, 30), NeonCyan);
                 Button backBtn = CreateButton(listRect, "BackButton", "BACK",
-                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 40), new Vector2(160, 44), new Color(0.35f, 0.35f, 0.35f));
+                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 40), new Vector2(160, 44), MenuPanelDark, NeonCyan);
                 levelListPanel.SetActive(false);
                 Debug.Log("[SignMasterVR] checkpoint: all text/buttons/panels created OK.");
 
@@ -1382,6 +1410,113 @@ namespace SignMasterVR.EditorTools
             Debug.Log(msg);
         }
 
+        // ------------------------------------------------------------------
+        // STEP 12 — Restyle the ALREADY-BUILT Main Menu (neon cyan text,
+        // near-black background, one pink accent on Reset Progress) in place.
+        //
+        // Deliberately NOT done by re-running Step 6: Step 6 only guards
+        // against duplicating the top-level scene objects (Camera,
+        // EventSystem, MenuCanvas) -- everything under MenuCanvas
+        // (TitleText, buttons, the level list) gets created unconditionally
+        // every time, so re-running Step 6 on a MainMenu that already has
+        // content would duplicate every text/button in it. This step instead
+        // finds each existing element by its known path and only touches
+        // colors -- safe to run as many times as you like.
+        //
+        // The Lesson canvas doesn't need an equivalent step: Step 3 rebuilds
+        // that whole prefab from scratch every time (no scene objects
+        // involved), so just re-running Step 3 after this file recompiles
+        // is enough to pick up its bigger size/fonts/cyan text.
+        // ------------------------------------------------------------------
+        [MenuItem("Tools/SignMasterVR/12 Apply Neon Menu Style")]
+        public static void ApplyNeonMenuStyle()
+        {
+            const string scenePath = "Assets/Scenes/MainMenu.unity";
+            Scene menuScene = default;
+            bool wasAlreadyOpen = false;
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var s = SceneManager.GetSceneAt(i);
+                if (s.path == scenePath) { menuScene = s; wasAlreadyOpen = true; break; }
+            }
+            bool openedHere = false;
+            if (!wasAlreadyOpen)
+            {
+                if (!System.IO.File.Exists(scenePath))
+                {
+                    Debug.LogError($"[SignMasterVR] No scene at {scenePath} -- run Step 6 first.");
+                    return;
+                }
+                menuScene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                openedHere = true;
+            }
+
+            try
+            {
+                GameObject canvasGO = FindInScene(menuScene, "MenuCanvas");
+                if (canvasGO == null)
+                {
+                    Debug.LogError("[SignMasterVR] MainMenu.unity has no \"MenuCanvas\" -- run Step 6 first.");
+                    return;
+                }
+                Transform canvasT = canvasGO.transform;
+
+                var cam = FindInScene(menuScene, "Main Camera")?.GetComponent<Camera>();
+                if (cam != null) cam.backgroundColor = MenuNearBlack;
+
+                RestyleText(canvasT, "TitleText", NeonCyan);
+                RestyleText(canvasT, "SubtitleText", NeonCyan);
+                RestyleButton(canvasT, "StartLessonButton", MenuPanelDark, NeonCyan);
+                RestyleButton(canvasT, "LevelsButton", MenuPanelDark, NeonCyan);
+                RestyleButton(canvasT, "ResetProgressButton", NeonPink, Color.white);
+
+                Transform listPanel = canvasT.Find("LevelListPanel");
+                if (listPanel != null)
+                {
+                    var panelImg = listPanel.GetComponent<Image>();
+                    if (panelImg != null) { panelImg.color = new Color(0.02f, 0.02f, 0.05f, 0.92f); EditorUtility.SetDirty(panelImg); }
+                    RestyleButton(listPanel, "Level1Button", MenuPanelDark, NeonCyan);
+                    RestyleText(listPanel, "Level1StatusText", NeonCyan);
+                    RestyleButton(listPanel, "BackButton", MenuPanelDark, NeonCyan);
+                }
+                else
+                {
+                    Debug.LogWarning("[SignMasterVR] \"LevelListPanel\" not found under MenuCanvas -- skipped its contents.");
+                }
+
+                EditorUtility.SetDirty(canvasGO);
+                EditorSceneManager.MarkSceneDirty(menuScene);
+                Debug.Log("[SignMasterVR] Main Menu restyled (neon cyan text, near-black background, pink Reset Progress button).");
+            }
+            finally
+            {
+                bool saved = EditorSceneManager.SaveScene(menuScene, scenePath);
+                if (!saved)
+                    Debug.LogError($"[SignMasterVR] EditorSceneManager.SaveScene reported failure for {scenePath}.");
+                if (openedHere) EditorSceneManager.CloseScene(menuScene, true);
+            }
+        }
+
+        private static void RestyleText(Transform root, string childPath, Color color)
+        {
+            Transform t = root.Find(childPath);
+            if (t == null) { Debug.LogWarning($"[SignMasterVR] \"{childPath}\" not found under {root.name} -- skipped."); return; }
+            var tmp = t.GetComponent<TMP_Text>();
+            if (tmp == null) { Debug.LogWarning($"[SignMasterVR] \"{childPath}\" has no TMP_Text -- skipped."); return; }
+            tmp.color = color;
+            EditorUtility.SetDirty(tmp);
+        }
+
+        private static void RestyleButton(Transform root, string childPath, Color bg, Color labelColor)
+        {
+            Transform t = root.Find(childPath);
+            if (t == null) { Debug.LogWarning($"[SignMasterVR] \"{childPath}\" not found under {root.name} -- skipped."); return; }
+            var img = t.GetComponent<Image>();
+            if (img != null) { img.color = bg; EditorUtility.SetDirty(img); }
+            var label = t.Find("Label")?.GetComponent<TMP_Text>();
+            if (label != null) { label.color = labelColor; EditorUtility.SetDirty(label); }
+        }
+
         [MenuItem("Tools/SignMasterVR/RUN ALL (0-6)")]
         public static void RunAll()
         {
@@ -1503,7 +1638,7 @@ namespace SignMasterVR.EditorTools
         }
 
         private static TMP_Text CreateText(RectTransform parent, string name, string content, float fontSize,
-            TextAlignmentOptions align, Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPos, Vector2 sizeDelta)
+            TextAlignmentOptions align, Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPos, Vector2 sizeDelta, Color color)
         {
             GameObject go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -1514,7 +1649,7 @@ namespace SignMasterVR.EditorTools
             text.text = content;
             text.fontSize = fontSize;
             text.alignment = align;
-            text.color = Color.white;
+            text.color = color;
             return text;
         }
 
@@ -1536,7 +1671,7 @@ namespace SignMasterVR.EditorTools
             return go;
         }
 
-        private static Button CreateButton(RectTransform parent, string name, string label, Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPos, Vector2 sizeDelta, Color bg)
+        private static Button CreateButton(RectTransform parent, string name, string label, Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPos, Vector2 sizeDelta, Color bg, Color labelColor)
         {
             GameObject go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -1552,7 +1687,12 @@ namespace SignMasterVR.EditorTools
             labelRT.anchorMin = Vector2.zero; labelRT.anchorMax = Vector2.one;
             labelRT.sizeDelta = Vector2.zero; labelRT.anchoredPosition = Vector2.zero;
             var tmp = labelGO.AddComponent<TextMeshProUGUI>();
-            tmp.text = label; tmp.fontSize = 18; tmp.alignment = TextAlignmentOptions.Center; tmp.color = Color.white;
+            tmp.text = label; tmp.alignment = TextAlignmentOptions.Center; tmp.color = labelColor;
+            // Auto-fit instead of a fixed size: wide labels like "TEST WRONG" were overflowing past
+            // the button's edges at a flat fontSize 18. This shrinks (never grows) to whatever fits.
+            tmp.enableAutoSizing = true;
+            tmp.fontSizeMin = 10;
+            tmp.fontSizeMax = 20;
 
             return btn;
         }
