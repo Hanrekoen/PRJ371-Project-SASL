@@ -76,6 +76,14 @@ namespace SignMasterVR.EditorTools
     ///     Step 6 already having built MainMenu.unity. (The Lesson canvas's
     ///     bigger size/fonts/cyan text needs no equivalent step -- just
     ///     re-run Step 3, which rebuilds that whole prefab from scratch.)
+    ///   Tools > SignMasterVR > 13 Switch To Network Gesture Recognizer
+    ///     -- points LessonManager at NetworkGestureRecognizer instead of
+    ///     FakeGestureRecognizer, so gesture results come from an external
+    ///     webcam on a laptop (GestureServer/server.py, at the repo root
+    ///     next to Assets/) instead of the keyboard/debug buttons. Set the
+    ///     laptop's IP/port on the NetworkGestureRecognizer component in the
+    ///     Inspector afterward. Not part of RUN ALL since it depends on
+    ///     Step 4 already having run.
     /// ...or just run "RUN ALL (0-6)" once everything below has compiled cleanly.
     ///
     /// Safe to re-run any step — each one looks for what it already built
@@ -1515,6 +1523,54 @@ namespace SignMasterVR.EditorTools
             if (img != null) { img.color = bg; EditorUtility.SetDirty(img); }
             var label = t.Find("Label")?.GetComponent<TMP_Text>();
             if (label != null) { label.color = labelColor; EditorUtility.SetDirty(label); }
+        }
+
+        // ------------------------------------------------------------------
+        // STEP 13 — Switch LessonManager from FakeGestureRecognizer (keyboard
+        // C/X + on-screen debug buttons) to NetworkGestureRecognizer, which
+        // talks over the local network to GestureServer/server.py -- a
+        // Python program that runs on a laptop, reads an external webcam,
+        // tracks the learner's hand (MediaPipe), and reports back whether it
+        // matches the current target sign. See GestureServer/README.md for
+        // how to run the laptop side and find its IP address.
+        //
+        // FakeGestureRecognizer is left on "LessonSystem", just disabled --
+        // re-run Step 4 any time to switch back to keyboard/button testing.
+        // Not part of RUN ALL since it depends on Step 4 already having run.
+        // ------------------------------------------------------------------
+        [MenuItem("Tools/SignMasterVR/13 Switch To Network Gesture Recognizer")]
+        public static void SwitchToNetworkGestureRecognizer()
+        {
+            if (!RequireActiveSceneIsNotMainMenu()) return;
+
+            GameObject managerGO = GameObject.Find("LessonSystem");
+            if (managerGO == null)
+            {
+                Debug.LogError("[SignMasterVR] No \"LessonSystem\" GameObject in the active scene. Run Step 4 (Wire Up Current Scene) first.");
+                return;
+            }
+
+            var lessonManager = managerGO.GetComponent<LessonManager>();
+            if (lessonManager == null)
+            {
+                Debug.LogError("[SignMasterVR] \"LessonSystem\" has no LessonManager component. Run Step 4 first.");
+                return;
+            }
+
+            var networkRecognizer = managerGO.GetComponent<NetworkGestureRecognizer>() ?? managerGO.AddComponent<NetworkGestureRecognizer>();
+            networkRecognizer.lessonManager = lessonManager;
+            lessonManager.recognizerBehaviour = networkRecognizer;
+
+            var fakeRecognizer = managerGO.GetComponent<FakeGestureRecognizer>();
+            if (fakeRecognizer != null) fakeRecognizer.enabled = false;
+
+            EditorUtility.SetDirty(managerGO);
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+            Debug.Log("[SignMasterVR] LessonManager now listens to NetworkGestureRecognizer instead of FakeGestureRecognizer. " +
+                "Select LessonSystem in the Hierarchy and set Network Gesture Recognizer > Laptop Host / Laptop Port to match the " +
+                "laptop running GestureServer/server.py, then save the scene (Ctrl+S). " +
+                "The on-screen TEST CORRECT/TEST WRONG buttons and the C/X keys go quiet in this mode (LessonManager is no longer " +
+                "listening to FakeGestureRecognizer's event) -- re-run Step 4 to switch back.");
         }
 
         [MenuItem("Tools/SignMasterVR/RUN ALL (0-6)")]
