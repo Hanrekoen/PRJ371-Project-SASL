@@ -557,6 +557,14 @@ PrefabInstance:
       propertyPath: m_TextStyleHashCode
       value: -1183493901
       objectReference: {fileID: 0}
+    - target: {fileID: 4409387688595425844, guid: e0f8f9464d96c6e478bcb45333c2851c, type: 3}
+      propertyPath: m_fontSize
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 4409387688595425844, guid: e0f8f9464d96c6e478bcb45333c2851c, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
     - target: {fileID: 5206775210321808060, guid: e0f8f9464d96c6e478bcb45333c2851c, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4294963725
@@ -3013,6 +3021,7 @@ GameObject:
   - component: {fileID: 1683347006}
   - component: {fileID: 1683347005}
   - component: {fileID: 1683347012}
+  - component: {fileID: 1683347013}
   m_Layer: 0
   m_Name: LessonSystem
   m_TagString: Untagged
@@ -3049,7 +3058,7 @@ MonoBehaviour:
   tutor: {fileID: 54164846}
   ui: {fileID: 774616294}
   levelManager: {fileID: 1683347008}
-  recognizerBehaviour: {fileID: 1683347007}
+  recognizerBehaviour: {fileID: 1683347013}
   feedbackHoldTime: 2
   currentLevel: {fileID: 0}
 --- !u!114 &1683347007
@@ -3059,7 +3068,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1683347004}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5fe072dab1df3064d896f9ea765ca99e, type: 3}
   m_Name: 
@@ -3225,6 +3234,23 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1683347013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1683347004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bdd7c63dd961ca47a7236dc2b8d6fa1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SignMasterVR.ML.NetworkGestureRecognizer
+  laptopHost: 127.0.0.1
+  laptopPort: 8765
+  autoReconnect: 1
+  reconnectIntervalSeconds: 3
+  lessonManager: {fileID: 1683347006}
 --- !u!1 &1718368505
 GameObject:
   m_ObjectHideFlags: 0
