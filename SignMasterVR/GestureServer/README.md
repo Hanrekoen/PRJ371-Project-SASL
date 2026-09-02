@@ -72,7 +72,7 @@ construct it instead. Nothing else in this program, and nothing on the Unity
 side, needs to change — `NetworkGestureRecognizer` and `LessonManager` only
 ever see the resulting `(gestureId, confidence)` pair.
 
-## ⚠️ Input spec change for the ML team
+##  Input spec change for the ML team
 
 The project's earlier hand-input spec (see the build tracker's `ml-spec`
 item) was **26 joints/hand, wrist-relative, in metres** — that was written
