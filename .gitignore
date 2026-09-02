@@ -1,0 +1,171 @@
+# ============================================
+# Unity generated folders
+# ============================================
+
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Memory captures
+[Mm]emoryCaptures/
+
+# Asset store tools
+[Aa]ssets/AssetStoreTools*
+
+# Auto-generated Visual Studio / Rider files
+.vs/
+.idea/
+.vscode/
+
+# ============================================
+# Unity generated files
+# ============================================
+
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+
+# ============================================
+# Unity crash reports
+# ============================================
+
+sysinfo.txt
+
+# ============================================
+# Build output
+# ============================================
+
+Build/
+Builds/
+BuildOutput/
+BuildOutputAndroid/
+BuildOutputWindows/
+BuildOutputLinux/
+BuildOutputMac/
+
+*.apk
+*.aab
+*.unitypackage
+
+# ============================================
+# Android
+# ============================================
+
+.gradle/
+.gradle/
+local.properties
+*.apk
+*.aab
+*.dex
+
+# ============================================
+# IL2CPP generated files
+# ============================================
+
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+
+# ============================================
+# Visual Studio
+# ============================================
+
+.vs/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+
+# ============================================
+# JetBrains Rider
+# ============================================
+
+.idea/
+*.sln.iml
+
+# ============================================
+# OS generated files
+# ============================================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================
+# Windows
+# ============================================
+
+*.stackdump
+ehthumbs.db
+ehthumbs_vista.db
+
+# ============================================
+# macOS
+# ============================================
+
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# ============================================
+# Temporary files
+# ============================================
+
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# ============================================
+# Logs
+# ============================================
+
+*.log
+
+# ============================================
+# Crash dumps
+# ============================================
+
+*.dmp
+*.mdmp
+
+# ============================================
+# Package manager caches
+# ============================================
+
+.npm/
+.yarn/
+node_modules/
+
+# ============================================
+# Addressables
+# ============================================
+
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*
+
+# ============================================
+# Oculus / Meta generated files
+# ============================================
+
+/Assets/Oculus/

@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Webcam Sign Capture — 21 Landmarks</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0f; color: #e6e6e6;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh; padding: 24px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 4px; }
+  p.sub { color: #8a8a99; font-size: 0.9rem; margin-bottom: 20px; text-align: center; }
+  .panel {
+    width: min(92vw, 760px); background: #0f0f16;
+    border: 1px solid #21212e; border-radius: 12px; padding: 18px; margin-bottom: 14px;
+  }
+  .panel h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #6ee7ff; margin-bottom: 12px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+  label.f { font-size: 0.82rem; color: #8a8a99; min-width: 128px; }
+  input[type="text"], input[type="number"], select, textarea {
+    background: #14141c; border: 1px solid #2a2a38; color: #e6e6e6;
+    padding: 9px 11px; border-radius: 8px; font-size: 0.88rem; font-family: inherit;
+  }
+  input[type="text"] { flex: 1; min-width: 200px; }
+  input[type="number"] { width: 92px; }
+  select { width: 150px; cursor: pointer; }
+  select:disabled { opacity: 0.55; cursor: default; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #6ee7ff; }
+  button {
+    background: #6ee7ff; color: #0a0a0f; border: none; padding: 11px 20px;
+    border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.92rem; font-family: inherit;
+  }
+  button:hover { background: #8ff0ff; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  button.ghost { background: transparent; color: #6ee7ff; box-shadow: inset 0 0 0 1px #2c3b46; }
+  button.ghost:hover { background: #12222b; }
+  #support { font-size: 0.86rem; margin-bottom: 4px; text-align: center; }
+  .ok { color: #7dffa8; } .bad { color: #ff7d7d; } .warn { color: #ffd166; }
+  textarea { width: 100%; height: 170px; font-family: ui-monospace, Consolas, monospace; font-size: 0.74rem; resize: vertical; }
+  .hint { font-size: 0.8rem; color: #6a6a7a; line-height: 1.7; }
+  .hint code { color: #ff5fd2; font-family: ui-monospace, Consolas, monospace; }
+  table.g { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  table.g td { padding: 7px 0; border-bottom: 1px solid #1c1c28; vertical-align: top; }
+  table.g td:first-child { color: #6ee7ff; font-weight: 600; width: 40%; padding-right: 14px; }
+  table.g tr:last-child td { border-bottom: none; }
+
+  .stage {
+    position: relative;
+    width: min(92vw, 760px);
+    aspect-ratio: 4 / 3;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #111;
+    box-shadow: 0 0 0 1px #232333, 0 20px 60px rgba(0,0,0,0.5);
+    margin-bottom: 14px;
+  }
+  video { display: none; }
+  canvas {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    transform: scaleX(-1); /* mirror for display only -- the raw frame fed to MediaPipe is NOT flipped */
+  }
+  .tracking-indicator {
+    position: absolute; top: 14px; left: 14px;
+    display: flex; align-items: center; gap: 8px; padding: 7px 11px;
+    background: rgba(10,10,15,0.75); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+    font-size: 0.75rem; color: #aaa; z-index: 10;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #666; }
+  .dot.active { background: #6ee7ff; box-shadow: 0 0 10px #6ee7ff; }
+  .dot.detected { background: #ff5fd2; box-shadow: 0 0 10px #ff5fd2; }
+
+  .hud {
+    position: absolute; top: 14px; right: 14px; z-index: 10;
+    background: rgba(10,10,15,0.82); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+    padding: 12px 16px; text-align: right; min-width: 160px;
+  }
+  .hud .label { font-size: 2.1rem; font-weight: 700; color: #6ee7ff; line-height: 1; }
+  .hud .sub { font-size: 0.75rem; color: #8a8a99; margin-top: 4px; }
+  .hud .status { font-size: 0.8rem; margin-top: 6px; color: #e6e6e6; }
+  .hud .status.rec { color: #ff5f5f; font-weight: 700; }
+  .countdown {
+    position: absolute; inset: 0; z-index: 15;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8rem; font-weight: 700; color: #ff5fd2;
+    text-shadow: 0 0 30px rgba(255,95,210,0.6);
+    background: rgba(10,10,15,0.25);
+    pointer-events: none;
+  }
+  .countdown[hidden] { display: none; }
+</style>
+</head>
+<body>
+
+<h1>Webcam Sign Capture — 21 Landmarks / Hand</h1>
+<p class="sub">MediaPipe Hands running locally in your browser — builds a labeled dataset from the SAME sensor and landmark format GestureServer/hand_tracker.py uses at runtime.</p>
+
+<div id="support">Choose how many hands to track, then click "Start Camera" and allow camera access.</div>
+
+<div class="panel">
+  <h2>Session setup</h2>
+  <div class="row">
+    <label class="f">Labels to capture</label>
+    <input type="text" id="labelList" value="A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z" />
+  </div>
+  <div class="row">
+    <label class="f">Hands to track</label>
+    <select id="numHands">
+      <option value="1" selected>1 hand</option>
+      <option value="2">2 hands</option>
+    </select>
+    <span class="hint">Locked once the camera starts — pick before you begin.</span>
+  </div>
+  <div class="row">
+    <label class="f">Countdown (s)</label>
+    <input type="number" id="countdownSec" value="3" min="0" max="10" />
+    <label class="f">Clip length (ms)</label>
+    <input type="number" id="clipMs" value="1500" min="200" max="8000" step="100" />
+    <label class="f">Repeats per label</label>
+    <input type="number" id="repeats" value="5" min="1" max="20" />
+  </div>
+  <div class="row">
+    <button id="startBtn">Start Camera</button>
+    <button id="snapBtn" disabled>Capture Snapshot (Space)</button>
+    <button id="clipBtn" disabled>Record Clip (C)</button>
+    <button id="prevBtn" class="ghost" disabled>&larr; Prev label (P)</button>
+    <button id="nextBtn" class="ghost" disabled>Next label &rarr; (N)</button>
+    <button id="undoBtn" class="ghost" disabled>Undo last (Backspace)</button>
+  </div>
+</div>
+
+<div class="stage">
+  <video id="video" playsinline autoplay></video>
+  <canvas id="canvas"></canvas>
+  <div class="tracking-indicator">
+    <span id="indicatorDot" class="dot"></span>
+    <span id="indicatorText">Camera Offline</span>
+  </div>
+  <div class="hud">
+    <div class="label" id="hudLabel">—</div>
+    <div class="sub" id="hudSub">no labels loaded</div>
+    <div class="status" id="hudStatus">start the camera to begin</div>
+  </div>
+  <div class="countdown" id="countdownEl" hidden></div>
+</div>
+
+<div class="panel">
+  <h2>Keyboard shortcuts</h2>
+  <table class="g">
+    <tr><td>Space</td><td>Capture a snapshot (after the countdown)</td></tr>
+    <tr><td>C</td><td>Record a clip</td></tr>
+    <tr><td>N / Right Arrow</td><td>Next label</td></tr>
+    <tr><td>P / Left Arrow</td><td>Previous label</td></tr>
+    <tr><td>Backspace</td><td>Undo the last capture (in case of a bad take)</td></tr>
+  </table>
+  <p class="hint" style="margin-top:12px;">
+    Shortcuts are ignored while you're typing in a field above. Hold the sign steady through the whole
+    countdown and, for clips, through the whole recording window.
+  </p>
+</div>
+
+<div class="panel">
+  <h2>Separation report</h2>
+  <div class="row">
+    <button id="reportBtn" class="ghost" disabled>Build report</button>
+    <span class="hint">Which of your labels does the webcam tracker actually tell apart?</span>
+  </div>
+  <div id="report"></div>
+</div>
+
+<div class="panel">
+  <h2>Captured data</h2>
+  <div class="row">
+    <button id="downloadBtn" class="ghost" disabled>Download JSON</button>
+    <button id="copyBtn" class="ghost" disabled>Copy JSON</button>
+    <button id="clearBtn" class="ghost" disabled>Clear</button>
+    <span id="count" style="color:#8a8a99;font-size:0.85rem;"></span>
+  </div>
+  <textarea id="dump" readonly placeholder="Captures appear here as you take them. They also autosave to this browser and live in window.captures."></textarea>
+  <p class="hint" style="margin-top:10px;">
+    Every frame's <code>hands</code> array holds one entry per hand actually tracked that frame (up to
+    the "Hands to track" setting), each with a <code>handedness</code> ("Left"/"Right") and a 63-value
+    wrist-relative, scale-normalized <code>features</code> vector (21 landmarks &times; x/y/z) —
+    computed with the exact same formula as <code>GestureServer/hand_tracker.py</code>'s
+    <code>process()</code>. A single-hand session always has exactly one entry in <code>hands</code> —
+    use <code>frame.hands[0].features</code> directly, same as before this page supported two hands. A
+    two-hand session may have one or two entries per frame depending on what was actually in view that
+    frame; match them up by <code>handedness</code> rather than assuming array order.
+  </p>
+</div>
+
+<!-- MediaPipe Hands (browser build) -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+<script>
+/* ==================================================================
+   21-LANDMARK SCHEME (MediaPipe Hands order) -- names match
+   GestureServer/hand_tracker.py's LANDMARK_NAMES exactly, so the two
+   datasets line up index-for-index.
+================================================================== */
+const LANDMARK_NAMES = [
+  "WRIST",
+  "THUMB_CMC", "THUMB_MCP", "THUMB_IP", "THUMB_TIP",
+  "INDEX_MCP", "INDEX_PIP", "INDEX_DIP", "INDEX_TIP",
+  "MIDDLE_MCP", "MIDDLE_PIP", "MIDDLE_DIP", "MIDDLE_TIP",
+  "RING_MCP", "RING_PIP", "RING_DIP", "RING_TIP",
+  "PINKY_MCP", "PINKY_PIP", "PINKY_DIP", "PINKY_TIP",
+];
+
+/* ------------------------------------------------------------------
+   Wrist-relative, scale-normalized feature vector -- the SAME formula
+   as HandTracker.process() in hand_tracker.py:
+     rel = landmark - wrist            (all 21 points, x/y/z)
+     scale = ||rel[MIDDLE_MCP].xy||
+     rel.xy /= scale (z left as wrist-relative, unscaled)
+   Keeping these identical is the whole point of this page -- a model
+   trained on captures from here should transfer directly to live
+   webcam input at runtime, because both go through this same math.
+------------------------------------------------------------------ */
+function normalizeLandmarks(landmarks) {
+  const wrist = landmarks[0];
+  const rel = landmarks.map(lm => ({ x: lm.x - wrist.x, y: lm.y - wrist.y, z: lm.z - wrist.z }));
+  const scale = Math.hypot(rel[9].x, rel[9].y); // MIDDLE_MCP
+  if (scale > 1e-6) {
+    for (const p of rel) { p.x /= scale; p.y /= scale; }
+  }
+  return rel;
+}
+function toFeatures(rel) {
+  const f = [];
+  for (const p of rel) f.push(p.x, p.y, p.z);
+  return f; // 63 values
+}
+const r5 = (n) => Math.round(n * 100000) / 100000;
+
+/* ==================================================================
+   DOM
+================================================================== */
+const videoEl = document.getElementById('video');
+const canvasEl = document.getElementById('canvas');
+const ctx = canvasEl.getContext('2d');
+const supportEl = document.getElementById('support');
+const startBtn = document.getElementById('startBtn');
+const snapBtn = document.getElementById('snapBtn');
+const clipBtn = document.getElementById('clipBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const undoBtn = document.getElementById('undoBtn');
+const indicatorDot = document.getElementById('indicatorDot');
+const indicatorText = document.getElementById('indicatorText');
+const hudLabel = document.getElementById('hudLabel');
+const hudSub = document.getElementById('hudSub');
+const hudStatus = document.getElementById('hudStatus');
+const countdownEl = document.getElementById('countdownEl');
+const downloadBtn = document.getElementById('downloadBtn');
+const copyBtn = document.getElementById('copyBtn');
+const clearBtn = document.getElementById('clearBtn');
+const countEl = document.getElementById('count');
+const dumpEl = document.getElementById('dump');
+const reportBtn = document.getElementById('reportBtn');
+
+let camera = null;
+let cameraRunning = false;
+
+/* ==================================================================
+   MEDIAPIPE HANDS -- how many hands to track is chosen in the UI
+   (numHands, 1 or 2) and applied via setOptions() right before the
+   camera starts, in the Start Camera handler below. GestureServer's
+   HandTracker still defaults to max_hands=1 at runtime -- a two-hand
+   capture session is for building a richer dataset ahead of that,
+   not a claim the deployed pipeline already consumes two hands.
+================================================================== */
+const hands = new Hands({
+  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+});
+hands.onResults(onResults);
+let numHands = 1;
+
+/* ==================================================================
+   CAPTURE STATE
+================================================================== */
+let labels = [], labelIdx = 0, takeCounts = {};
+let mode = 'idle'; // idle | countdown | clip
+let pendingKind = null, countdownEndsAt = 0, clipEndsAt = 0, clipFrames = [];
+let lastHandsData = []; // this frame's tracked hands: [{ handedness, landmarks, rel, features }, ...]
+
+window.captures = [];
+const LS_KEY = 'webcamSignCaptures.v1';
+
+function persist() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(window.captures)); return true; }
+  catch (e) { console.warn('Autosave failed (storage full?):', e.message); return false; }
+}
+function restore() {
+  try {
+    const s = localStorage.getItem(LS_KEY);
+    if (!s) return;
+    const parsed = JSON.parse(s);
+    if (Array.isArray(parsed) && parsed.length) {
+      window.captures = parsed;
+      dumpEl.value = JSON.stringify(window.captures, null, 2);
+      console.log('%cRestored ' + parsed.length + ' capture(s) from autosave.', 'color:#7dffa8');
+    }
+  } catch (e) { console.warn('Could not restore autosave:', e.message); }
+}
+
+function refreshLabelUI() {
+  const label = labels[labelIdx] || '—';
+  const target = parseInt(document.getElementById('repeats').value, 10) || 1;
+  hudLabel.textContent = label;
+  hudSub.textContent = labels.length
+    ? 'take ' + (takeCounts[label] || 0) + ' / ' + target + '   ·   ' + (labelIdx + 1) + ' of ' + labels.length + '   ·   ' + window.captures.length + ' saved'
+    : 'no labels loaded';
+}
+function setStatus(text, rec) {
+  hudStatus.textContent = text;
+  hudStatus.classList.toggle('rec', !!rec);
+}
+function refreshButtons() {
+  const has = window.captures.length > 0;
+  downloadBtn.disabled = copyBtn.disabled = clearBtn.disabled = !has;
+  reportBtn.disabled = !has;
+  countEl.textContent = has ? window.captures.length + ' capture(s)' : '';
+}
+function refreshCaptureControls() {
+  const canCapture = cameraRunning && mode === 'idle' && labels.length > 0;
+  snapBtn.disabled = clipBtn.disabled = !canCapture;
+  prevBtn.disabled = nextBtn.disabled = !cameraRunning || labels.length === 0;
+  undoBtn.disabled = window.captures.length === 0;
+}
+
+/* ==================================================================
+   HAND TRACKING RESULTS -- this is also the per-frame "tick" that
+   drives the capture state machine (countdown / clip recording),
+   the same role onXRFrame plays in the Quest capture page.
+================================================================== */
+function onResults(results) {
+  if (videoEl.videoWidth === 0 || videoEl.videoHeight === 0) return;
+
+  canvasEl.width = videoEl.videoWidth;
+  canvasEl.height = videoEl.videoHeight;
+
+  ctx.save();
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  ctx.drawImage(results.image, 0, 0, canvasEl.width, canvasEl.height);
+  ctx.fillStyle = "rgba(0,0,0,0.08)";
+  ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
+
+  const rawHands = results.multiHandLandmarks || [];
+  const rawHandedness = results.multiHandedness || []; // parallel array to rawHands, per MediaPipe's contract
+  const hasHand = rawHands.length > 0;
+
+  lastHandsData = [];
+  if (hasHand) {
+    indicatorDot.classList.add("detected");
+    indicatorText.textContent = rawHands.length + (rawHands.length === 1 ? " Hand Detected" : " Hands Detected");
+
+    for (let i = 0; i < rawHands.length; i++) {
+      const landmarks = rawHands[i];
+      const rel = normalizeLandmarks(landmarks);
+      // Handedness is MediaPipe's read of the RAW (unmirrored) frame -- the on-screen
+      // preview is flipped for display only (see the canvas transform above), so this
+      // label reflects your actual hand, not what looks left/right in the mirror.
+      const side = (rawHandedness[i] && rawHandedness[i].label) || null;
+      lastHandsData.push({
+        handedness: side,
+        landmarks: landmarks.map(p => ({ x: r5(p.x), y: r5(p.y), z: r5(p.z) })),
+        rel: rel.map(p => ({ x: r5(p.x), y: r5(p.y), z: r5(p.z) })),
+        features: toFeatures(rel)
+      });
+      drawConnectors(ctx, landmarks, HAND_CONNECTIONS, { color: '#6ee7ff', lineWidth: 4 });
+      drawLandmarks(ctx, landmarks, { color: '#ff5fd2', lineWidth: 2, radius: 5 });
+    }
+  } else {
+    indicatorDot.classList.remove("detected");
+    indicatorText.textContent = "Camera Active";
+  }
+  ctx.restore();
+
+  const now = performance.now();
+  if (mode === 'idle') {
+    setStatus(hasHand
+      ? 'tracking ' + lastHandsData.length + '/' + numHands + ' hand(s) — ready to capture'
+      : 'no hand detected — hold your hand up to the camera');
+  } else if (mode === 'countdown') {
+    const left = Math.ceil((countdownEndsAt - now) / 1000);
+    countdownEl.hidden = left <= 0;
+    countdownEl.textContent = left > 0 ? String(left) : '';
+    setStatus(pendingKind === 'clip' ? 'get ready — sign through the clip' : 'get ready — hold the sign');
+    if (now >= countdownEndsAt) { countdownEl.hidden = true; fire(now); }
+  } else if (mode === 'clip') {
+    if (hasHand) clipFrames.push({ t: r5(now), hands: lastHandsData });
+    setStatus('● RECORDING', true);
+    if (now >= clipEndsAt) finishClip();
+  }
+  refreshCaptureControls();
+}
+
+function startCountdown(kind) {
+  if (mode !== 'idle' || !cameraRunning || !labels.length) return;
+  pendingKind = kind;
+  const secs = parseInt(document.getElementById('countdownSec').value, 10) || 0;
+  mode = 'countdown';
+  countdownEndsAt = performance.now() + secs * 1000;
+}
+
+function fire(now) {
+  if (pendingKind === 'snap') {
+    mode = 'idle';
+    if (!lastHandsData.length) { setStatus('missed — no hand tracked'); return; }
+    store({ kind: 'snapshot', frames: [{ t: r5(now), hands: lastHandsData }] });
+  } else {
+    clipFrames = [];
+    clipEndsAt = performance.now() + (parseInt(document.getElementById('clipMs').value, 10) || 1500);
+    mode = 'clip';
+  }
+}
+
+function finishClip() {
+  mode = 'idle';
+  if (!clipFrames.length) { setStatus('missed — no hand tracked during the clip'); return; }
+  store({ kind: 'clip', frames: clipFrames });
+  clipFrames = [];
+}
+
+function store(payload) {
+  const label = labels[labelIdx];
+  takeCounts[label] = (takeCounts[label] || 0) + 1;
+
+  const entry = {
+    label: label,
+    take: takeCounts[label],
+    kind: payload.kind,
+    timestamp: new Date().toISOString(),
+    source: 'webcam-browser-mediapipejs',
+    maxHands: numHands,
+    landmarkOrder: LANDMARK_NAMES,
+    frameCount: payload.frames.length,
+    frames: payload.frames
+  };
+  window.captures.push(entry);
+
+  console.log('%c⬤ ' + label + ' · take ' + entry.take + ' · ' + payload.kind + ' · ' + payload.frames.length + ' frame(s)', 'color:#6ee7ff;font-weight:bold');
+
+  const saved = persist();
+  const target = parseInt(document.getElementById('repeats').value, 10) || 1;
+  setStatus('saved ' + label + ' (' + takeCounts[label] + '/' + target + ')' + (saved ? '' : ' ⚠ storage full'));
+  dumpEl.value = JSON.stringify(window.captures, null, 2);
+  if (takeCounts[label] >= target && labelIdx < labels.length - 1) labelIdx++;
+  refreshLabelUI();
+  refreshButtons();
+}
+
+function undoLast() {
+  if (!window.captures.length) return;
+  const removed = window.captures.pop();
+  if (takeCounts[removed.label]) takeCounts[removed.label]--;
+  persist();
+  dumpEl.value = JSON.stringify(window.captures, null, 2);
+  setStatus('undid last capture (' + removed.label + ')');
+  refreshLabelUI();
+  refreshButtons();
+}
+
+/* ==================================================================
+   SEPARATION REPORT -- identical method to the Quest capture page:
+   for each label, average its captures into a centroid, then compare
+   how far apart two labels' centroids sit versus how much each label
+   wobbles on its own. A ratio below 1.5 means the webcam tracker
+   cannot resolve that pair -- more training data will not fix that,
+   the signs need a disambiguating cue or should be dropped from the
+   static-handshape set.
+================================================================== */
+function poseDist(a, b) {
+  let s = 0;
+  for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; }
+  return Math.sqrt(s / (a.length / 3));
+}
+/* Builds one fixed-length feature vector per capture so poseDist always
+   compares equal-length arrays, even if a hand dropped out of frame on a
+   given take or the dataset mixes 1-hand and 2-hand sessions. For a single
+   hand this is just that hand's 63 features, unchanged from before. For two
+   hands it's a 126-length vector with a fixed Left-then-Right layout --
+   whichever side is missing that frame is zero-filled, not omitted, so
+   "only got one hand that take" reads as a real difference rather than
+   silently shifting every later value into the wrong slot. */
+function combinedFeatures(handsArr, targetHandCount) {
+  if (targetHandCount <= 1) {
+    return (handsArr[0] && handsArr[0].features) ? handsArr[0].features : new Array(63).fill(0);
+  }
+  const bySide = { Left: null, Right: null };
+  for (const h of handsArr) if (h.handedness === 'Left' || h.handedness === 'Right') bySide[h.handedness] = h.features;
+  const out = [];
+  for (const side of ['Left', 'Right']) out.push(...(bySide[side] || new Array(63).fill(0)));
+  return out;
+}
+function buildPoseIndex() {
+  const idx = [];
+  for (const cap of window.captures) {
+    const f = cap.frames[Math.floor(cap.frames.length / 2)]; // middle frame of a clip
+    if (f && f.hands && f.hands.length) idx.push({ label: cap.label, features: combinedFeatures(f.hands, numHands) });
+  }
+  return idx;
+}
+function buildReport() {
+  const idx = buildPoseIndex();
+  const groups = {};
+  for (const p of idx) (groups[p.label] = groups[p.label] || []).push(p.features);
+  const names = Object.keys(groups).filter(k => groups[k].length > 0);
+  if (names.length < 2) {
+    document.getElementById('report').innerHTML = '<p class="hint">Capture at least two labels first.</p>';
+    return;
+  }
+  const stats = {};
+  for (const n of names) {
+    const rows = groups[n], len = rows[0].length;
+    const c = new Array(len).fill(0);
+    for (const row of rows) for (let i = 0; i < len; i++) c[i] += row[i] / rows.length;
+    let spread = 0;
+    for (const row of rows) spread += poseDist(row, c);
+    stats[n] = { centroid: c, spread: rows.length > 1 ? spread / rows.length : 0, n: rows.length };
+  }
+  const pairs = [];
+  for (let i = 0; i < names.length; i++) {
+    for (let k = i + 1; k < names.length; k++) {
+      const a = stats[names[i]], b = stats[names[k]];
+      const d = poseDist(a.centroid, b.centroid);
+      const noise = (a.spread + b.spread) / 2;
+      pairs.push({ a: names[i], b: names[k], d: d, noise: noise, ratio: noise > 0 ? d / noise : Infinity });
+    }
+  }
+  pairs.sort((x, y) => x.ratio - y.ratio);
+
+  let html = '<table class="g" style="font-size:0.82rem"><tr>' +
+    '<td style="width:30%">Pair</td><td>Centroid gap</td><td>Within-label noise</td><td>Ratio</td><td>Verdict</td></tr>';
+  for (const p of pairs.slice(0, 40)) {
+    let verdict, color;
+    if (p.ratio < 1.5) { verdict = 'not separable'; color = '#ff7d7d'; }
+    else if (p.ratio < 3) { verdict = 'marginal'; color = '#ffd166'; }
+    else { verdict = 'clean'; color = '#7dffa8'; }
+    html += '<tr><td style="color:#e6e6e6">' + p.a + '  ·  ' + p.b + '</td>' +
+      '<td>' + p.d.toFixed(3) + '</td>' +
+      '<td>' + p.noise.toFixed(3) + '</td>' +
+      '<td>' + (isFinite(p.ratio) ? p.ratio.toFixed(2) : '—') + '</td>' +
+      '<td style="color:' + color + '">' + verdict + '</td></tr>';
+  }
+  html += '</table><p class="hint" style="margin-top:12px">' +
+    'Ratio = how far apart two labels sit, divided by how much each wobbles on its own. Below 1.5 the ' +
+    'webcam+MediaPipe tracker is not resolving the difference for these two signs.</p>';
+  document.getElementById('report').innerHTML = html;
+}
+reportBtn.addEventListener('click', buildReport);
+
+/* ==================================================================
+   CAMERA
+================================================================== */
+startBtn.addEventListener('click', async () => {
+  startBtn.disabled = true;
+  const numHandsSelect = document.getElementById('numHands');
+  numHandsSelect.disabled = true;
+  numHands = parseInt(numHandsSelect.value, 10) || 1;
+  hands.setOptions({
+    maxNumHands: numHands,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.6,
+    minTrackingConfidence: 0.6
+  });
+
+  supportEl.textContent = 'Requesting camera access...';
+  indicatorText.textContent = 'Starting Camera';
+
+  labels = document.getElementById('labelList').value.split(',').map(s => s.trim()).filter(Boolean);
+  if (!labels.length) labels = ['pose'];
+  labelIdx = 0; takeCounts = {};
+
+  try {
+    camera = new Camera(videoEl, {
+      onFrame: async () => { await hands.send({ image: videoEl }); },
+      width: 1280,
+      height: 960
+    });
+    await camera.start();
+
+    cameraRunning = true;
+    startBtn.textContent = 'Camera Running';
+    supportEl.innerHTML = '<span class="ok">Camera started — show your hand.</span>';
+    indicatorDot.classList.add("active");
+    indicatorText.textContent = "Camera Active";
+    refreshLabelUI();
+    refreshCaptureControls();
+  } catch (err) {
+    console.error(err);
+    supportEl.innerHTML = '<span class="bad">Camera access denied or unavailable: ' + err.message + '</span>';
+    indicatorText.textContent = 'Camera Error';
+    indicatorDot.classList.remove("active");
+    startBtn.disabled = false;
+    numHandsSelect.disabled = false;
+  }
+});
+
+/* ==================================================================
+   BUTTONS + KEYBOARD
+================================================================== */
+snapBtn.addEventListener('click', () => startCountdown('snap'));
+clipBtn.addEventListener('click', () => startCountdown('clip'));
+prevBtn.addEventListener('click', () => { if (labelIdx > 0) { labelIdx--; refreshLabelUI(); } });
+nextBtn.addEventListener('click', () => { if (labelIdx < labels.length - 1) { labelIdx++; refreshLabelUI(); } });
+undoBtn.addEventListener('click', undoLast);
+
+document.addEventListener('keydown', (e) => {
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return; // don't hijack typing
+
+  if (e.code === 'Space') { e.preventDefault(); startCountdown('snap'); }
+  else if (e.key === 'c' || e.key === 'C') startCountdown('clip');
+  else if (e.key === 'n' || e.key === 'N' || e.key === 'ArrowRight') { if (labelIdx < labels.length - 1) { labelIdx++; refreshLabelUI(); } }
+  else if (e.key === 'p' || e.key === 'P' || e.key === 'ArrowLeft') { if (labelIdx > 0) { labelIdx--; refreshLabelUI(); } }
+  else if (e.key === 'Backspace') { e.preventDefault(); undoLast(); }
+});
+
+/* ---- export ---- */
+downloadBtn.addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(window.captures, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'webcam-sign-captures-' + Date.now() + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+copyBtn.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(window.captures, null, 2));
+    copyBtn.textContent = 'Copied!';
+    setTimeout(() => copyBtn.textContent = 'Copy JSON', 1200);
+  } catch (e) { dumpEl.value = JSON.stringify(window.captures, null, 2); }
+});
+clearBtn.addEventListener('click', () => {
+  window.captures = []; takeCounts = {}; dumpEl.value = '';
+  try { localStorage.removeItem(LS_KEY); } catch (e) {}
+  refreshButtons();
+  refreshLabelUI();
+});
+
+restore();
+refreshButtons();
+</script>
+
+</body>
+</html>
