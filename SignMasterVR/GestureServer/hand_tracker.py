@@ -82,7 +82,7 @@ def _ensure_model():
 
 
 class HandTracker:
-    def __init__(self, max_hands=1, detection_confidence=0.6, tracking_confidence=0.6):
+    def __init__(self, max_hands=2, detection_confidence=0.6, tracking_confidence=0.6):
         model_path = _ensure_model()
         options = vision.HandLandmarkerOptions(
             base_options=python.BaseOptions(model_asset_path=model_path),

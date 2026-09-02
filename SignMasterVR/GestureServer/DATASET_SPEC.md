@@ -17,10 +17,13 @@ Capture with a laptop's webcam, using `GestureServer/webcam_capture.html` — no
 5. **Backspace** undoes the last capture if a take was bad (hand left frame, wrong shape, etc).
 6. When you're done, click **Download JSON** and send that file back. It also autosaves to the browser as you go, so a closed tab won't lose your session.
 
+## How many hands
+
+The tool has a **Hands to track** setting (1 or 2), locked once you click Start Camera. For plain fingerspelling, leave it at **1 hand** — that matches how the app runs today (`GestureServer/hand_tracker.py` only tracks one hand at runtime). Only switch to 2 if you're deliberately capturing signs that use both hands, ahead of the app supporting that — it's there to build a richer dataset in advance, not a sign the runtime pipeline already consumes two hands.
+
 ## How much to capture
 
-- All 26 letters, one hand only (the tool is set to track a single hand — that matches how the app will actually be used).
-- Aim for **at least 20–30 takes per letter**, more if you can. The tool's own default (5) is fine for a quick smoke test, not for real training.
+- All 26 letters. Aim for **at least 20–30 takes per letter**, more if you can. The tool's own default (5) is fine for a quick smoke test, not for real training.
 - Vary conditions between takes of the same letter: move your hand a bit closer/further from the camera, rotate your wrist slightly, shift position in frame, change the lighting if you can, sign at slightly different speeds for clips. A dataset where every "A" looks pixel-identical trains a model that only recognizes that one exact position.
 - Mix snapshots and clips — clips capture the small natural variation a real hand has even when "holding still," which helps the model generalize.
 - If more than one person on the team can contribute captures, that's genuinely valuable — a model trained on only one person's hand tends to overfit to that person's hand size and signing style.
@@ -40,23 +43,31 @@ Every capture is one JSON object in a top-level array. Multiple sessions/people 
   "kind": "snapshot",
   "timestamp": "2026-09-01T20:14:03.512Z",
   "source": "webcam-browser-mediapipejs",
+  "maxHands": 1,
   "landmarkOrder": ["WRIST", "THUMB_CMC", "..." /* 21 names total */],
   "frameCount": 1,
   "frames": [
     {
       "t": 1234.5,
-      "landmarks": [{ "x": 0.482, "y": 0.601, "z": -0.003 }, "... 21 points, raw MediaPipe output"],
-      "rel": [{ "x": 0.0, "y": 0.0, "z": 0.0 }, "... 21 points, wrist-relative"],
-      "features": [0.0, 0.0, 0.0, "... 63 numbers total (21 points x/y/z, flattened)"]
+      "hands": [
+        {
+          "handedness": "Right",
+          "landmarks": [{ "x": 0.482, "y": 0.601, "z": -0.003 }, "... 21 points, raw MediaPipe output"],
+          "rel": [{ "x": 0.0, "y": 0.0, "z": 0.0 }, "... 21 points, wrist-relative"],
+          "features": [0.0, 0.0, 0.0, "... 63 numbers total (21 points x/y/z, flattened)"]
+        }
+      ]
     }
   ]
 }
 ```
 
-The field that actually matters for training is **`features`** — a flat array of 63 numbers per frame (21 landmarks × x/y/z), computed as: subtract the wrist position from every point, then divide the x and y of every point by the wrist-to-middle-knuckle distance (z is left as-is). That's not an arbitrary choice — it's the exact same formula the app runs live on the laptop during a real lesson (`GestureServer/hand_tracker.py`), so a model trained on `features` here sees the same shape of input it'll get at runtime. Don't re-derive or re-normalize it a different way; use it as given.
+Every frame's `hands` is an array — one entry per hand actually tracked that frame, up to `maxHands`. A single-hand session (the default, and what you want for plain fingerspelling) always has exactly one entry in `hands`, so use `frame.hands[0].features` — that's unchanged from before this tool supported two hands. A two-hand session may have one or two entries per frame depending on what was actually in view; match entries by `handedness` ("Left"/"Right"), don't assume array order.
+
+The field that actually matters for training is **`features`** on each hand entry — a flat array of 63 numbers (21 landmarks × x/y/z), computed as: subtract the wrist position from every point, then divide the x and y of every point by the wrist-to-middle-knuckle distance (z is left as-is). That's not an arbitrary choice — it's the exact same formula the app runs live on the laptop during a real lesson (`GestureServer/hand_tracker.py`), so a model trained on `features` here sees the same shape of input it'll get at runtime. Don't re-derive or re-normalize it a different way; use it as given.
 
 `label` must match the letter exactly as Unity expects it (`"A"`–`"Z"`, uppercase, matching `GestureData.gestureId`) — that's what the model's predictions get compared against later.
 
-## One limitation to know about
+## Two-handed capture
 
-The capture tool only tracks one hand at a time, which is fine for fingerspelling (each letter is a single handshape) but won't work if the project later adds two-handed signs — that would need a different capture setup.
+The tool can now track 2 hands — pick it from the **Hands to track** dropdown before clicking Start Camera; it locks once the session begins. This is only worth using if you're deliberately building a dataset for signs that need both hands. The deployed app doesn't consume two-hand data yet (`GestureServer/hand_tracker.py` is still single-hand at runtime), so a 2-hand dataset is getting ahead of that on purpose, not something that plugs in today. For ordinary fingerspelling, stick with 1 hand.

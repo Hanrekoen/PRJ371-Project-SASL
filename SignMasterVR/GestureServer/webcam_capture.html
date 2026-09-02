@@ -21,13 +21,15 @@
   .panel h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #6ee7ff; margin-bottom: 12px; }
   .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
   label.f { font-size: 0.82rem; color: #8a8a99; min-width: 128px; }
-  input[type="text"], input[type="number"], textarea {
+  input[type="text"], input[type="number"], select, textarea {
     background: #14141c; border: 1px solid #2a2a38; color: #e6e6e6;
     padding: 9px 11px; border-radius: 8px; font-size: 0.88rem; font-family: inherit;
   }
   input[type="text"] { flex: 1; min-width: 200px; }
   input[type="number"] { width: 92px; }
-  input:focus, textarea:focus { outline: none; border-color: #6ee7ff; }
+  select { width: 150px; cursor: pointer; }
+  select:disabled { opacity: 0.55; cursor: default; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #6ee7ff; }
   button {
     background: #6ee7ff; color: #0a0a0f; border: none; padding: 11px 20px;
     border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.92rem; font-family: inherit;
@@ -95,16 +97,24 @@
 </head>
 <body>
 
-<h1>Webcam Sign Capture — 21 Landmarks</h1>
+<h1>Webcam Sign Capture — 21 Landmarks / Hand</h1>
 <p class="sub">MediaPipe Hands running locally in your browser — builds a labeled dataset from the SAME sensor and landmark format GestureServer/hand_tracker.py uses at runtime.</p>
 
-<div id="support">Click "Start Camera" and allow camera access.</div>
+<div id="support">Choose how many hands to track, then click "Start Camera" and allow camera access.</div>
 
 <div class="panel">
   <h2>Session setup</h2>
   <div class="row">
     <label class="f">Labels to capture</label>
     <input type="text" id="labelList" value="A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z" />
+  </div>
+  <div class="row">
+    <label class="f">Hands to track</label>
+    <select id="numHands">
+      <option value="1" selected>1 hand</option>
+      <option value="2">2 hands</option>
+    </select>
+    <span class="hint">Locked once the camera starts — pick before you begin.</span>
   </div>
   <div class="row">
     <label class="f">Countdown (s)</label>
@@ -173,11 +183,14 @@
   </div>
   <textarea id="dump" readonly placeholder="Captures appear here as you take them. They also autosave to this browser and live in window.captures."></textarea>
   <p class="hint" style="margin-top:10px;">
-    Each entry's <code>features</code> array is a 63-value wrist-relative, scale-normalized vector (21
-    landmarks &times; x/y/z) — computed with the exact same formula as
-    <code>GestureServer/hand_tracker.py</code>'s <code>process()</code>. A classifier trained on this
-    JSON should see feature vectors matching what <code>NetworkGestureRecognizer</code> actually
-    receives at runtime, since both come from the same webcam + MediaPipe Hands pipeline.
+    Every frame's <code>hands</code> array holds one entry per hand actually tracked that frame (up to
+    the "Hands to track" setting), each with a <code>handedness</code> ("Left"/"Right") and a 63-value
+    wrist-relative, scale-normalized <code>features</code> vector (21 landmarks &times; x/y/z) —
+    computed with the exact same formula as <code>GestureServer/hand_tracker.py</code>'s
+    <code>process()</code>. A single-hand session always has exactly one entry in <code>hands</code> —
+    use <code>frame.hands[0].features</code> directly, same as before this page supported two hands. A
+    two-hand session may have one or two entries per frame depending on what was actually in view that
+    frame; match them up by <code>handedness</code> rather than assuming array order.
   </p>
 </div>
 
@@ -257,20 +270,18 @@ let camera = null;
 let cameraRunning = false;
 
 /* ==================================================================
-   MEDIAPIPE HANDS -- single hand, matching GestureServer's HandTracker
-   default (max_hands=1): one signer, one hand, no ambiguity about
-   which hand's data goes into the dataset.
+   MEDIAPIPE HANDS -- how many hands to track is chosen in the UI
+   (numHands, 1 or 2) and applied via setOptions() right before the
+   camera starts, in the Start Camera handler below. GestureServer's
+   HandTracker still defaults to max_hands=1 at runtime -- a two-hand
+   capture session is for building a richer dataset ahead of that,
+   not a claim the deployed pipeline already consumes two hands.
 ================================================================== */
 const hands = new Hands({
   locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
 });
-hands.setOptions({
-  maxNumHands: 1,
-  modelComplexity: 1,
-  minDetectionConfidence: 0.6,
-  minTrackingConfidence: 0.6
-});
 hands.onResults(onResults);
+let numHands = 1;
 
 /* ==================================================================
    CAPTURE STATE
@@ -278,7 +289,7 @@ hands.onResults(onResults);
 let labels = [], labelIdx = 0, takeCounts = {};
 let mode = 'idle'; // idle | countdown | clip
 let pendingKind = null, countdownEndsAt = 0, clipEndsAt = 0, clipFrames = [];
-let lastLandmarks = null, lastRel = null;
+let lastHandsData = []; // this frame's tracked hands: [{ handedness, landmarks, rel, features }, ...]
 
 window.captures = [];
 const LS_KEY = 'webcamSignCaptures.v1';
@@ -342,20 +353,32 @@ function onResults(results) {
   ctx.fillStyle = "rgba(0,0,0,0.08)";
   ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
 
-  const hasHand = results.multiHandLandmarks && results.multiHandLandmarks.length > 0;
+  const rawHands = results.multiHandLandmarks || [];
+  const rawHandedness = results.multiHandedness || []; // parallel array to rawHands, per MediaPipe's contract
+  const hasHand = rawHands.length > 0;
 
+  lastHandsData = [];
   if (hasHand) {
-    lastLandmarks = results.multiHandLandmarks[0];
-    lastRel = normalizeLandmarks(lastLandmarks);
-
     indicatorDot.classList.add("detected");
-    indicatorText.textContent = "Hand Detected";
+    indicatorText.textContent = rawHands.length + (rawHands.length === 1 ? " Hand Detected" : " Hands Detected");
 
-    drawConnectors(ctx, lastLandmarks, HAND_CONNECTIONS, { color: '#6ee7ff', lineWidth: 4 });
-    drawLandmarks(ctx, lastLandmarks, { color: '#ff5fd2', lineWidth: 2, radius: 5 });
+    for (let i = 0; i < rawHands.length; i++) {
+      const landmarks = rawHands[i];
+      const rel = normalizeLandmarks(landmarks);
+      // Handedness is MediaPipe's read of the RAW (unmirrored) frame -- the on-screen
+      // preview is flipped for display only (see the canvas transform above), so this
+      // label reflects your actual hand, not what looks left/right in the mirror.
+      const side = (rawHandedness[i] && rawHandedness[i].label) || null;
+      lastHandsData.push({
+        handedness: side,
+        landmarks: landmarks.map(p => ({ x: r5(p.x), y: r5(p.y), z: r5(p.z) })),
+        rel: rel.map(p => ({ x: r5(p.x), y: r5(p.y), z: r5(p.z) })),
+        features: toFeatures(rel)
+      });
+      drawConnectors(ctx, landmarks, HAND_CONNECTIONS, { color: '#6ee7ff', lineWidth: 4 });
+      drawLandmarks(ctx, landmarks, { color: '#ff5fd2', lineWidth: 2, radius: 5 });
+    }
   } else {
-    lastLandmarks = null;
-    lastRel = null;
     indicatorDot.classList.remove("detected");
     indicatorText.textContent = "Camera Active";
   }
@@ -363,7 +386,9 @@ function onResults(results) {
 
   const now = performance.now();
   if (mode === 'idle') {
-    setStatus(hasHand ? 'tracking — ready to capture' : 'no hand detected — hold your hand up to the camera');
+    setStatus(hasHand
+      ? 'tracking ' + lastHandsData.length + '/' + numHands + ' hand(s) — ready to capture'
+      : 'no hand detected — hold your hand up to the camera');
   } else if (mode === 'countdown') {
     const left = Math.ceil((countdownEndsAt - now) / 1000);
     countdownEl.hidden = left <= 0;
@@ -371,7 +396,7 @@ function onResults(results) {
     setStatus(pendingKind === 'clip' ? 'get ready — sign through the clip' : 'get ready — hold the sign');
     if (now >= countdownEndsAt) { countdownEl.hidden = true; fire(now); }
   } else if (mode === 'clip') {
-    if (hasHand) clipFrames.push({ t: r5(now), landmarks: lastLandmarks.map(p => ({ x: r5(p.x), y: r5(p.y), z: r5(p.z) })), rel: lastRel, features: toFeatures(lastRel) });
+    if (hasHand) clipFrames.push({ t: r5(now), hands: lastHandsData });
     setStatus('● RECORDING', true);
     if (now >= clipEndsAt) finishClip();
   }
@@ -389,11 +414,8 @@ function startCountdown(kind) {
 function fire(now) {
   if (pendingKind === 'snap') {
     mode = 'idle';
-    if (!lastLandmarks) { setStatus('missed — no hand tracked'); return; }
-    store({
-      kind: 'snapshot',
-      frames: [{ t: r5(now), landmarks: lastLandmarks.map(p => ({ x: r5(p.x), y: r5(p.y), z: r5(p.z) })), rel: lastRel, features: toFeatures(lastRel) }]
-    });
+    if (!lastHandsData.length) { setStatus('missed — no hand tracked'); return; }
+    store({ kind: 'snapshot', frames: [{ t: r5(now), hands: lastHandsData }] });
   } else {
     clipFrames = [];
     clipEndsAt = performance.now() + (parseInt(document.getElementById('clipMs').value, 10) || 1500);
@@ -418,6 +440,7 @@ function store(payload) {
     kind: payload.kind,
     timestamp: new Date().toISOString(),
     source: 'webcam-browser-mediapipejs',
+    maxHands: numHands,
     landmarkOrder: LANDMARK_NAMES,
     frameCount: payload.frames.length,
     frames: payload.frames
@@ -460,11 +483,29 @@ function poseDist(a, b) {
   for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; }
   return Math.sqrt(s / (a.length / 3));
 }
+/* Builds one fixed-length feature vector per capture so poseDist always
+   compares equal-length arrays, even if a hand dropped out of frame on a
+   given take or the dataset mixes 1-hand and 2-hand sessions. For a single
+   hand this is just that hand's 63 features, unchanged from before. For two
+   hands it's a 126-length vector with a fixed Left-then-Right layout --
+   whichever side is missing that frame is zero-filled, not omitted, so
+   "only got one hand that take" reads as a real difference rather than
+   silently shifting every later value into the wrong slot. */
+function combinedFeatures(handsArr, targetHandCount) {
+  if (targetHandCount <= 1) {
+    return (handsArr[0] && handsArr[0].features) ? handsArr[0].features : new Array(63).fill(0);
+  }
+  const bySide = { Left: null, Right: null };
+  for (const h of handsArr) if (h.handedness === 'Left' || h.handedness === 'Right') bySide[h.handedness] = h.features;
+  const out = [];
+  for (const side of ['Left', 'Right']) out.push(...(bySide[side] || new Array(63).fill(0)));
+  return out;
+}
 function buildPoseIndex() {
   const idx = [];
   for (const cap of window.captures) {
     const f = cap.frames[Math.floor(cap.frames.length / 2)]; // middle frame of a clip
-    if (f && f.features) idx.push({ label: cap.label, features: f.features });
+    if (f && f.hands && f.hands.length) idx.push({ label: cap.label, features: combinedFeatures(f.hands, numHands) });
   }
   return idx;
 }
@@ -522,6 +563,16 @@ reportBtn.addEventListener('click', buildReport);
 ================================================================== */
 startBtn.addEventListener('click', async () => {
   startBtn.disabled = true;
+  const numHandsSelect = document.getElementById('numHands');
+  numHandsSelect.disabled = true;
+  numHands = parseInt(numHandsSelect.value, 10) || 1;
+  hands.setOptions({
+    maxNumHands: numHands,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.6,
+    minTrackingConfidence: 0.6
+  });
+
   supportEl.textContent = 'Requesting camera access...';
   indicatorText.textContent = 'Starting Camera';
 
@@ -550,6 +601,7 @@ startBtn.addEventListener('click', async () => {
     indicatorText.textContent = 'Camera Error';
     indicatorDot.classList.remove("active");
     startBtn.disabled = false;
+    numHandsSelect.disabled = false;
   }
 });
 
