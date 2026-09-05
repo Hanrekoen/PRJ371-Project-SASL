@@ -51,26 +51,42 @@ on.
 
 ## What it actually recognizes right now
 
-`classifier.py`'s `PlaceholderClassifier` is a stand-in — the same role
-`FakeGestureRecognizer` plays on the Unity side — so the *whole pipeline*
-(webcam → laptop → network → headset → LessonManager) is testable tonight
-without the trained ML model. It does **not** recognize real ASL letters,
-only open-hand vs. closed-fist:
+The trained model, `sasl_classifier.py`'s `SASLGestureClassifier` — see
+**`ML_MODEL.md`** for how it works, what it scores, and its limits. It knows
+two signs, **Hello** and **Bye**, at ~97.5% leave-one-clip-out accuracy.
+
+Unlike the placeholder it reads a **~3 second window**, not one frame: both
+signs are waves, and a single frame cannot tell a wave from a hand held still.
+It reports a sign only after several overlapping windows agree, and reports
+`"NONE"` — which `server.py` treats as "say nothing" — whenever an attempt
+isn't recognisable, so the headset is never told a wrong sign was made. The
+preview window shows the reason it's staying quiet ("hand is holding still",
+"doesn't match any known sign").
+
+**Unity has no `GestureData` for these signs yet.** `Assets/Data/Gestures/`
+contains A–Z fingerspelling only, so `LessonManager` can never set Hello or
+Bye as a target until someone creates `Gesture_Hello.asset` /
+`Gesture_Bye.asset` — or until A–Z clips are captured and the model retrained
+(no code changes; the label set comes from the data). The classifier prints a
+warning about this at startup.
+
+`classifier.py`'s `PlaceholderClassifier` is still there and still works —
+run `python server.py --placeholder` for the old open-hand-vs-fist stand-in,
+which is handy for testing the network path on a machine without
+scikit-learn installed:
 
 - **Open hand** toward the camera → reports the current target letter back
-  as a high-confidence match (simulates "correct", like pressing `C` /
-  clicking TEST CORRECT used to).
-- **Closed fist** → reports `"WRONG"` (simulates "incorrect", like `X` /
-  TEST WRONG).
+  as a high-confidence match (simulates "correct").
+- **Closed fist** → reports `"WRONG"` (simulates "incorrect").
 - **No hand in view** → reports nothing.
 
-To swap in the real trained model once the ML sub-team delivers one: write a
-class implementing `GestureClassifier.classify(landmarks) -> (gesture_id,
-confidence)` in `classifier.py` (or a new file), and change the
-`classifier = PlaceholderClassifier(...)` line in `server.py`'s `main()` to
-construct it instead. Nothing else in this program, and nothing on the Unity
-side, needs to change — `NetworkGestureRecognizer` and `LessonManager` only
-ever see the resulting `(gestureId, confidence)` pair.
+Nothing on the Unity side changed — `NetworkGestureRecognizer` and
+`LessonManager` still only ever see a `(gestureId, confidence)` pair, and
+still make the pass/fail decision themselves against
+`GestureData.requiredConfidence`. The one change on this side:
+`GestureClassifier.classify()` gained an optional second argument, the raw
+HandLandmarker result, because a temporal model needs the absolute landmark
+positions that `landmarks` has already had the wrist subtracted out of.
 
 ##  Input spec change for the ML team
 
@@ -92,8 +108,20 @@ against this one before it'll work here.
 - `hand_tracker.py` — webcam capture + MediaPipe Hands, landmark
   normalization.
 - `classifier.py` — the swappable classifier interface + the placeholder.
+- `sasl_classifier.py` — the trained model behind that interface. This is
+  what `server.py` constructs by default.
 - `server.py` — ties it together: the TCP server, the accept/reconnect
   loop, the camera loop, and the debug preview window. Run this one.
+- `ML_MODEL.md` — the model: how it works, what it scores, how to add signs,
+  and a confound in the Hello/Bye capture set worth knowing about before you
+  capture more data. **Read this before retraining.**
+- `sasl_features.py`, `sasl_model.py`, `gesture_classifier.py` — the model's
+  internals: feature extraction, the saved artefact + confidence gate, and
+  the real-time sliding window.
+- `train_gesture_model.py`, `test_pipeline.py` — retraining and its
+  verification suite. `python test_pipeline.py` should print 14/14.
+- `live_demo.py` — sign at the webcam with no headset or network involved.
+  The quickest way to check the model works on this machine.
 
 ## Troubleshooting
 
@@ -107,4 +135,11 @@ against this one before it'll work here.
 - **Connects, but nothing happens when you show your hand** — check the
   preview window: if no skeleton is drawn, MediaPipe isn't seeing a hand
   (lighting, distance, hand out of frame). If a skeleton IS drawn but
-  `Guess:` never changes from `NONE`, check the console for errors.
+  `Guess:` never changes from `NONE`, read the grey line under it — the
+  classifier says why it's staying quiet. "filling window" for more than
+  ~3 seconds means frames are arriving too slowly; "doesn't match any known
+  sign" means it saw a hand but not one of the signs it knows.
+- **`ModuleNotFoundError: sklearn` or a joblib version complaint** — run
+  `pip install -r requirements.txt` again (the model added scikit-learn and
+  joblib). If the version complaint persists, re-run
+  `python train_gesture_model.py` to rebuild the model locally (~90s).

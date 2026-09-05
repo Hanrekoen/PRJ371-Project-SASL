@@ -3,9 +3,10 @@ GestureServer -- runs on the laptop with the external webcam. Captures video,
 tracks the learner's hand, classifies it against whatever sign the headset
 says is the current target, and reports the result back over the network.
 
-See protocol.py for the wire format, and hand_tracker.py's module docstring
-for the note about the input spec changing from XR Hands to webcam/MediaPipe
-(relay that to the ML sub-team).
+See protocol.py for the wire format, ML_MODEL.md for the trained classifier
+this now uses by default (pass --placeholder for the old open-hand/fist
+stand-in), and hand_tracker.py's module docstring for the note about the input
+spec changing from XR Hands to webcam/MediaPipe.
 
 Setup (on the laptop):
     pip install -r requirements.txt
@@ -127,6 +128,12 @@ def main():
     parser.add_argument("--port", type=int, default=8765, help="Must match NetworkGestureRecognizer.laptopPort in Unity")
     parser.add_argument("--camera", type=int, default=0, help="Webcam index (default: 0 -- try 1, 2... if that's the wrong camera)")
     parser.add_argument("--no-preview", action="store_true", help="Don't open the debug preview window")
+    parser.add_argument("--model", default=None,
+                        help="Path to the trained model (default: models/sasl_gesture_model.joblib)")
+    parser.add_argument("--placeholder", action="store_true",
+                        help="Use the old open-hand/fist PlaceholderClassifier instead of the "
+                             "trained model -- handy for testing the network path on a machine "
+                             "without scikit-learn installed")
     args = parser.parse_args()
 
     session_holder = [None]  # holds the current ClientSession, or None
@@ -147,9 +154,18 @@ def main():
         raise SystemExit(f"[GestureServer] Could not open webcam index {args.camera}. Try a different --camera index.")
 
     tracker = HandTracker()
-    classifier = PlaceholderClassifier(
-        get_target_gesture_id=lambda: (session_holder[0].target_gesture_id() if session_holder[0] else None)
-    )
+    if args.placeholder:
+        classifier = PlaceholderClassifier(
+            get_target_gesture_id=lambda: (session_holder[0].target_gesture_id() if session_holder[0] else None)
+        )
+        print("[GestureServer] Using PlaceholderClassifier (open hand = correct, fist = wrong).")
+    else:
+        # The trained model. Same classify() contract as the placeholder, but it
+        # reads a ~3s window rather than one frame, because the signs it knows
+        # are dynamic. See ML_MODEL.md. Imported here rather than at the top so
+        # that --placeholder still works on a machine without scikit-learn.
+        from sasl_classifier import DEFAULT_MODEL, SASLGestureClassifier
+        classifier = SASLGestureClassifier(model_path=args.model or DEFAULT_MODEL)
 
     last_sent = None
     last_sent_time = 0.0
@@ -165,7 +181,10 @@ def main():
 
             frame = cv2.flip(frame, 1)  # mirror -- feels natural to whoever's watching the preview
             results, landmarks = tracker.process(frame)
-            gesture_id, confidence = classifier.classify(landmarks)
+            # `results` carries the absolute landmark positions the trained model
+            # needs; `landmarks` has had the wrist subtracted out. The
+            # placeholder ignores the second argument.
+            gesture_id, confidence = classifier.classify(landmarks, results)
 
             session = session_holder[0]
             now = time.time()
@@ -185,6 +204,12 @@ def main():
                 cv2.putText(frame, f"Status: {status}", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
                 cv2.putText(frame, f"Target: {target}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
                 cv2.putText(frame, f"Guess: {gesture_id} ({confidence:.2f})", (10, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                # The trained classifier explains its silence -- "hand is holding
+                # still", "doesn't match any known sign" -- which is far easier to
+                # debug in front of a camera than a blank "NONE".
+                reason = getattr(classifier, "status", {}).get("reason")
+                if reason:
+                    cv2.putText(frame, reason[:64], (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
                 cv2.imshow("SignMasterVR Gesture Server", frame)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break

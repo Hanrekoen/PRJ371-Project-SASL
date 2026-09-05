@@ -1,3 +1,10 @@
 opencv-python
 mediapipe>=0.10.30
 numpy
+
+# Gesture recognition model (see ML_MODEL.md). The committed
+# models/sasl_gesture_model.joblib is written by scikit-learn 1.8 -- pickles
+# don't reliably load across major versions, so the range is pinned. If it ever
+# complains, re-run `python train_gesture_model.py` (~90 seconds).
+scikit-learn>=1.8,<1.9
+joblib
