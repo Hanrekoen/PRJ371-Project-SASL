@@ -169,6 +169,7 @@ def main():
 
     last_sent = None
     last_sent_time = 0.0
+    last_target = None
     RESEND_INTERVAL_SECONDS = 2.0  # safety-net resend even when the guess hasn't changed
 
     try:
@@ -180,6 +181,20 @@ def main():
                 continue
 
             frame = cv2.flip(frame, 1)  # mirror -- feels natural to whoever's watching the preview
+            # When the headset moves to a new sign, throw away the rolling
+            # window. Otherwise the next judgement is made partly from frames
+            # captured while the PREVIOUS sign was still on screen, and the
+            # learner gets marked wrong for the tail of an attempt they already
+            # got right. Only the trained classifier buffers frames; the
+            # placeholder has nothing to reset.
+            session_now = session_holder[0]
+            target_now = session_now.target_gesture_id() if session_now else None
+            if target_now != last_target:
+                last_target = target_now
+                last_sent, last_sent_time = None, 0.0
+                if hasattr(classifier, "reset"):
+                    classifier.reset()
+
             results, landmarks = tracker.process(frame)
             # `results` carries the absolute landmark positions the trained model
             # needs; `landmarks` has had the wrist subtracted out. The
