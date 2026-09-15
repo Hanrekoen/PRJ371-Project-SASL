@@ -7,11 +7,15 @@ Please, Sorry, Thank you, Toilet.
 
 ```
 sasl_features.py        canonicalization + feature extraction (shared by training and runtime)
+webcam_capture_full.html  capture with hands + body pose + face (for the avatar and for arm position)
+export_ghost_hand.py    capture JSON -> ghost-hand demo clips
+ghost_preview.html      preview an exported demo clip without Unity
+GhostHandPlayer.cs      Unity component that plays one (goes in Assets/Scripts/Lessons/)
 sasl_model.py           the saved artefact: classifier + 3-stage confidence gate
 sasl_classifier.py      GestureClassifier adapter -- what server.py constructs
 gesture_classifier.py   real-time sliding-window validator
 train_gesture_model.py  training, confound audit, model selection, threshold calibration
-test_pipeline.py        verification suite (13 checks + warnings)
+test_pipeline.py        verification suite (12 checks + warnings)
 live_demo.py            standalone webcam demo, no headset or network needed
 data/                   capture JSON
 models/sasl_gesture_model.joblib
@@ -21,7 +25,7 @@ models/sasl_gesture_model.joblib
 
 ```bash
 pip install -r requirements.txt          # now also needs scikit-learn + joblib
-python test_pipeline.py                  # 13/13 should pass
+python test_pipeline.py                  # 12/12 should pass, 1 warning
 python live_demo.py                      # sign at the webcam, no headset needed
 python server.py --port 8765             # the real thing
 ```
@@ -57,9 +61,8 @@ collapse the moment a learner signs both with the same hand. Three things in
    which side of frame the signer stands on carries no signal.
 
 `test_pipeline.py` proves it: mirroring the whole video changes the prediction on
-4 of 311 clips — and all four are two-handed signs, where mirroring changes which
-hand the tracker follows rather than which sign it sees (see *Known limits*).
-Moving the signer to the other side of frame is likewise near-total.
+2 of 311 clips, and the mean feature vector moves by 1.1%. Moving the signer to
+the other side of frame changes 1 of 311.
 
 **When capturing the next signs, vary the signing hand and the position within
 every label.** The code removes the shortcut; only real variety proves it's gone.
@@ -94,28 +97,47 @@ Clip-grouped cross-validation, augmented copies never crossing the fold boundary
 |---|---|
 | Signs | 16 |
 | Clips | 311 (20 per sign; Drive has 11) |
-| Best model | logistic regression on 24 PCA components |
-| Accuracy | **97.4%**, 10-fold grouped CV |
-| Top scorer | random forest at 98.1% -- not used, see below |
+| Best model | logistic regression on 48 PCA components |
+| Accuracy | **98.4%**, 10-fold grouped CV |
 | Single-window acceptance of genuine clips | 90% |
-| Live sliding-window replay | 29/32 correct, 0 wrong |
-| Replay through the server adapter | 29/32 correct, 0 wrong |
-| Training time | ~3.5 min full sweep, ~70s with `--quick` |
+| Live sliding-window replay | 30/32 correct, 0 wrong |
+| Replay through the server adapter | 30/32 correct, 0 wrong |
+| Model size / training time | 600 KB / ~4 min full sweep, ~90s with `--quick` |
 
-The random forest scored 0.7 points higher but pickles to **60 MB** against 400 KB
-and is slower per frame. On 311 clips that gap is two clips -- inside the noise --
-so the trainer takes the simplest model within `--tolerance` (default 1.5%) of the
-best. Pass `--tolerance 0` to always take the top scorer.
+Up from 97.4% one-handed. Three fixes got it there, in order of how much they
+mattered:
 
-Only two signs get confused: Bye with Hello (both waves), and I am with How are
-you. Everything else is clean.
+**Both hands are now read.** Four signs are genuinely two-handed — I Sign (two
+hands in 99% of frames), Home (86%), Can you sign? (75%), Nice to meet you
+(56%). All four now score 97.5–100%. The feature vector carries a second block
+(the support hand's shape, and its position relative to the dominant hand),
+302 dims in total.
 
-Cross-signer accuracy is still unmeasured -- every clip is one person. That
-remains the number that matters for a tutor.
+Which hand is "dominant" is decided by **how much each one moves over the
+window**, never by MediaPipe's Left/Right label — that label flips with mirrored
+video, so it would silently swap the two feature blocks between the capture tool
+and the live server. Motion is a magnitude, so it survives mirroring.
+
+**A chirality bug was corrupting the trajectory features.** Chirality was decided
+per frame; when a hand turns edge-on the palm triangle degenerates and the sign
+flips for a frame or two, teleporting the canonical wrist by about a hand-width.
+That produced ~200 hand-widths/second of phantom speed. It affected **96 of 327
+clips** — every take of "I am" and "Nice to meet you" among them. Chirality is
+now one decision per window, by majority vote.
+
+**The window was longer than the signs.** It was fixed at 2.9s, from the original
+Hello/Bye clips. The median sign here runs 2.2s and 221 of 311 clips are shorter
+than 2.9s, so every window carried a second of whatever came before or after.
+The window is now taken from the data at training time (2.2s here) and stored in
+the model. That alone recovered 3 detections out of 32 in replay.
+
+Confusions left: Bye/Hello (both waves) and I am/How are you. Cross-signer
+accuracy is still unmeasured — every clip is one person, and that remains the
+number that matters.
 
 ## How it works
 
-**Features** (241 dims). Not raw coordinates — with 20 clips per sign, 63
+**Features** (302 dims: 241 for the dominant hand, 61 for the support hand). Not raw coordinates — with 20 clips per sign, 63
 correlated numbers per frame overfits immediately. Each frame becomes a 20-value
 pose descriptor (finger extension, curl, spread, palm direction and 3D facing),
 and each clip is resampled onto a uniform time grid *by timestamp*, because the
@@ -135,9 +157,9 @@ because the probabilities must sum to one. Three checks stand in front of it:
 
 | Check | Rejects | Threshold |
 |---|---|---|
-| Liveness | hand absent, or holding still | motion energy ≥ 1.51 (quietest real clip: 1.55) |
-| Novelty | anything unlike the training distribution (Mahalanobis distance in a 16-d PCA space) | 4.32 = 97th percentile over real clips |
-| Confidence | attempts falling between signs | 0.43 calibrated probability |
+| Liveness | hand absent, or holding still | motion energy ≥ 1.56 (quietest real clip: 1.55) |
+| Novelty | anything unlike the training distribution (Mahalanobis distance in a 32-d PCA space) | 5.47 = 97th percentile over real clips |
+| Confidence | attempts falling between signs | 0.54 calibrated probability |
 
 The confidence bar scales with the number of signs. Calibrated probabilities
 spread across however many classes exist, so a confident 2-sign answer sits near
@@ -154,12 +176,12 @@ they saturate at 0.9999 and the bar would be decorative.
 Verified rejections: random landmarks, a hand drifting across frame with a static
 shape, a still hand, and a window where the hand is visible 16% of the time.
 
-`test_pipeline.py` now **warns** rather than fails on one synthetic negative, a
-fast erratic scribble. Against two signs it was comfortably rejected; against
-sixteen mostly-dynamic phrase signs its novelty distance sits *below* the median
-genuine clip, because "fast sinusoidal hand movement" genuinely is one of these
-signs. The proxy stopped being valid, not the gate. Recording real non-signs is
-the fix.
+`test_pipeline.py` **warns** rather than fails on two synthetic negatives now —
+the erratic scribble and the drifting hand. Both were comfortably rejected at two
+signs; at sixteen mostly-dynamic ones they sit inside the genuine distribution,
+because "fast sinusoidal hand movement" and "a held handshape moving slowly" are
+plausible descriptions of real signs in this set. The proxies stopped being
+valid, not the gate — see *Known limits*.
 
 Rejected attempts surface as `"NONE"`, which `server.py` already treats as "say
 nothing" — so the headset is never told a wrong sign was made. The pass/fail
@@ -255,15 +277,16 @@ the accuracy underneath it.
 
 - **Two signs, one signer.** Cross-signer generalization is untested and is the
   first thing to measure once a second person contributes captures.
-- **Two-handed signs are only half-seen.** The pipeline follows one hand, but
-  four of the 16 signs are genuinely two-handed: **I Sign** (99% of frames show
-  two hands), **Home** (86%), **Can you sign?** (75%), **Nice to meet you**
-  (56%). They still classify correctly, because one hand of each is distinctive
-  among these 16 -- but it is half the evidence, and which hand gets followed is
-  not stable: mirroring the video flips the prediction on 4 of 311 clips, all of
-  them two-handed. Adding a second-hand feature block (its handshape, and its
-  position relative to the first) is the single biggest accuracy and robustness
-  win available, and it grows more important with every two-handed sign added.
+- **Three hands or more is not handled** — two is the cap, which matches signing.
+- **The confidence gate is now the weakest part.** Two of the five synthetic
+  negatives get through at 16 signs: a fast erratic scribble, and a real
+  handshape sliding slowly across frame. Both are measured, not guessed —
+  sweeping the gate's embedding from 8 to 48 dimensions never separated the
+  drift case from genuine clips, so it is not a tuning problem. With this many
+  dynamic signs those synthetic proxies have simply stopped being fair tests.
+  **Record 20–30 real "not a sign" clips** — fidgeting, adjusting glasses,
+  half-finished attempts — label them and re-tune against those. This is the
+  top remaining risk and the cheapest thing left to fix.
 - **Signing height is camera-dependent.** Vertical position is deliberately kept
   as a feature (temple vs chest is part of a sign), costing some robustness to
   camera framing — a 5% vertical shift flips 3 of 40 clips. MediaPipe Pose or

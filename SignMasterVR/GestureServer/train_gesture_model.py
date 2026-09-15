@@ -80,21 +80,31 @@ def augment_clip(frames: list[HandFrame], rng) -> list[HandFrame]:
     shift = rng.normal(0, 0.03, size=2)       # standing position in frame
     noise = rng.uniform(0.0015, 0.006)        # landmark jitter
 
-    out = []
-    for f in seg:
-        t = (f.t - t0) / speed
-        if f.xyz is None:
-            out.append(HandFrame(t, None))
-            continue
-        p = f.xyz.copy()
-        centre = p[0, :2].copy()
+    # One shared transform for BOTH hands, about a shared centre. Rotating each
+    # hand about its own wrist would spin them independently and destroy the
+    # relationship between them, which for a two-handed sign IS the sign.
+    def warp(p, centre):
+        p = p.copy()
         rel = p[:, :2] - centre
         rot = np.stack([rel[:, 0] * c - rel[:, 1] * s,
                         rel[:, 0] * s + rel[:, 1] * c], axis=1)
         p[:, :2] = centre + shift + rot * zoom
         p[:, 2] *= zoom
         p += rng.normal(0, noise, size=p.shape).astype(np.float32)
-        out.append(HandFrame(t, p.astype(np.float32)))
+        return p.astype(np.float32)
+
+    out = []
+    for f in seg:
+        t = (f.t - t0) / speed
+        if f.xyz is None:
+            out.append(HandFrame(t, None))
+            continue
+        second = getattr(f, "xyz2", None)
+        # Centre on the midpoint when two hands are up, so neither is privileged.
+        centre = (f.xyz[0, :2].copy() if second is None
+                  else (f.xyz[0, :2] + second[0, :2]) / 2.0)
+        out.append(HandFrame(t, warp(f.xyz, centre),
+                             None if second is None else warp(second, centre)))
     return out
 
 
@@ -212,9 +222,12 @@ def confound_audit(clips):
 # --------------------------------------------------------------------------
 
 def candidate_models(n_features: int, n_samples: int):
-    max_pca = max(2, min(24, n_samples // 3, n_features))
+    # The cap scales with how wide the feature vector is. When the support-hand
+    # block took it from 241 to 302 dims, a fixed cap of 24 components started
+    # losing real information: the same data scored 96.5% at 24 and 98.1% at 48.
+    max_pca = max(2, min(48, n_features // 6, n_samples // 3, n_features))
     grid = []
-    for n_comp in sorted({6, 12, max_pca}):
+    for n_comp in sorted({6, 12, 24, max_pca}):
         if n_comp > max_pca:
             continue
         for C in [1.0, 10.0]:
@@ -527,9 +540,12 @@ def main():
     # a far better estimate than 40), but its THRESHOLD comes from the real
     # clips only. Augmented variants are deliberately distorted, so calibrating
     # the cutoff on them would set the bar wide enough to wave anything through.
+    # Embedding width scales with the feature vector. Measured on this data:
+    # going 16 -> 32 components moved random-landmark noise from 1.3x the
+    # threshold to 2.2x, and the scribble from 0.6x to 0.9x.
+    gate_dim = min(32, max(8, Xa.shape[1] // 10), Xa.shape[0], Xa.shape[1])
     embedder = Pipeline([("sc", StandardScaler()),
-                         ("pca", PCA(n_components=min(16, Xa.shape[0], Xa.shape[1]),
-                                     random_state=0))]).fit(Xa)
+                         ("pca", PCA(n_components=gate_dim, random_state=0))]).fit(Xa)
     gate = NoveltyGate(threshold_percentile=args.novelty_percentile)
     gate.fit(embedder.transform(Xa), ya)
     genuine_d = np.array([gate.distance(z) for z in embedder.transform(X0)])
@@ -574,6 +590,16 @@ def main():
     print(f"Confidence bar: {min_conf:.2f} (floor {floor:.2f} for {n_classes} signs) "
           f"-> both gates accept {accepted:.0%} of real clips in a single window")
 
+    # Live window length, taken from how long the signs actually are rather
+    # than left at a constant. The default 2.9s came from the original Hello/Bye
+    # clips; on this set the median sign runs 2.2s and 221 of 311 clips are
+    # shorter than 2.9s, so a fixed 2.9s window always carried a second of
+    # whatever happened before or after the attempt.
+    durations = np.array([c[2][-1].t - c[2][0].t for c in clips])
+    window = float(np.clip(np.median(durations), 1.5, 4.0))
+    print(f"Live window: {window:.1f}s (median sign {np.median(durations):.1f}s, "
+          f"range {durations.min():.1f}-{durations.max():.1f}s)")
+
     from sasl_features import FEATURE_NAMES
     model = GestureModel(
         pipeline=pipeline,
@@ -583,7 +609,7 @@ def main():
         feature_names=FEATURE_NAMES,
         min_confidence=min_conf,
         min_motion_energy=min_energy,
-        window_seconds=WINDOW_SECONDS,
+        window_seconds=window,
         metadata={
             "selected_model": best_name,
             "cv_scheme": scheme,
@@ -593,6 +619,7 @@ def main():
             "novelty_threshold": gate.threshold_,
             "min_motion_energy": min_energy,
             "min_confidence": min_conf,
+            "window_seconds": window,
             "single_window_acceptance": float(accepted),
             "n_clips": len(clips),
             "clips_per_label": dict(counts),

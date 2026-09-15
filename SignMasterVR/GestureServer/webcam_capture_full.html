@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SignMasterVR — Full-tracking capture (hands + body + face)</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --line:#30363d; --ink:#e6edf3; --dim:#8b949e;
+    --accent:#6ee7ff; --ok:#3fb950; --bad:#f85149; --warn:#d29922;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:16px 20px;border-bottom:1px solid var(--line)}
+  h1{margin:0 0 4px;font-size:17px;letter-spacing:.2px}
+  header p{margin:0;color:var(--dim);font-size:13px}
+  .wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px 20px;align-items:start}
+  @media (max-width:900px){.wrap{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .panel h2{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}
+  #stage{position:relative;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  #stage canvas{display:block;width:100%;height:auto}
+  video{display:none}
+  #overlayText{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+               font-size:88px;font-weight:700;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.8);pointer-events:none}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+  label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--dim)}
+  input,select,textarea{background:#0d1117;color:var(--ink);border:1px solid var(--line);
+                        border-radius:6px;padding:7px 9px;font:inherit}
+  input[type=text]{min-width:120px}
+  textarea{width:100%;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px}
+  button{background:#21262d;color:var(--ink);border:1px solid var(--line);border-radius:6px;
+         padding:8px 13px;font:inherit;cursor:pointer}
+  button:hover:not(:disabled){border-color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);color:#04202a;border-color:var(--accent);font-weight:600}
+  kbd{background:#0d1117;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+      padding:1px 5px;font-family:ui-monospace,monospace;font-size:11px}
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;
+        border:1px solid var(--line);font-size:12px}
+  .dot{width:7px;height:7px;border-radius:50%;background:#484f58}
+  .dot.on{background:var(--ok);box-shadow:0 0 7px var(--ok)}
+  .dot.off{background:var(--bad)}
+  .big{font-size:26px;font-weight:700;letter-spacing:.3px}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  td{padding:3px 0;border-bottom:1px solid #21262d}
+  td:last-child{text-align:right;color:var(--dim)}
+  .note{font-size:12px;color:var(--dim);margin:8px 0 0}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SignMasterVR — full-tracking capture</h1>
+  <p>Records <strong>hands + body pose + face</strong> in one pass. Same keys and export format as the
+     original tool, with extra fields added. Use this for signs the avatar must perform, and for any
+     sign where arm position matters.</p>
+</header>
+
+<div class="wrap">
+  <div>
+    <div id="stage">
+      <video id="video" playsinline></video>
+      <canvas id="canvas"></canvas>
+      <div id="overlayText"></div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2>Capture</h2>
+      <div class="row">
+        <button id="snapBtn" disabled>Snapshot <kbd>Space</kbd></button>
+        <button id="clipBtn" class="primary" disabled>Record clip <kbd>C</kbd></button>
+        <button id="prevBtn" disabled>◀ Prev <kbd>P</kbd></button>
+        <button id="nextBtn" disabled>Next ▶ <kbd>N</kbd></button>
+        <button id="undoBtn" disabled>Undo <kbd>⌫</kbd></button>
+      </div>
+      <p class="note">
+        <strong>Use clips, not snapshots.</strong> The recogniser reads ~3 seconds of motion; a single
+        frame carries none and gets dropped at training time. Snapshot is kept only for quick checks.
+      </p>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2>Exported JSON <span class="dim" id="countEl"></span></h2>
+      <div class="row">
+        <button id="downloadBtn" disabled>Download JSON</button>
+        <button id="copyBtn" disabled>Copy to clipboard</button>
+        <button id="clearBtn">Clear session</button>
+      </div>
+      <textarea id="dump" rows="7" readonly placeholder="Captures appear here as you record."></textarea>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2>Setup</h2>
+      <div class="row">
+        <label class="f">Labels (comma separated)
+          <input type="text" id="labelList" style="width:100%"
+                 value="Thank you, Please, Sorry, Help">
+        </label>
+      </div>
+      <div class="row">
+        <label class="f">Takes per label<input type="number" id="repeats" value="8" min="1" style="width:76px"></label>
+        <label class="f">Clip length (ms)<input type="number" id="clipMs" value="2500" min="500" step="250" style="width:96px"></label>
+        <label class="f">Countdown (s)<input type="number" id="countdownS" value="3" min="0" max="10" style="width:70px"></label>
+      </div>
+      <div class="row">
+        <label class="f">Hands<select id="numHands"><option value="2" selected>2 (both)</option><option value="1">1</option></select></label>
+        <label class="f">Face detail
+          <select id="faceMode">
+            <option value="compact" selected>Compact (24 points)</option>
+            <option value="full">Full (468 points)</option>
+            <option value="off">Off</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <button id="startBtn" class="primary">Start Camera</button>
+      </div>
+      <div id="support" class="dim" style="font-size:12px"></div>
+      <p class="note">
+        Face defaults to <strong>compact</strong>: 24 curated points (brows, eyes, mouth, jaw, nose) —
+        enough for expression and head pose without making every file ten times bigger. Switch to full
+        only if someone specifically needs the whole mesh.
+      </p>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2>Now recording</h2>
+      <div class="big" id="labelNow">—</div>
+      <div class="dim" id="labelProgress" style="font-size:12px"></div>
+      <div class="row" style="margin-top:10px">
+        <span class="pill"><span class="dot" id="dotHands"></span> hands</span>
+        <span class="pill"><span class="dot" id="dotPose"></span> body</span>
+        <span class="pill"><span class="dot" id="dotFace"></span> face</span>
+      </div>
+      <div id="status" style="font-size:12px;margin-top:8px" class="dim">Camera not started.</div>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2>Takes so far</h2>
+      <table id="tally"><tbody></tbody></table>
+      <p class="note" id="tallyNote">Nothing recorded yet.</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js"></script>
+<script>
+/* ====================================================================
+   SignMasterVR full-tracking capture.
+
+   WHY THIS EXISTS, next to the original webcam_capture.html:
+
+   The original records 21 hand landmarks and nothing else. That is enough
+   to RECOGNISE a sign, but not enough to (a) drive an avatar that performs
+   it, or (b) tell where the hand sits relative to the body -- and placement
+   at the temple vs the chin vs the chest is part of the sign, not decoration.
+   It also can't see facial expression, which is grammatical in SASL.
+
+   So this tool runs MediaPipe Holistic instead of Hands: the same 21-point
+   hands, PLUS 33 body pose points (shoulders, elbows, wrists, hips) and a
+   face mesh. One pass, one file.
+
+   BACKWARD COMPATIBLE. Every field the old format had is still here and
+   still means the same thing, so existing training code reads these files
+   without changes. The new data is additive:
+
+     frame.hands   -- unchanged: [{handedness, landmarks, rel, features}]
+     frame.pose    -- NEW: 33 body points {x,y,z,visibility}
+     frame.bodyRef -- NEW: shoulder-midpoint origin, shoulder-width scale and
+                      torso angle, precomputed so downstream code can express
+                      hand position RELATIVE TO THE BODY instead of relative
+                      to the camera frame
+     frame.face    -- NEW: face points (24 curated, or all 468, or none)
+
+   The envelope also now records videoWidth/videoHeight. The old format
+   didn't, which left x and y normalized against different pixel counts with
+   no way to correct for it -- a small skew in every handshape measurement.
+==================================================================== */
+
+const LANDMARK_NAMES = [
+  "WRIST",
+  "THUMB_CMC","THUMB_MCP","THUMB_IP","THUMB_TIP",
+  "INDEX_MCP","INDEX_PIP","INDEX_DIP","INDEX_TIP",
+  "MIDDLE_MCP","MIDDLE_PIP","MIDDLE_DIP","MIDDLE_TIP",
+  "RING_MCP","RING_PIP","RING_DIP","RING_TIP",
+  "PINKY_MCP","PINKY_PIP","PINKY_DIP","PINKY_TIP"
+];
+
+// MediaPipe Pose, 33 points. Named so downstream code never indexes by magic number.
+const POSE_NAMES = [
+  "NOSE","LEFT_EYE_INNER","LEFT_EYE","LEFT_EYE_OUTER","RIGHT_EYE_INNER","RIGHT_EYE","RIGHT_EYE_OUTER",
+  "LEFT_EAR","RIGHT_EAR","MOUTH_LEFT","MOUTH_RIGHT",
+  "LEFT_SHOULDER","RIGHT_SHOULDER","LEFT_ELBOW","RIGHT_ELBOW","LEFT_WRIST","RIGHT_WRIST",
+  "LEFT_PINKY","RIGHT_PINKY","LEFT_INDEX","RIGHT_INDEX","LEFT_THUMB","RIGHT_THUMB",
+  "LEFT_HIP","RIGHT_HIP","LEFT_KNEE","RIGHT_KNEE","LEFT_ANKLE","RIGHT_ANKLE",
+  "LEFT_HEEL","RIGHT_HEEL","LEFT_FOOT_INDEX","RIGHT_FOOT_INDEX"
+];
+const P = {}; POSE_NAMES.forEach((n,i) => P[n] = i);
+
+/* Curated face subset: everything an avatar needs for expression and head
+   pose, at 5% of the data. Indices are MediaPipe FaceMesh's 468-point mesh. */
+const FACE_SUBSET = [
+  10,          // forehead centre  (head pitch/roll reference)
+  1, 4,        // nose tip, nose bridge
+  152,         // chin
+  234, 454,    // left / right cheek  (head yaw reference)
+  33, 133,     // left eye outer / inner
+  263, 362,    // right eye outer / inner
+  159, 145,    // left eye upper / lower lid  (blink, squint)
+  386, 374,    // right eye upper / lower lid
+  70, 105, 107,   // left brow outer / mid / inner
+  300, 334, 336,  // right brow outer / mid / inner
+  61, 291,     // mouth corners
+  13, 14,      // upper / lower inner lip  (mouth openness, mouth patterns)
+  0, 17        // upper / lower outer lip
+];
+const FACE_SUBSET_NAMES = [
+  "FOREHEAD","NOSE_TIP","NOSE_BRIDGE","CHIN","CHEEK_L","CHEEK_R",
+  "EYE_L_OUTER","EYE_L_INNER","EYE_R_OUTER","EYE_R_INNER",
+  "EYE_L_UPPER","EYE_L_LOWER","EYE_R_UPPER","EYE_R_LOWER",
+  "BROW_L_OUTER","BROW_L_MID","BROW_L_INNER",
+  "BROW_R_OUTER","BROW_R_MID","BROW_R_INNER",
+  "MOUTH_L","MOUTH_R","LIP_UPPER_IN","LIP_LOWER_IN","LIP_UPPER_OUT","LIP_LOWER_OUT"
+];
+
+const HAND_CONNECTIONS = [
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [5,9],[9,10],[10,11],[11,12],
+  [9,13],[13,14],[14,15],[15,16],
+  [13,17],[17,18],[18,19],[19,20],
+  [0,17]
+];
+const TORSO_CONNECTIONS = [
+  [P.LEFT_SHOULDER,P.RIGHT_SHOULDER],
+  [P.LEFT_SHOULDER,P.LEFT_ELBOW],[P.LEFT_ELBOW,P.LEFT_WRIST],
+  [P.RIGHT_SHOULDER,P.RIGHT_ELBOW],[P.RIGHT_ELBOW,P.RIGHT_WRIST],
+  [P.LEFT_SHOULDER,P.LEFT_HIP],[P.RIGHT_SHOULDER,P.RIGHT_HIP],
+  [P.LEFT_HIP,P.RIGHT_HIP]
+];
+
+/* ---- elements ---- */
+const videoEl = document.getElementById('video');
+const canvasEl = document.getElementById('canvas');
+const ctx = canvasEl.getContext('2d');
+const overlayText = document.getElementById('overlayText');
+const supportEl = document.getElementById('support');
+const statusEl = document.getElementById('status');
+const dumpEl = document.getElementById('dump');
+const countEl = document.getElementById('countEl');
+const labelNowEl = document.getElementById('labelNow');
+const labelProgressEl = document.getElementById('labelProgress');
+const snapBtn = document.getElementById('snapBtn'), clipBtn = document.getElementById('clipBtn');
+const prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn');
+const undoBtn = document.getElementById('undoBtn');
+const downloadBtn = document.getElementById('downloadBtn'), copyBtn = document.getElementById('copyBtn');
+const clearBtn = document.getElementById('clearBtn'), startBtn = document.getElementById('startBtn');
+const dotHands = document.getElementById('dotHands'), dotPose = document.getElementById('dotPose'),
+      dotFace = document.getElementById('dotFace');
+
+/* ---- state ---- */
+let camera = null, cameraRunning = false;
+let labels = [], labelIdx = 0, takeCounts = {};
+let mode = 'idle';                 // idle | countdown | clip
+let pendingKind = null, countdownEndsAt = 0, clipEndsAt = 0, clipFrames = [];
+let numHands = 2, faceMode = 'compact';
+let lastFrameData = null;
+window.captures = [];
+const LS_KEY = 'signMasterFullCaptures.v2';
+
+function persist(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(window.captures)); return true; }
+  catch(e){ console.warn('Autosave failed (storage full?)', e.message); return false; }
+}
+function restore(){
+  try {
+    const s = localStorage.getItem(LS_KEY);
+    if (!s) return;
+    window.captures = JSON.parse(s) || [];
+    window.captures.forEach(c => takeCounts[c.label] = Math.max(takeCounts[c.label]||0, c.take||0));
+    refreshAll();
+    setStatus('restored ' + window.captures.length + ' capture(s) from this browser');
+  } catch(e){ console.warn('Restore failed', e); }
+}
+
+function setStatus(msg, cls){ statusEl.className = cls || 'dim'; statusEl.textContent = msg; }
+
+/* ==================================================================
+   NORMALIZATION -- identical formula to hand_tracker.py, so a model
+   trained on these files sees the same numbers the app computes live.
+================================================================== */
+function handBlock(landmarks, handedness){
+  const lm = landmarks.map(p => ({ x:+p.x.toFixed(5), y:+p.y.toFixed(5), z:+(p.z||0).toFixed(5) }));
+  const w = lm[0];
+  const rel = lm.map(p => ({ x:p.x - w.x, y:p.y - w.y, z:p.z - w.z }));
+  // scale = wrist -> middle-finger MCP distance, a stable reference length
+  const s = Math.hypot(rel[9].x, rel[9].y) || 1e-6;
+  const relN = rel.map(p => ({ x:+(p.x/s).toFixed(5), y:+(p.y/s).toFixed(5), z:+p.z.toFixed(5) }));
+  const features = [];
+  relN.forEach(p => features.push(p.x, p.y, p.z));
+  return { handedness, landmarks: lm, rel: relN, features };
+}
+
+/* Body-relative reference frame, precomputed per frame.
+
+   This is the whole point of adding pose. `landmarks` are positions in the
+   CAMERA FRAME, so they change when the signer shifts or the camera moves.
+   Shoulder midpoint + shoulder width give a frame anchored to the PERSON,
+   which is what "at the temple" or "at the chest" actually means. */
+function bodyRefFrom(pose){
+  if (!pose) return null;
+  const ls = pose[P.LEFT_SHOULDER], rs = pose[P.RIGHT_SHOULDER];
+  if (!ls || !rs) return null;
+  const vis = Math.min(ls.visibility ?? 1, rs.visibility ?? 1);
+  const ox = (ls.x + rs.x) / 2, oy = (ls.y + rs.y) / 2;
+  const scale = Math.hypot(ls.x - rs.x, ls.y - rs.y);
+  const angle = Math.atan2(ls.y - rs.y, ls.x - rs.x);
+  return {
+    originX:+ox.toFixed(5), originY:+oy.toFixed(5),
+    scale:+scale.toFixed(5), angle:+angle.toFixed(5),
+    visibility:+vis.toFixed(3)
+  };
+}
+
+function faceBlock(faceLandmarks){
+  if (!faceLandmarks || faceMode === 'off') return null;
+  const src = faceMode === 'full'
+    ? faceLandmarks.map((p,i) => [i,p])
+    : FACE_SUBSET.map(i => [i, faceLandmarks[i]]).filter(([,p]) => p);
+  return src.map(([,p]) => ({ x:+p.x.toFixed(5), y:+p.y.toFixed(5), z:+(p.z||0).toFixed(5) }));
+}
+
+/* ==================================================================
+   PER-FRAME TICK -- also drives the countdown / clip state machine.
+================================================================== */
+function onResults(results){
+  if (!videoEl.videoWidth) return;
+  canvasEl.width = videoEl.videoWidth;
+  canvasEl.height = videoEl.videoHeight;
+
+  ctx.save();
+  ctx.clearRect(0,0,canvasEl.width,canvasEl.height);
+  ctx.drawImage(results.image, 0, 0, canvasEl.width, canvasEl.height);
+  ctx.fillStyle = 'rgba(0,0,0,0.10)';
+  ctx.fillRect(0,0,canvasEl.width,canvasEl.height);
+
+  const hands = [];
+  // Holistic reports the hands separately and already labelled, so unlike the
+  // Hands solution there is no ambiguity about which is which.
+  if (results.rightHandLandmarks) hands.push(handBlock(results.rightHandLandmarks, 'Right'));
+  if (results.leftHandLandmarks)  hands.push(handBlock(results.leftHandLandmarks,  'Left'));
+  const useHands = numHands === 1 ? hands.slice(0,1) : hands;
+
+  const pose = results.poseLandmarks ? results.poseLandmarks.map(p => ({
+    x:+p.x.toFixed(5), y:+p.y.toFixed(5), z:+(p.z||0).toFixed(5),
+    visibility:+(p.visibility ?? 0).toFixed(3)
+  })) : null;
+
+  const face = faceBlock(results.faceLandmarks);
+
+  lastFrameData = { hands: useHands, pose, bodyRef: bodyRefFrom(pose), face };
+
+  dotHands.className = 'dot ' + (useHands.length ? 'on' : 'off');
+  dotPose.className  = 'dot ' + (pose ? 'on' : 'off');
+  dotFace.className  = 'dot ' + (faceMode === 'off' ? '' : (face ? 'on' : 'off'));
+
+  drawOverlay(useHands, pose, face);
+  tick();
+  ctx.restore();
+}
+
+function drawOverlay(hands, pose, face){
+  const w = canvasEl.width, h = canvasEl.height;
+  if (pose){
+    ctx.strokeStyle = 'rgba(110,231,255,0.85)'; ctx.lineWidth = 4;
+    TORSO_CONNECTIONS.forEach(([a,b]) => {
+      const pa = pose[a], pb = pose[b];
+      if (!pa || !pb || (pa.visibility ?? 1) < 0.5 || (pb.visibility ?? 1) < 0.5) return;
+      ctx.beginPath(); ctx.moveTo(pa.x*w, pa.y*h); ctx.lineTo(pb.x*w, pb.y*h); ctx.stroke();
+    });
+  }
+  if (face){
+    ctx.fillStyle = 'rgba(210,153,34,0.9)';
+    face.forEach(p => { ctx.beginPath(); ctx.arc(p.x*w, p.y*h, 2, 0, 6.283); ctx.fill(); });
+  }
+  hands.forEach(hnd => {
+    const pts = hnd.landmarks;
+    ctx.strokeStyle = 'rgba(63,185,80,0.95)'; ctx.lineWidth = 3;
+    HAND_CONNECTIONS.forEach(([a,b]) => {
+      ctx.beginPath(); ctx.moveTo(pts[a].x*w, pts[a].y*h); ctx.lineTo(pts[b].x*w, pts[b].y*h); ctx.stroke();
+    });
+    ctx.fillStyle = '#ffe066';
+    pts.forEach(p => { ctx.beginPath(); ctx.arc(p.x*w, p.y*h, 4, 0, 6.283); ctx.fill(); });
+  });
+}
+
+function tick(){
+  const now = performance.now();
+  if (mode === 'countdown'){
+    const left = Math.ceil((countdownEndsAt - now)/1000);
+    overlayText.textContent = left > 0 ? left : 'GO';
+    if (now >= countdownEndsAt){
+      overlayText.textContent = '';
+      if (pendingKind === 'snap'){
+        if (!lastFrameData || !lastFrameData.hands.length){ mode='idle'; setStatus('missed — no hand in view','bad'); return; }
+        store({ kind:'snap', frames:[frameRecord(now)] });
+        mode = 'idle';
+      } else {
+        clipFrames = [];
+        clipEndsAt = now + (parseInt(document.getElementById('clipMs').value,10) || 2500);
+        mode = 'clip';
+      }
+    }
+    return;
+  }
+  if (mode === 'clip'){
+    overlayText.textContent = '●';
+    if (lastFrameData) clipFrames.push(frameRecord(now));
+    if (now >= clipEndsAt){
+      overlayText.textContent = '';
+      mode = 'idle';
+      const withHand = clipFrames.filter(f => f.hands.length).length;
+      if (withHand < 4){ clipFrames = []; setStatus('discarded — hand visible in only '+withHand+' frames','bad'); return; }
+      store({ kind:'clip', frames:clipFrames });
+      clipFrames = [];
+    }
+  }
+}
+
+function frameRecord(now){
+  const r = { t:+now.toFixed(1), hands:lastFrameData.hands };
+  if (lastFrameData.pose)    r.pose = lastFrameData.pose;
+  if (lastFrameData.bodyRef) r.bodyRef = lastFrameData.bodyRef;
+  if (lastFrameData.face)    r.face = lastFrameData.face;
+  return r;
+}
+
+function startCountdown(kind){
+  if (!cameraRunning || mode !== 'idle' || !labels.length) return;
+  pendingKind = kind;
+  const secs = parseInt(document.getElementById('countdownS').value,10);
+  countdownEndsAt = performance.now() + (isNaN(secs) ? 3 : secs)*1000;
+  mode = 'countdown';
+  setStatus('get ready — ' + labels[labelIdx]);
+}
+
+function store(payload){
+  const label = labels[labelIdx];
+  takeCounts[label] = (takeCounts[label] || 0) + 1;
+  const withPose = payload.frames.filter(f => f.pose).length;
+  const withFace = payload.frames.filter(f => f.face).length;
+  const twoHand  = payload.frames.filter(f => f.hands.length >= 2).length;
+
+  window.captures.push({
+    label, take:takeCounts[label], kind:payload.kind,
+    timestamp:new Date().toISOString(),
+    source:'webcam-browser-mediapipe-holistic',
+    formatVersion:2,
+    maxHands:numHands,
+    landmarkOrder:LANDMARK_NAMES,
+    poseOrder:POSE_NAMES,
+    faceOrder: faceMode === 'compact' ? FACE_SUBSET_NAMES : (faceMode === 'full' ? 'full-468' : null),
+    faceMode,
+    videoWidth:canvasEl.width, videoHeight:canvasEl.height,
+    aspect:+(canvasEl.width/canvasEl.height).toFixed(4),
+    mirrored:false,                       // Holistic runs on the raw camera image
+    tracking:{ hands:true, pose:withPose>0, face:withFace>0 },
+    frameCount:payload.frames.length,
+    frames:payload.frames
+  });
+
+  const saved = persist();
+  const target = parseInt(document.getElementById('repeats').value,10) || 1;
+  const bits = [payload.frames.length+' frames'];
+  if (withPose) bits.push('body '+Math.round(100*withPose/payload.frames.length)+'%');
+  if (withFace) bits.push('face '+Math.round(100*withFace/payload.frames.length)+'%');
+  if (twoHand)  bits.push('2 hands in '+Math.round(100*twoHand/payload.frames.length)+'%');
+  setStatus('saved '+label+' ('+takeCounts[label]+'/'+target+') — '+bits.join(', ')
+            + (saved ? '' : '  ⚠ browser storage full'), saved ? 'ok' : 'warn');
+
+  if (takeCounts[label] >= target && labelIdx < labels.length-1) labelIdx++;
+  refreshAll();
+}
+
+function undoLast(){
+  if (!window.captures.length) return;
+  const removed = window.captures.pop();
+  if (takeCounts[removed.label]) takeCounts[removed.label]--;
+  persist(); refreshAll();
+  setStatus('undid last capture ('+removed.label+')');
+}
+
+/* ---- UI refresh ---- */
+function refreshAll(){
+  const label = labels[labelIdx];
+  labelNowEl.textContent = label || '—';
+  const target = parseInt(document.getElementById('repeats').value,10) || 1;
+  labelProgressEl.textContent = label
+    ? (takeCounts[label]||0)+' / '+target+' takes   ·   label '+(labelIdx+1)+' of '+labels.length : '';
+
+  countEl.textContent = window.captures.length ? '— '+window.captures.length+' capture(s)' : '';
+  downloadBtn.disabled = copyBtn.disabled = !window.captures.length;
+  undoBtn.disabled = !window.captures.length;
+  const canCapture = cameraRunning && mode === 'idle' && labels.length > 0;
+  snapBtn.disabled = clipBtn.disabled = !canCapture;
+  prevBtn.disabled = nextBtn.disabled = !cameraRunning || !labels.length;
+
+  const tb = document.querySelector('#tally tbody');
+  tb.innerHTML = '';
+  const seen = {};
+  window.captures.forEach(c => seen[c.label] = (seen[c.label]||0)+1);
+  Object.keys(seen).sort().forEach(k => {
+    const tr = document.createElement('tr');
+    const thin = seen[k] < 5;
+    tr.innerHTML = '<td>'+k+'</td><td'+(thin?' class="warn"':'')+'>'+seen[k]+(thin?' ⚠':'')+'</td>';
+    tb.appendChild(tr);
+  });
+  document.getElementById('tallyNote').textContent = window.captures.length
+    ? 'Fewer than 5 takes and the trainer will drop that sign. 8 is the sweet spot.'
+    : 'Nothing recorded yet.';
+
+  dumpEl.value = window.captures.length
+    ? JSON.stringify(window.captures.slice(-1), null, 1).slice(0, 4000) + '\n… (last capture shown)'
+    : '';
+}
+
+/* ---- MediaPipe ---- */
+const holistic = new Holistic({
+  locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${f}`
+});
+holistic.onResults(onResults);
+
+startBtn.addEventListener('click', async () => {
+  startBtn.disabled = true;
+  const nh = document.getElementById('numHands'), fm = document.getElementById('faceMode');
+  numHands = parseInt(nh.value,10) || 2;
+  faceMode = fm.value;
+  nh.disabled = fm.disabled = true;
+
+  holistic.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    refineFaceLandmarks: false,
+    enableSegmentation: false,
+    minDetectionConfidence: 0.6,
+    minTrackingConfidence: 0.6
+  });
+
+  labels = document.getElementById('labelList').value.split(',').map(s=>s.trim()).filter(Boolean);
+  if (!labels.length) labels = ['sign'];
+  labelIdx = 0;
+
+  supportEl.textContent = 'Requesting camera…';
+  try {
+    camera = new Camera(videoEl, {
+      onFrame: async () => { await holistic.send({ image: videoEl }); },
+      width: 1280, height: 960
+    });
+    await camera.start();
+    cameraRunning = true;
+    startBtn.textContent = 'Camera running';
+    supportEl.innerHTML = '<span class="ok">Camera started. Stand back far enough that your '
+      + 'head and both shoulders are in frame — body tracking needs them.</span>';
+    setStatus('ready');
+    refreshAll();
+  } catch(err){
+    console.error(err);
+    supportEl.innerHTML = '<span class="bad">Camera unavailable: '+err.message+'</span>';
+    startBtn.disabled = false;
+  }
+});
+
+/* ---- controls ---- */
+snapBtn.onclick = () => startCountdown('snap');
+clipBtn.onclick = () => startCountdown('clip');
+prevBtn.onclick = () => { if (labelIdx>0){ labelIdx--; refreshAll(); } };
+nextBtn.onclick = () => { if (labelIdx<labels.length-1){ labelIdx++; refreshAll(); } };
+undoBtn.onclick = undoLast;
+
+document.addEventListener('keydown', (e) => {
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (e.code === 'Space'){ e.preventDefault(); startCountdown('snap'); }
+  else if (e.key === 'c' || e.key === 'C') startCountdown('clip');
+  else if (e.key === 'n' || e.key === 'N' || e.key === 'ArrowRight'){ if (labelIdx<labels.length-1){ labelIdx++; refreshAll(); } }
+  else if (e.key === 'p' || e.key === 'P' || e.key === 'ArrowLeft'){ if (labelIdx>0){ labelIdx--; refreshAll(); } }
+  else if (e.key === 'Backspace'){ e.preventDefault(); undoLast(); }
+});
+
+downloadBtn.onclick = () => {
+  const blob = new Blob([JSON.stringify(window.captures)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const names = [...new Set(window.captures.map(c=>c.label))].slice(0,3).join('_').replace(/[^\w]+/g,'_');
+  a.download = 'signmaster-full-' + (names || 'captures') + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+copyBtn.onclick = async () => {
+  try { await navigator.clipboard.writeText(JSON.stringify(window.captures)); setStatus('copied to clipboard','ok'); }
+  catch(e){ setStatus('copy failed — use Download instead','bad'); }
+};
+clearBtn.onclick = () => {
+  if (!confirm('Clear this session? Download first if you want to keep it.')) return;
+  window.captures = []; takeCounts = {};
+  try { localStorage.removeItem(LS_KEY); } catch(e){}
+  refreshAll(); setStatus('session cleared');
+};
+document.getElementById('repeats').addEventListener('input', refreshAll);
+
+restore();
+refreshAll();
+</script>
+</body>
+</html>

@@ -71,7 +71,9 @@ def main():
     print("Loaded model:", validator.model.metadata.get("selected_model"))
     print("Signs:", ", ".join(validator.labels))
 
-    tracker = HandTracker(max_hands=1)
+    # Two hands: four of the trained signs are two-handed, and max_hands=1
+    # would silently show the model half of each.
+    tracker = HandTracker(max_hands=2)
     cap = cv2.VideoCapture(args.camera)
     if not cap.isOpened():
         raise SystemExit(f"Could not open camera {args.camera}.")

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ghost hand preview</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--ink:#e6edf3;--dim:#8b949e;--accent:#6ee7ff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,sans-serif}
+  header{padding:14px 20px;border-bottom:1px solid var(--line)}
+  h1{margin:0;font-size:16px}
+  header p{margin:4px 0 0;color:var(--dim);font-size:13px}
+  .wrap{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;padding:16px 20px;align-items:start}
+  @media(max-width:820px){.wrap{grid-template-columns:1fr}}
+  canvas{background:#05080c;border:1px solid var(--line);border-radius:10px;width:100%;height:auto;display:block}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .panel h2{margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}
+  button{background:#21262d;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 12px;font:inherit;cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  input[type=range]{width:100%}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  td{padding:3px 0;border-bottom:1px solid #21262d} td:last-child{text-align:right;color:var(--dim)}
+  .drop{border:1.5px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--dim);cursor:pointer}
+  .drop.hot{border-color:var(--accent);color:var(--ink)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Ghost hand preview</h1>
+  <p>Check an exported clip before wiring it into Unity. Drop in a JSON from
+     <code>export_ghost_hand.py</code>.</p>
+</header>
+
+<div class="wrap">
+  <div>
+    <canvas id="c" width="900" height="620"></canvas>
+    <div class="panel" style="margin-top:12px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button id="play">Pause</button>
+        <button id="step">Step ▶</button>
+        <label style="font-size:12px;color:var(--dim)">Speed
+          <input type="range" id="speed" min="0.25" max="2" step="0.05" value="1" style="width:110px;vertical-align:middle">
+          <span id="speedVal">1.00×</span>
+        </label>
+        <label style="font-size:12px;color:var(--dim)">
+          <input type="checkbox" id="trail" checked> motion trail
+        </label>
+      </div>
+      <input type="range" id="scrub" min="0" max="0" value="0" style="margin-top:10px">
+    </div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2>Clip</h2>
+      <div id="drop" class="drop">Drop a .json here<br><span style="font-size:12px">or click to browse</span></div>
+      <input type="file" id="file" accept="application/json" multiple hidden>
+      <table style="margin-top:10px"><tbody id="meta"></tbody></table>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <h2>Loaded</h2>
+      <div id="list" style="font-size:13px;color:var(--dim)">None yet.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Draws an exported ghost-hand clip exactly as the Unity player will: the
+   dominant hand solid, the support hand dimmer, the wrist path as a trail.
+   Looking at this first catches a bad take in seconds -- far quicker than
+   discovering it in the headset. */
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const metaEl = document.getElementById('meta'), listEl = document.getElementById('list');
+const scrub = document.getElementById('scrub'), speedEl = document.getElementById('speed');
+const speedVal = document.getElementById('speedVal');
+let clips = [], active = null, frame = 0, playing = true, acc = 0, last = 0;
+
+function fit(doc){
+  // Work out a view box from the whole clip so nothing walks off the edge.
+  let lo = [Infinity, Infinity], hi = [-Infinity, -Infinity];
+  doc.frames.forEach(f => [f.dominant, f.support].forEach(h => {
+    if (!h) return;
+    h.forEach(p => {
+      lo[0] = Math.min(lo[0], p[0]); hi[0] = Math.max(hi[0], p[0]);
+      lo[1] = Math.min(lo[1], p[1]); hi[1] = Math.max(hi[1], p[1]);
+    });
+  }));
+  const pad = 0.18 * Math.max(hi[0]-lo[0], hi[1]-lo[1], 0.1);
+  return { lo:[lo[0]-pad, lo[1]-pad], hi:[hi[0]+pad, hi[1]+pad] };
+}
+
+function project(p, box){
+  const w = box.hi[0]-box.lo[0], h = box.hi[1]-box.lo[1];
+  const s = Math.min(cv.width/w, cv.height/h);
+  const ox = (cv.width - w*s)/2, oy = (cv.height - h*s)/2;
+  return [ox + (p[0]-box.lo[0])*s, oy + (p[1]-box.lo[1])*s];
+}
+
+function drawHand(pts, box, conns, colour, dotColour, width){
+  ctx.strokeStyle = colour; ctx.lineWidth = width; ctx.lineCap = 'round';
+  conns.forEach(([a,b]) => {
+    const pa = project(pts[a], box), pb = project(pts[b], box);
+    ctx.beginPath(); ctx.moveTo(pa[0],pa[1]); ctx.lineTo(pb[0],pb[1]); ctx.stroke();
+  });
+  ctx.fillStyle = dotColour;
+  pts.forEach(p => { const q = project(p, box);
+    ctx.beginPath(); ctx.arc(q[0],q[1], width*1.1, 0, 6.283); ctx.fill(); });
+}
+
+function render(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  if (!active){
+    ctx.fillStyle = '#8b949e'; ctx.font = '15px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText('Drop an exported clip to preview it', cv.width/2, cv.height/2);
+    return;
+  }
+  const doc = active.doc, box = active.box, conns = doc.connections;
+  const i = Math.min(frame, doc.frames.length-1);
+
+  if (document.getElementById('trail').checked){
+    ctx.strokeStyle = 'rgba(110,231,255,0.28)'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    let started = false;
+    for (let k = 0; k <= i; k++){
+      const h = doc.frames[k].dominant; if (!h) continue;
+      const q = project(h[0], box);
+      if (!started){ ctx.moveTo(q[0],q[1]); started = true; } else ctx.lineTo(q[0],q[1]);
+    }
+    ctx.stroke();
+  }
+
+  const f = doc.frames[i];
+  if (f.support) drawHand(f.support, box, conns, 'rgba(140,160,180,0.55)', 'rgba(180,200,215,0.7)', 3);
+  if (f.dominant) drawHand(f.dominant, box, conns, 'rgba(110,231,255,0.95)', '#ffe066', 4.5);
+
+  ctx.fillStyle = '#e6edf3'; ctx.font = '600 20px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText(doc.sign, 18, 32);
+  ctx.fillStyle = '#8b949e'; ctx.font = '12px system-ui';
+  ctx.fillText(`frame ${i+1}/${doc.frames.length}  ·  ${doc.normalization}-normalized`
+               + (doc.twoHanded ? '  ·  two-handed' : ''), 18, 52);
+}
+
+function loop(ts){
+  if (!last) last = ts;
+  const dt = (ts - last)/1000; last = ts;
+  if (active && playing){
+    acc += dt * active.doc.fps * parseFloat(speedEl.value);
+    while (acc >= 1){ frame = (frame+1) % active.doc.frames.length; acc -= 1; }
+    scrub.value = frame;
+  }
+  render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+function setActive(c){
+  active = c; frame = 0; acc = 0;
+  scrub.max = c.doc.frames.length - 1; scrub.value = 0;
+  metaEl.innerHTML = '';
+  const rows = [['sign',c.doc.sign],['frames',c.doc.frameCount],['duration',c.doc.duration+'s'],
+                ['fps',c.doc.fps],['normalization',c.doc.normalization],
+                ['two-handed',c.doc.twoHanded ? 'yes' : 'no']];
+  rows.forEach(([k,v]) => metaEl.insertAdjacentHTML('beforeend','<tr><td>'+k+'</td><td>'+v+'</td></tr>'));
+  listEl.innerHTML = clips.map((x,i) =>
+    `<div style="padding:3px 0;cursor:pointer;${x===active?'color:#6ee7ff':''}" data-i="${i}">${x.doc.sign}</div>`
+  ).join('');
+  [...listEl.children].forEach(el => el.onclick = () => setActive(clips[+el.dataset.i]));
+}
+
+function addFiles(files){
+  [...files].forEach(file => {
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const doc = JSON.parse(r.result);
+        if (!doc.frames || !doc.connections) throw new Error('not an exported ghost clip');
+        const c = { doc, box: fit(doc) };
+        clips.push(c); setActive(c);
+      } catch(e){ alert(file.name + ': ' + e.message); }
+    };
+    r.readAsText(file);
+  });
+}
+
+const drop = document.getElementById('drop'), fileInput = document.getElementById('file');
+drop.onclick = () => fileInput.click();
+fileInput.onchange = () => addFiles(fileInput.files);
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.add('hot'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.remove('hot'); }));
+drop.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+document.body.addEventListener('dragover', e => e.preventDefault());
+document.body.addEventListener('drop', e => { e.preventDefault(); addFiles(e.dataTransfer.files); });
+
+document.getElementById('play').onclick = (e) => {
+  playing = !playing; e.target.textContent = playing ? 'Pause' : 'Play';
+};
+document.getElementById('step').onclick = () => {
+  if (!active) return;
+  playing = false; document.getElementById('play').textContent = 'Play';
+  frame = (frame+1) % active.doc.frames.length; scrub.value = frame;
+};
+scrub.oninput = () => { frame = +scrub.value; playing = false;
+  document.getElementById('play').textContent = 'Play'; };
+speedEl.oninput = () => speedVal.textContent = (+speedEl.value).toFixed(2) + '×';
+</script>
+</body>
+</html>

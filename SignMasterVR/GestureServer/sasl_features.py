@@ -88,9 +88,19 @@ DEFAULT_ASPECT = 1.0
 
 @dataclass
 class HandFrame:
-    """One frame of one hand. `xyz` is (21, 3) absolute image-normalized."""
-    t: float          # seconds
-    xyz: np.ndarray | None   # None when no hand was detected in this frame
+    """One frame. `xyz` is the DOMINANT hand, (21, 3) absolute image-normalized.
+
+    `xyz2` is the support hand when a second one is visible. Four of the signs
+    in the dataset are genuinely two-handed -- I Sign (two hands in 99% of
+    frames), Home (86%), Can you sign? (75%), Nice to meet you (56%) -- and
+    following only one of them threw away half the evidence.
+
+    Which hand is "dominant" is decided by motion over the whole clip, not by
+    MediaPipe's Left/Right label. See assign_hand_roles().
+    """
+    t: float                        # seconds
+    xyz: np.ndarray | None          # dominant hand, or None if no hand at all
+    xyz2: np.ndarray | None = None  # support hand, when present
 
 
 # --------------------------------------------------------------------------
@@ -112,7 +122,28 @@ def palm_chirality(xyz: np.ndarray) -> float:
     return 1.0 if cross >= 0 else -1.0
 
 
-def canonicalize(xyz: np.ndarray, aspect: float = DEFAULT_ASPECT):
+def majority_chirality(hands) -> float:
+    """One chirality for a whole window, by majority vote over its frames.
+
+    Deciding this per frame looks reasonable and is a trap. When a hand turns
+    edge-on the palm triangle degenerates and the sign flips for a frame or
+    two; because canonicalize() negates x on a negative sign, each flip teleports
+    the canonical wrist by about one hand-width. That shows up as ~200
+    hand-widths/second of phantom speed and a scrambled trajectory. It affected
+    96 of 327 clips in the capture set -- every single take of "I am" and
+    "Nice to meet you" among them.
+
+    A signer does not change hands mid-sign, so one decision per window is both
+    more accurate and more stable.
+    """
+    votes = [palm_chirality(h) for h in hands if h is not None]
+    if not votes:
+        return 1.0
+    return 1.0 if float(np.mean(votes)) >= 0 else -1.0
+
+
+def canonicalize(xyz: np.ndarray, aspect: float = DEFAULT_ASPECT,
+                 force_chir: float | None = None):
     """Split one hand into (shape, wrist_xy, scale, chirality).
 
     shape     : (21, 3) wrist-relative, scale-normalized, mirrored to canonical
@@ -125,7 +156,8 @@ def canonicalize(xyz: np.ndarray, aspect: float = DEFAULT_ASPECT):
     p = np.asarray(xyz, dtype=np.float64).copy()
     p[:, 0] *= aspect
 
-    chir = palm_chirality(p)
+    # force_chir keeps one decision for a whole window (see majority_chirality).
+    chir = palm_chirality(p) if force_chir is None else float(force_chir)
     if chir < 0:
         # Mirror about the hand's own vertical axis so left and right hands
         # produce identical shape features.
@@ -141,6 +173,116 @@ def canonicalize(xyz: np.ndarray, aspect: float = DEFAULT_ASPECT):
                         # stays geometrically consistent in all three axes
 
     return rel.astype(np.float32), wrist[:2].astype(np.float32), scale, chir
+
+
+# --------------------------------------------------------------------------
+# Two-hand tracking and role assignment
+# --------------------------------------------------------------------------
+
+def assign_roles_to_frames(frames):
+    """Re-derive (dominant, support) for a list of HandFrames.
+
+    Input order within a frame is treated as arbitrary -- MediaPipe's is.
+    """
+    per_frame = []
+    for f in frames:
+        hands = [h for h in (f.xyz, getattr(f, "xyz2", None)) if h is not None]
+        per_frame.append(hands)
+    if not any(len(h) > 1 for h in per_frame):
+        return frames                      # one hand throughout: nothing to decide
+    dom, sup = assign_hand_roles(per_frame, len(frames))
+    return [HandFrame(f.t, dom[i], sup[i]) for i, f in enumerate(frames)]
+
+
+def _link_tracks(per_frame_hands):
+    """Follow up to two hands across frames.
+
+    MediaPipe does not guarantee a stable order between frames, so hands are
+    matched to tracks by proximity to where that track was last seen. Returns
+    two lists (one per track) of (frame_index, xyz), either of which may be
+    short or empty.
+    """
+    tracks = [[], []]
+    last = [None, None]
+    for fi, hands in enumerate(per_frame_hands):
+        if not hands:
+            continue
+        free = list(range(len(hands)))
+        # Existing tracks claim their nearest hand first.
+        for ti in (0, 1):
+            if last[ti] is None or not free:
+                continue
+            j = min(free, key=lambda k: float(np.linalg.norm(hands[k][WRIST, :2] - last[ti])))
+            tracks[ti].append((fi, hands[j]))
+            last[ti] = hands[j][WRIST, :2].copy()
+            free.remove(j)
+        # Anything left starts a new track, if one is free.
+        for j in free:
+            for ti in (0, 1):
+                if last[ti] is None:
+                    tracks[ti].append((fi, hands[j]))
+                    last[ti] = hands[j][WRIST, :2].copy()
+                    break
+    return tracks
+
+
+def _track_activity(track):
+    """How much this hand did: wrist path length in hand-widths, plus how much
+    its own shape changed. Both are magnitudes, so mirroring the video does not
+    change them -- which is what makes the dominant/support split stable."""
+    if len(track) < 2:
+        return 0.0
+    chir = majority_chirality([x for _f, x in track])
+    pts, shapes = [], []
+    for _fi, xyz in track:
+        c = canonicalize(xyz, force_chir=chir)
+        if c is None:
+            continue
+        rel, wrist_xy, scale, _chir = c
+        pts.append(wrist_xy / max(scale, 1e-6))
+        shapes.append(shape_descriptor(rel))
+    if len(pts) < 2:
+        return 0.0
+    pts = np.stack(pts)
+    shapes = np.stack(shapes)
+    path = float(np.linalg.norm(np.diff(pts, axis=0), axis=1).sum())
+    shape_change = float(np.linalg.norm(np.diff(shapes, axis=0), axis=1).sum())
+    return path + shape_change
+
+
+def assign_hand_roles(per_frame_hands, n_frames):
+    """[[xyz, ...] per frame] -> (dominant[], support[]), each length n_frames.
+
+    The dominant hand is the one that MOVES more across the clip. Anatomical
+    handedness would be the obvious choice and is the wrong one: MediaPipe's
+    Left/Right label flips with mirrored video, so it would silently swap the
+    two feature blocks between the capture tool (mirrored preview) and the
+    live server (cv2, not mirrored). Activity is a magnitude, so it survives
+    mirroring, and for a two-handed sign it also picks out the hand actually
+    carrying the movement rather than the one being held as a base.
+    """
+    tracks = _link_tracks(per_frame_hands)
+    act = [_track_activity(t) for t in tracks]
+    order = (0, 1) if act[0] >= act[1] else (1, 0)
+
+    # A near-tie means both hands move alike (a symmetric two-handed sign).
+    # Fall back to something equally mirror-proof: the higher hand in frame.
+    if tracks[0] and tracks[1] and abs(act[0] - act[1]) < 0.05 * max(act[0], act[1], 1e-6):
+        ys = [float(np.mean([x[WRIST, 1] for _f, x in t])) if t else np.inf for t in tracks]
+        order = (0, 1) if ys[0] <= ys[1] else (1, 0)
+
+    dom = [None] * n_frames
+    sup = [None] * n_frames
+    for fi, xyz in tracks[order[0]]:
+        dom[fi] = xyz
+    for fi, xyz in tracks[order[1]]:
+        sup[fi] = xyz
+    # A frame with only a support hand and no dominant one is better used than
+    # dropped -- promote it so the window keeps its detection rate.
+    for i in range(n_frames):
+        if dom[i] is None and sup[i] is not None:
+            dom[i], sup[i] = sup[i], None
+    return dom, sup
 
 
 # --------------------------------------------------------------------------
@@ -265,7 +407,17 @@ def _build_feature_names() -> list[str]:
         "scale_mean", "scale_std",
         "detection_rate",
     ]
+    # --- support (second) hand -------------------------------------------
+    names += ["sup_presence"]
+    names += [f"sup_mean_{n}" for n in SHAPE_FEATURE_NAMES]
+    names += [f"sup_std_{n}" for n in SHAPE_FEATURE_NAMES]
+    for i in range(N_RESAMPLE):
+        names += [f"sup_t{i}_offset_x", f"sup_t{i}_offset_y"]
+    names += ["sup_path_length", "sup_speed_mean", "sup_shape_energy", "sup_scale_ratio"]
     return names
+
+
+N_SUPPORT_FEATURES = 1 + 2 * N_SHAPE + 2 * N_RESAMPLE + 4
 
 
 FEATURE_NAMES = _build_feature_names()
@@ -282,15 +434,42 @@ def extract_features(frames: list[HandFrame], aspect: float = DEFAULT_ASPECT):
     """
     info = {"n_frames": len(frames), "detection_rate": 0.0, "reason": None}
 
+    # Decide dominant vs support over THIS window. Doing it here rather than at
+    # load time means a live sliding window and a recorded clip go through
+    # identical code -- the roles can't drift apart between training and runtime.
+    frames = assign_roles_to_frames(frames)
+
+    # One chirality decision per hand for the whole window, before any feature
+    # is computed. See majority_chirality() for why per-frame is wrong.
+    chir_dom = majority_chirality([f.xyz for f in frames])
+    chir_sup = majority_chirality([getattr(f, "xyz2", None) for f in frames])
+
     usable = []
     for f in frames:
         if f.xyz is None:
             continue
-        c = canonicalize(f.xyz, aspect=aspect)
+        c = canonicalize(f.xyz, aspect=aspect, force_chir=chir_dom)
         if c is None:
             continue
         rel, wrist_xy, scale, chir = c
-        usable.append((f.t, shape_descriptor(rel), wrist_xy, scale, chir))
+
+        # Support hand, expressed in the DOMINANT hand's canonical frame.
+        # Applying the dominant hand's own mirror to the support wrist is what
+        # keeps the offset mirror-invariant: flip the video and both the raw x
+        # and the chirality sign flip, so their product doesn't.
+        sup = None
+        if getattr(f, "xyz2", None) is not None:
+            c2 = canonicalize(f.xyz2, aspect=aspect, force_chir=chir_sup)
+            if c2 is not None:
+                rel2, _w2, scale2, _chir2 = c2
+                sx = float(f.xyz2[WRIST, 0]) * aspect
+                if chir < 0:
+                    sx = -sx
+                sy = float(f.xyz2[WRIST, 1])
+                offset = (np.array([sx, sy], dtype=np.float64) - wrist_xy) / max(scale, 1e-6)
+                sup = (shape_descriptor(rel2), offset, scale2)
+
+        usable.append((f.t, shape_descriptor(rel), wrist_xy, scale, chir, sup))
 
     if len(frames) > 0:
         info["detection_rate"] = len(usable) / len(frames)
@@ -349,6 +528,34 @@ def extract_features(frames: list[HandFrame], aspect: float = DEFAULT_ASPECT):
     shape_steps = np.linalg.norm(np.diff(shape_rs_fine, axis=0), axis=1)
     shape_steps = shape_steps / (duration / len(shape_steps))
 
+    # --- support hand ----------------------------------------------------
+    # Zeros plus presence=0 when there is no second hand. The presence flag is
+    # what stops "no support hand" being confused with "support hand at the
+    # origin holding a neutral shape".
+    sup_rows = [(u[0], u[5]) for u in usable if u[5] is not None]
+    info["support_presence"] = len(sup_rows) / len(usable)
+    if len(sup_rows) >= 3:
+        sup_t = np.array([r[0] for r in sup_rows], dtype=np.float64)
+        sup_shapes = np.stack([r[1][0] for r in sup_rows])
+        sup_off = np.stack([r[1][1] for r in sup_rows])
+        sup_scales = np.array([r[1][2] for r in sup_rows])
+        if sup_t[-1] - sup_t[0] > 1e-3:
+            sup_off_rs = _resample(sup_t, sup_off, N_RESAMPLE)
+        else:
+            sup_off_rs = np.repeat(sup_off[:1], N_RESAMPLE, axis=0)
+        sup_steps = np.linalg.norm(np.diff(sup_off, axis=0), axis=1)
+        sup_shape_steps = np.linalg.norm(np.diff(sup_shapes, axis=0), axis=1)
+        support_block = np.concatenate([
+            [info["support_presence"]],
+            sup_shapes.mean(axis=0), sup_shapes.std(axis=0),
+            sup_off_rs.ravel(),
+            [float(sup_steps.sum()), float(sup_steps.mean()) if len(sup_steps) else 0.0,
+             float(sup_shape_steps.mean()) if len(sup_shape_steps) else 0.0,
+             float(sup_scales.mean() / max(mean_scale, 1e-6))],
+        ])
+    else:
+        support_block = np.zeros(N_SUPPORT_FEATURES)
+
     features = np.concatenate([
         shape_rs.ravel(),
         shapes.mean(axis=0),
@@ -361,6 +568,7 @@ def extract_features(frames: list[HandFrame], aspect: float = DEFAULT_ASPECT):
          shape_steps.mean(), shape_steps.std(),
          mean_scale, float(scales.std()),
          info["detection_rate"]],
+        support_block,
     ]).astype(np.float32)
 
     if not np.all(np.isfinite(features)):
@@ -376,28 +584,25 @@ def extract_features(frames: list[HandFrame], aspect: float = DEFAULT_ASPECT):
 # --------------------------------------------------------------------------
 
 def frames_from_capture_clip(clip: dict) -> list[HandFrame]:
-    """Browser capture JSON -> HandFrames.
+    """Browser capture JSON -> HandFrames, keeping BOTH hands when present.
 
-    Where two hands are visible (28 frames across the set, mostly the other
-    hand drifting into shot) we keep the hand that dominates the clip, matched
-    by proximity to the previous kept hand.
+    No role decision is made here. extract_features() assigns dominant and
+    support over whatever window it is given, so a 3-second live window and a
+    recorded clip are treated identically.
+
+    Reads only `landmarks` (absolute image coordinates). Files from the
+    full-tracking capture tool carry `pose`, `bodyRef` and `face` too; those are
+    ignored by the recogniser and used by the avatar/ghost-hand exporter.
     """
-    frames, prev = [], None
+    frames = []
     t0 = clip["frames"][0]["t"] / 1000.0
     for f in clip["frames"]:
         t = f["t"] / 1000.0 - t0
         hands = f.get("hands") or []
-        if not hands:
-            frames.append(HandFrame(t, None))
-            continue
         pts = [np.array([[p["x"], p["y"], p["z"]] for p in h["landmarks"]],
                         dtype=np.float32) for h in hands]
-        if len(pts) == 1 or prev is None:
-            chosen = pts[0]
-        else:
-            chosen = min(pts, key=lambda q: float(np.linalg.norm(q[WRIST] - prev[WRIST])))
-        prev = chosen
-        frames.append(HandFrame(t, chosen))
+        frames.append(HandFrame(t, pts[0] if pts else None,
+                                pts[1] if len(pts) > 1 else None))
     return frames
 
 
@@ -407,12 +612,16 @@ def hand_frame_from_mp_result(result, t: float) -> HandFrame:
     Pass the FIRST element returned by HandTracker.process() (the raw result),
     not the second. process()'s `rel` output has already thrown away where the
     hand is in frame, and this pipeline needs that.
+
+    Keeps up to two hands. HandTracker must therefore be constructed with
+    max_hands=2 (its default) -- max_hands=1 silently halves what two-handed
+    signs look like.
     """
     if not getattr(result, "hand_landmarks", None):
         return HandFrame(t, None)
-    hand = result.hand_landmarks[0]
-    xyz = np.array([[lm.x, lm.y, lm.z] for lm in hand], dtype=np.float32)
-    return HandFrame(t, xyz)
+    pts = [np.array([[lm.x, lm.y, lm.z] for lm in hand], dtype=np.float32)
+           for hand in result.hand_landmarks[:2]]
+    return HandFrame(t, pts[0], pts[1] if len(pts) > 1 else None)
 
 
 def load_captures(path: str):
