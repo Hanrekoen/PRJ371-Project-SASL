@@ -24,9 +24,14 @@ FINGER_PIPS = [3, 6, 10, 14, 18]  # the joint one below each fingertip
 
 
 class GestureClassifier:
-    def classify(self, landmarks):
+    def classify(self, landmarks, result=None):
         """landmarks: a (21, 3) wrist-relative, scale-normalized array from
         HandTracker.process(), or None if no hand was seen this frame.
+        result: the RAW HandLandmarker result -- the first value process()
+        returns. Optional, because a per-frame classifier doesn't need it, but
+        a temporal one does: `landmarks` has had the wrist subtracted out, so
+        it cannot say where the hand is or where it travelled. See
+        sasl_classifier.SASLGestureClassifier.
         Returns (gesture_id: str, confidence: float in 0..1)."""
         raise NotImplementedError
 
@@ -38,7 +43,7 @@ class PlaceholderClassifier(GestureClassifier):
         simulated correct match."""
         self._get_target = get_target_gesture_id
 
-    def classify(self, landmarks):
+    def classify(self, landmarks, result=None):
         if landmarks is None:
             return "NONE", 0.0
 
