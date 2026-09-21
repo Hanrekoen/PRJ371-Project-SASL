@@ -55,7 +55,10 @@ namespace SignMasterVR.UI
         public void ShowFeedback(bool correct, float confidencePercent, string message)
         {
             if (feedbackPanel != null) feedbackPanel.SetActive(true);
-            if (feedbackText != null) feedbackText.text = correct ? $"✓ CORRECT\n{message}" : "✗ TRY AGAIN";
+            if (feedbackText != null)
+                feedbackText.text = correct
+                    ? $"✓ CORRECT\n{message}"
+                    : string.IsNullOrEmpty(message) ? "✗ TRY AGAIN" : $"✗ TRY AGAIN\n{message}";
             if (feedbackConfidenceText != null) feedbackConfidenceText.text = correct ? $"{confidencePercent:0}% Accuracy" : "";
         }
 

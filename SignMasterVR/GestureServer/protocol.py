@@ -21,15 +21,25 @@ Message shapes -- one per line, always a flat JSON object:
   Laptop -> Headset
     {"type": "hello_ack"}
         Sent once, right after accepting the connection.
-    {"type": "result", "gestureId": "A", "confidence": 0.92}
+    {"type": "result", "gestureId": "A", "confidence": 0.92, "targetConfidence": 0.88}
         Sent whenever the classifier's stabilized guess changes. gestureId is
         always the classifier's BEST GUESS, correct or not -- this program
         never decides pass/fail itself. Unity's LessonManager does that, by
-        comparing this against the current target and GestureData's
-        requiredConfidence -- exactly like it already does for
-        FakeGestureRecognizer and would for any future real classifier. That
-        keeps GestureResult's contract (see GestureResult.cs's doc comment)
-        identical no matter which recognizer is plugged in.
+        comparing against GestureData's requiredConfidence -- exactly like it
+        already does for FakeGestureRecognizer.
+
+        targetConfidence is the model's probability for the sign the headset
+        last asked for, from the same window that produced the guess. It is 0
+        when no target is set, when nothing is being reported, or when the
+        placeholder classifier is in use.
+
+        Why both: the lesson asks a binary question -- "did they sign the
+        target?" -- and targetConfidence answers exactly that, while gestureId
+        still says what they actually signed so the UI can tell them "you signed
+        Sorry instead of Please". Comparing only gestureId marks a learner wrong
+        whenever a confusable sign edges out the target by a point, even though
+        the model's own numbers show the target was plausible. Prefer
+        targetConfidence for pass/fail and keep gestureId for feedback.
     {"type": "pong"}
         Reply to "ping".
 

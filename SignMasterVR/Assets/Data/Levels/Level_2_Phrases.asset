@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77f05490ba1263444b198726810bde1f, type: 3}
+  m_Name: Level_2_Phrases
+  m_EditorClassIdentifier: Assembly-CSharp::SignMasterVR.Lessons.LevelData
+  levelNumber: 2
+  levelName: Phrases
+  description: Everyday SASL phrases and greetings.
+  gestures:
+  - {fileID: 11400000, guid: 6b94cbabc481337bf0fea9e036dc4e43, type: 2}
+  - {fileID: 11400000, guid: 6fafe29f40f5c2aa75aabddb84583241, type: 2}
+  - {fileID: 11400000, guid: 917dfec925ae39eec788f1b0712410fa, type: 2}
+  - {fileID: 11400000, guid: d44f3aebfcd02e825171113e746e60e7, type: 2}
+  - {fileID: 11400000, guid: 0cf379e27d1800975b16c6b62bef74ac, type: 2}
+  - {fileID: 11400000, guid: 3a030f91701f459fc4f5b0a49c18fb8c, type: 2}
+  - {fileID: 11400000, guid: 37814a37d9c22e424fe3b6fe512d4740, type: 2}
+  - {fileID: 11400000, guid: b6eea6da6aec0ec928f745b5d8d98d9e, type: 2}
+  - {fileID: 11400000, guid: adaf45d85b9dfda1accbf619fa61e83b, type: 2}
+  - {fileID: 11400000, guid: 44fafe3246d66118a8c135eabe5048d6, type: 2}
+  - {fileID: 11400000, guid: 50da5f8afb3a2f2eb42c2da9308b7849, type: 2}
+  - {fileID: 11400000, guid: 1a131a6780d8c0b4ebc6f84f5e30a09c, type: 2}
+  - {fileID: 11400000, guid: 081a7c7594e89c3579a5ba8f0acfea00, type: 2}
+  - {fileID: 11400000, guid: 6abbdffa4b8c078f2835facfea0193fb, type: 2}
+  - {fileID: 11400000, guid: 6ae59104a2f6479ebac13d0fa36e803f, type: 2}
+  - {fileID: 11400000, guid: e2498efa8b9412881bfb5c151a0304d8, type: 2}
+  requiredPreviousLevel: {fileID: 11400000, guid: 4740dbf19f5c638478f252bfabdf1363, type: 2}

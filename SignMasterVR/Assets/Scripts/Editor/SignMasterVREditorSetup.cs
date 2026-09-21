@@ -84,6 +84,26 @@ namespace SignMasterVR.EditorTools
     ///     laptop's IP/port on the NetworkGestureRecognizer component in the
     ///     Inspector afterward. Not part of RUN ALL since it depends on
     ///     Step 4 already having run.
+    ///   Tools > SignMasterVR > 14 Register Level 2 (Phrases)
+    ///     -- the ML team's make_unity_assets.py already generated
+    ///     Level_2_Phrases.asset (16 GestureData assets: Thank you, Please,
+    ///     Sorry, Help, Home, Toilet, Drive, I Sign, I am deaf, Can you sign?,
+    ///     Nice to meet you, How are you, I am, My pleasure, Hello, Bye) but
+    ///     never added it to LevelManager.allLevels, so it existed on disk but
+    ///     was unreachable in Play mode. This adds it after Level 1 and sets
+    ///     its required-previous-level so it only unlocks once Level 1 is
+    ///     complete. Not part of RUN ALL since it depends on Step 4 already
+    ///     having run.
+    ///   Tools > SignMasterVR > 15 Add Ghost Hand Demo
+    ///     -- wires the ML team's GhostHandPlayer.cs into the scene: adds it
+    ///     as a child of the Tutor, points LessonManager.ghostHand at it, and
+    ///     creates Assets/StreamingAssets/GhostHands/ if it isn't there yet.
+    ///     It plays automatically whenever a gesture loads or a learner gets
+    ///     one wrong -- but only once clip JSON files actually exist in that
+    ///     folder (run `python export_ghost_hand.py --out ../Assets/StreamingAssets/GhostHands`
+    ///     in GestureServer/ first). No clips yet = the ghost silently stays
+    ///     hidden, nothing breaks. Not part of RUN ALL since it depends on
+    ///     Step 4 already having run.
     /// ...or just run "RUN ALL (0-6)" once everything below has compiled cleanly.
     ///
     /// Safe to re-run any step — each one looks for what it already built
@@ -96,8 +116,10 @@ namespace SignMasterVR.EditorTools
         private const string PrefabFolder = "Assets/Prefabs";
         private const string AnimFolder = "Assets/Animations/Tutor";
         private const string Level1Path = LevelFolder + "/Level_1_Letters.asset";
+        private const string Level2Path = LevelFolder + "/Level_2_Phrases.asset";
         private const string TutorPrefabPath = PrefabFolder + "/Tutor.prefab";
         private const string CanvasPrefabPath = PrefabFolder + "/LessonCanvas.prefab";
+        private const string GhostHandsFolder = "Assets/StreamingAssets/GhostHands";
         private const string AnimatorControllerPath = AnimFolder + "/TutorAnimator.controller";
         private const string CharacterTextureFolder = "Assets/Texture_and_materials/Character";
         private const string AlphabetImageFolder = "Assets/Texture_and_materials/Alphabet";
@@ -1571,6 +1593,129 @@ namespace SignMasterVR.EditorTools
                 "laptop running GestureServer/server.py, then save the scene (Ctrl+S). " +
                 "The on-screen TEST CORRECT/TEST WRONG buttons and the C/X keys go quiet in this mode (LessonManager is no longer " +
                 "listening to FakeGestureRecognizer's event) -- re-run Step 4 to switch back.");
+        }
+
+        // ------------------------------------------------------------------
+        // STEP 14 — Register Level 2 (Phrases). make_unity_assets.py (run by
+        // the ML team) already created Level_2_Phrases.asset with all 16
+        // phrase GestureData assets referenced in order, but nothing added it
+        // to LevelManager.allLevels — Step 4 only ever assigned Level 1. This
+        // makes Level 2 reachable and gates it behind Level 1's completion.
+        // ------------------------------------------------------------------
+        [MenuItem("Tools/SignMasterVR/14 Register Level 2 (Phrases)")]
+        public static void RegisterLevel2()
+        {
+            LevelData level1 = AssetDatabase.LoadAssetAtPath<LevelData>(Level1Path);
+            LevelData level2 = AssetDatabase.LoadAssetAtPath<LevelData>(Level2Path);
+            if (level1 == null || level2 == null)
+            {
+                Debug.LogError($"[SignMasterVR] Couldn't load {(level1 == null ? Level1Path : Level2Path)}. " +
+                    "Run Step 1 first, and make sure the ML team's make_unity_assets.py has been run " +
+                    "(it generates Level_2_Phrases.asset under Assets/Data/Levels/).");
+                return;
+            }
+
+            GameObject managerGO = GameObject.Find("LessonSystem");
+            if (managerGO == null)
+            {
+                Debug.LogError("[SignMasterVR] No \"LessonSystem\" GameObject in the active scene. Run Step 4 (Wire Up Current Scene) first.");
+                return;
+            }
+            var levelManager = managerGO.GetComponent<LevelManager>();
+            if (levelManager == null)
+            {
+                Debug.LogError("[SignMasterVR] \"LessonSystem\" has no LevelManager component. Run Step 4 first.");
+                return;
+            }
+
+            if (level2.requiredPreviousLevel != level1)
+            {
+                level2.requiredPreviousLevel = level1;
+                EditorUtility.SetDirty(level2);
+            }
+
+            bool alreadyRegistered = levelManager.allLevels != null && System.Array.IndexOf(levelManager.allLevels, level2) >= 0;
+            if (!alreadyRegistered)
+            {
+                var levels = new List<LevelData>(levelManager.allLevels ?? new LevelData[0]);
+                if (!levels.Contains(level1)) levels.Add(level1); // defensive -- Step 4 normally already put it there
+                levels.Add(level2);
+                levelManager.allLevels = levels.ToArray();
+                EditorUtility.SetDirty(managerGO);
+            }
+
+            AssetDatabase.SaveAssets();
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+            Debug.Log(alreadyRegistered
+                ? "[SignMasterVR] Level 2 (Phrases) was already registered on LevelManager."
+                : "[SignMasterVR] Level 2 (Phrases, 16 signs) added to LevelManager.allLevels, unlocked after Level 1 is completed. " +
+                  "There's no level-select screen yet, so to test it directly: select LessonSystem, temporarily drag Level_2_Phrases " +
+                  "onto LessonBootstrap's Level To Start, press Play, then set it back to Level_1_Letters when you're done. " +
+                  "Save the scene (Ctrl+S).");
+        }
+
+        // ------------------------------------------------------------------
+        // STEP 15 — Add Ghost Hand Demo. Wires the ML team's GhostHandPlayer.cs
+        // (Assets/Scripts/Lessons/GhostHandPlayer.cs) into the scene: a child
+        // object under the Tutor that draws a 2D hand-skeleton replay of
+        // whatever sign is currently being asked for, sourced from
+        // GestureServer/export_ghost_hand.py's output. Purely additive —
+        // LessonManager.ghostHand is optional and every call is null-guarded,
+        // so this is safe to run even before any clips have been exported.
+        // ------------------------------------------------------------------
+        [MenuItem("Tools/SignMasterVR/15 Add Ghost Hand Demo")]
+        public static void AddGhostHandDemo()
+        {
+            if (!RequireActiveSceneIsNotMainMenu()) return;
+
+            GameObject managerGO = GameObject.Find("LessonSystem");
+            GameObject tutorInstance = GameObject.Find("Tutor");
+            if (managerGO == null || tutorInstance == null)
+            {
+                Debug.LogError("[SignMasterVR] Need both \"LessonSystem\" and \"Tutor\" in the active scene. Run Step 4 (Wire Up Current Scene) first.");
+                return;
+            }
+            var lessonManager = managerGO.GetComponent<LessonManager>();
+            if (lessonManager == null)
+            {
+                Debug.LogError("[SignMasterVR] \"LessonSystem\" has no LessonManager component. Run Step 4 first.");
+                return;
+            }
+
+            Transform ghostTransform = tutorInstance.transform.Find("GhostHandDemo");
+            GameObject ghostGO;
+            if (ghostTransform != null)
+            {
+                ghostGO = ghostTransform.gameObject;
+            }
+            else
+            {
+                ghostGO = new GameObject("GhostHandDemo");
+                ghostGO.transform.SetParent(tutorInstance.transform, false);
+                // In front of the tutor, roughly chest height, facing the player.
+                ghostGO.transform.localPosition = new Vector3(0f, 1.1f, -0.6f);
+            }
+
+            var ghostHand = ghostGO.GetComponent<GhostHandPlayer>() ?? ghostGO.AddComponent<GhostHandPlayer>();
+            lessonManager.ghostHand = ghostHand;
+
+            EnsureFolder("Assets/StreamingAssets");
+            EnsureFolder(GhostHandsFolder);
+
+            EditorUtility.SetDirty(managerGO);
+            EditorUtility.SetDirty(ghostGO);
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+            AssetDatabase.SaveAssets();
+
+            bool hasClips = Directory.Exists(GhostHandsFolder) &&
+                Directory.GetFiles(GhostHandsFolder, "*.json", SearchOption.TopDirectoryOnly).Length > 0;
+            Debug.Log("[SignMasterVR] GhostHandDemo added under Tutor and wired to LessonManager.ghostHand. " +
+                (hasClips
+                    ? "Clip files found in Assets/StreamingAssets/GhostHands/ — it should play automatically in Play mode."
+                    : "Assets/StreamingAssets/GhostHands/ is empty, so it'll stay hidden for now (that's expected, nothing is broken). " +
+                      "In GestureServer/, run: python export_ghost_hand.py --out ../Assets/StreamingAssets/GhostHands " +
+                      "-- then let Unity re-import and press Play.") +
+                " Save the scene (Ctrl+S).");
         }
 
         [MenuItem("Tools/SignMasterVR/RUN ALL (0-6)")]

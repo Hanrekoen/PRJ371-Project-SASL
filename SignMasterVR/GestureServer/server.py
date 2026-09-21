@@ -97,8 +97,11 @@ class ClientSession:
         except (ConnectionError, OSError):
             self.alive = False
 
-    def send_result(self, gesture_id: str, confidence: float):
-        self._send(encode({"type": "result", "gestureId": gesture_id, "confidence": confidence}))
+    def send_result(self, gesture_id: str, confidence: float, target_confidence: float = 0.0):
+        self._send(encode({"type": "result",
+                           "gestureId": gesture_id,
+                           "confidence": confidence,
+                           "targetConfidence": round(float(target_confidence), 4)}))
 
     def close(self):
         self.alive = False
@@ -128,8 +131,12 @@ def main():
     parser.add_argument("--port", type=int, default=8765, help="Must match NetworkGestureRecognizer.laptopPort in Unity")
     parser.add_argument("--camera", type=int, default=0, help="Webcam index (default: 0 -- try 1, 2... if that's the wrong camera)")
     parser.add_argument("--no-preview", action="store_true", help="Don't open the debug preview window")
-    parser.add_argument("--model", default=None,
-                        help="Path to the trained model (default: models/sasl_gesture_model.joblib)")
+    parser.add_argument("--model", action="append", default=None,
+                        help="Path to a trained model. Pass it more than once to route "
+                             "between models by which one knows the current target -- "
+                             "e.g. a letters model and a phrases model. Measured on this "
+                             "data, splitting that way cut wrong-sign fires from 7 to 1 "
+                             "out of 84. Default: models/sasl_gesture_model.joblib")
     parser.add_argument("--placeholder", action="store_true",
                         help="Use the old open-hand/fist PlaceholderClassifier instead of the "
                              "trained model -- handy for testing the network path on a machine "
@@ -164,8 +171,13 @@ def main():
         # reads a ~3s window rather than one frame, because the signs it knows
         # are dynamic. See ML_MODEL.md. Imported here rather than at the top so
         # that --placeholder still works on a machine without scikit-learn.
-        from sasl_classifier import DEFAULT_MODEL, SASLGestureClassifier
-        classifier = SASLGestureClassifier(model_path=args.model or DEFAULT_MODEL)
+        from sasl_classifier import (DEFAULT_MODEL, RoutedGestureClassifier,
+                                     SASLGestureClassifier)
+        paths = args.model or [DEFAULT_MODEL]
+        if len(paths) == 1:
+            classifier = SASLGestureClassifier(model_path=paths[0])
+        else:
+            classifier = RoutedGestureClassifier(paths)
 
     last_sent = None
     last_sent_time = 0.0
@@ -194,6 +206,10 @@ def main():
                 last_sent, last_sent_time = None, 0.0
                 if hasattr(classifier, "reset"):
                     classifier.reset()
+                # The trained classifier reports P(target) alongside its best
+                # guess; the placeholder has no such notion.
+                if hasattr(classifier, "set_target"):
+                    classifier.set_target(target_now)
 
             results, landmarks = tracker.process(frame)
             # `results` carries the absolute landmark positions the trained model
@@ -207,7 +223,8 @@ def main():
                 changed = gesture_id != last_sent
                 stale = (now - last_sent_time) > RESEND_INTERVAL_SECONDS
                 if changed or stale:
-                    session.send_result(gesture_id, confidence)
+                    session.send_result(gesture_id, confidence,
+                                        getattr(classifier, "target_confidence", 0.0))
                     last_sent, last_sent_time = gesture_id, now
             elif gesture_id == "NONE":
                 last_sent = "NONE"

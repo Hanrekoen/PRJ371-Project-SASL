@@ -325,6 +325,24 @@ def _clone(model):
 
 # --------------------------------------------------------------------------
 
+LETTERS = [chr(c) for c in range(ord("A"), ord("Z") + 1)]
+
+
+def _label_set(spec):
+    """Parse --labels / --exclude-labels. None means "no filter"."""
+    if spec is None:
+        return None
+    out = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        # 'letters' saves typing all 26 and, more usefully, saves someone
+        # mistyping one of them and quietly training a 25-sign model.
+        out += LETTERS if part.lower() == "letters" else [part]
+    return set(out)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--captures", nargs="+", default=["data/*.json"],
@@ -332,6 +350,15 @@ def main():
                          "file in data/, so adding a sign is: drop the export in "
                          "data/ and re-run")
     ap.add_argument("--out", default="models/sasl_gesture_model.joblib")
+    ap.add_argument("--labels", default=None,
+                    help="train on only these signs -- comma-separated, or the "
+                         "shorthand 'letters' for A-Z. This is how the two runtime "
+                         "models are built; every threshold below is calibrated "
+                         "against the class set, so a letters-only model and a "
+                         "phrases-only model end up with very different bars. See "
+                         "the two-model split in ML_MODEL.md.")
+    ap.add_argument("--exclude-labels", default=None,
+                    help="train on everything EXCEPT these (same syntax as --labels)")
     ap.add_argument("--n-aug", type=int, default=12,
                     help="augmented variants per clip (training folds only)")
     ap.add_argument("--min-confidence", type=float, default=None,
@@ -421,6 +448,28 @@ def main():
 
     if not clips:
         sys.exit("Capture files contained no usable clips.")
+
+    keep = _label_set(args.labels)
+    drop = _label_set(args.exclude_labels)
+    if keep is not None or drop is not None:
+        before = len(clips)
+        if keep is not None:
+            missing = keep - {c[0] for c in clips}
+            if missing:
+                print(f"\n  --labels named {len(missing)} signs with no clips: "
+                      + ", ".join(sorted(missing)))
+            clips = [c for c in clips if c[0] in keep]
+        if drop is not None:
+            clips = [c for c in clips if c[0] not in drop]
+        if not clips:
+            sys.exit("The label filter left no clips. Check the spelling -- labels "
+                     "are matched exactly, and they are the gestureIds Unity uses.")
+        print(f"\n  Label filter: {before} clips -> {len(clips)} clips across "
+              f"{len({c[0] for c in clips})} signs")
+        for f in per_file:
+            for l in list(per_file[f]):
+                if (keep is not None and l not in keep) or (drop is not None and l in drop):
+                    per_file[f].pop(l, None)
 
     # A class with almost no examples can't be learned and breaks fold splitting.
     counts_raw = Counter(c[0] for c in clips)

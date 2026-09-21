@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Letter U
   tutorAnimationTrigger: Active
   referenceImage: {fileID: 21300000, guid: a175191c8601ed54c8053b0cda33ec31, type: 3}
-  requiredConfidence: 0.75
+  requiredConfidence: 0.34
   successMessage: Excellent!
   successAudioKey: Correct
   tryAgainAudioKey: TryAgain

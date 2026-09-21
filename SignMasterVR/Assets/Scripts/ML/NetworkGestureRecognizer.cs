@@ -19,7 +19,11 @@ namespace SignMasterVR.ML
     /// the SAME contract documented at the top of GestureServer/protocol.py —
     /// keep the two in sync, there is no shared schema between the languages.
     ///   We send  -> {"type":"target","gestureId":"A","level":1}
-    ///   We get   <- {"type":"result","gestureId":"A","confidence":0.92}
+    ///   We get   <- {"type":"result","gestureId":"A","confidence":0.92,"targetConfidence":0.88}
+    ///
+    /// targetConfidence is the model's probability for the sign that was ASKED
+    /// for (not just its overall best guess) — LessonManager prefers this for
+    /// pass/fail when a real server supplies it. See GestureResult.cs.
     ///
     /// Swapping this in for FakeGestureRecognizer is the same "one-field
     /// change" IGestureRecognizer.cs already documents — done automatically by
@@ -177,7 +181,8 @@ namespace SignMasterVR.ML
             switch (msg.type)
             {
                 case "result":
-                    OnGestureDetected?.Invoke(new GestureResult(msg.gestureId, msg.confidence));
+                    OnGestureDetected?.Invoke(
+                        new GestureResult(msg.gestureId, msg.confidence, msg.targetConfidence));
                     break;
                 case "hello_ack":
                     Debug.Log("[NetworkGestureRecognizer] Laptop handshake OK.");
@@ -219,6 +224,7 @@ namespace SignMasterVR.ML
             public string type;
             public string gestureId;
             public float confidence;
+            public float targetConfidence;
             public int level;
         }
     }

@@ -25,6 +25,9 @@ namespace SignMasterVR.Lessons
         public MonoBehaviour recognizerBehaviour;
         private IGestureRecognizer _recognizer;
 
+        [Tooltip("Optional. Plays a recorded 2D hand-skeleton demo of the target sign alongside the tutor. Leave null if no ghost-hand clips have been exported yet — everything else works without it. Assigned automatically by Tools > SignMasterVR > 15 Add Ghost Hand Demo.")]
+        public GhostHandPlayer ghostHand;
+
         [Header("Timing")]
         [Tooltip("Seconds the feedback panel stays up before moving on.")]
         public float feedbackHoldTime = 2f;
@@ -71,6 +74,7 @@ namespace SignMasterVR.Lessons
             _recognizer.SetTargetGesture(gesture.gestureId);
             ui.ShowGesturePrompt(gesture, _gestureIndex, currentLevel.gestures.Length);
             tutor.Demonstrate(gesture.tutorAnimationTrigger);
+            ghostHand?.Play(gesture.gestureId);
             // Learner now attempts the sign. This week: press C / TEST CORRECT
             // or X / TEST WRONG. Later: XR Hands -> ML model -> OnGestureDetected
             // fires automatically — same code path either way.
@@ -79,25 +83,43 @@ namespace SignMasterVR.Lessons
         private void HandleGestureResult(GestureResult result)
         {
             var gesture = CurrentGesture;
-            bool correct = result.GestureId == gesture.gestureId && result.Confidence >= gesture.requiredConfidence;
+
+            // Prefer the target's own probability: it answers "did they sign the
+            // target?" directly, and a wrong sign cannot pass it by construction.
+            // Fall back to the old string-match check when the recognizer doesn't
+            // supply one (FakeGestureRecognizer, --placeholder, or an older server).
+            bool correct = result.TargetConfidence > 0f
+                ? result.TargetConfidence >= gesture.requiredConfidence
+                : (result.GestureId == gesture.gestureId && result.Confidence >= gesture.requiredConfidence);
+
             StartCoroutine(GiveFeedbackAndAdvance(correct, result, gesture));
         }
 
         private IEnumerator GiveFeedbackAndAdvance(bool correct, GestureResult result, GestureData gesture)
         {
+            // The number that actually decided correctness above, so the % shown
+            // to the learner matches the check that was applied to it.
+            float displayConfidence = result.TargetConfidence > 0f ? result.TargetConfidence : result.Confidence;
+
             if (correct)
             {
                 _correctCount++;
                 tutor.PlayCorrect();
-                ui.ShowFeedback(true, result.Confidence * 100f, gesture.successMessage);
+                ui.ShowFeedback(true, displayConfidence * 100f, gesture.successMessage);
                 AudioManager.Instance?.Play(gesture.successAudioKey);
                 ProgressManager.Instance?.MarkGestureComplete(currentLevel, gesture);
             }
             else
             {
+                // GestureId is the model's overall best guess — targetConfidence alone
+                // can't tell the learner what they actually signed, so surface it here.
+                string hint = (result.GestureId != gesture.gestureId && result.GestureId != "NONE" && !string.IsNullOrEmpty(result.GestureId))
+                    ? $"That looked like \"{result.GestureId}\"."
+                    : "";
                 tutor.PlayTryAgain();
-                ui.ShowFeedback(false, result.Confidence * 100f, "");
+                ui.ShowFeedback(false, displayConfidence * 100f, hint);
                 AudioManager.Instance?.Play(gesture.tryAgainAudioKey);
+                ghostHand?.Play(gesture.gestureId);
             }
 
             yield return new WaitForSeconds(feedbackHoldTime);

@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Letter F
   tutorAnimationTrigger: Active
   referenceImage: {fileID: 21300000, guid: 3842f58190ccc464fbc3eec6920aac05, type: 3}
-  requiredConfidence: 0.75
+  requiredConfidence: 0.34
   successMessage: Excellent!
   successAudioKey: Correct
   tryAgainAudioKey: TryAgain

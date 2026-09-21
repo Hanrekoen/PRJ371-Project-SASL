@@ -27,7 +27,12 @@ from gesture_classifier import GestureValidator
 from sasl_features import HandFrame, extract_features, load_captures
 from train_gesture_model import clip_fingerprint
 
-MODEL = "models/sasl_gesture_model.joblib"
+import argparse as _argparse
+
+_ap = _argparse.ArgumentParser(add_help=False)
+_ap.add_argument("--model", default="models/sasl_gesture_model.joblib")
+_args, _ = _ap.parse_known_args()
+MODEL = _args.model
 CAPTURES = "data/*.json"          # whatever the model was trained on
 
 # Replaying a clip through the live sliding window costs a few seconds, so the
@@ -137,6 +142,7 @@ class FakeResult:
 
 def main():
     model = joblib.load(MODEL)
+    print(f"\nTesting {MODEL}")
     all_clips = load_clips()
     # Only clips of signs the model actually knows -- a capture file can hold
     # labels that were dropped for having too few takes.

@@ -1,9 +1,14 @@
 # Gesture recognition model
 
 The real classifier behind `server.py`, replacing `PlaceholderClassifier`.
-Trained on 311 clips across **16 signs**: Bye, Can you sign?, Drive, Hello, Help,
-Home, How are you, I Sign, I am, I am deaf, My pleasure, Nice to meet you,
-Please, Sorry, Thank you, Toilet.
+Trained on 570 clips across **42 signs** — the 26 fingerspelled letters A–Z, and
+16 phrases: Bye, Can you sign?, Drive, Hello, Help, Home, How are you, I Sign,
+I am, I am deaf, My pleasure, Nice to meet you, Please, Sorry, Thank you, Toilet.
+
+**Those 42 signs are served by two models, not one** — a letters model and a
+phrases model, routed at runtime by which one knows the current target. That is
+the single most important thing on this page; see *The two-model split* below for
+the measurement that forced it.
 
 ```
 sasl_features.py        canonicalization + feature extraction (shared by training and runtime)
@@ -12,26 +17,37 @@ export_ghost_hand.py    capture JSON -> ghost-hand demo clips
 ghost_preview.html      preview an exported demo clip without Unity
 GhostHandPlayer.cs      Unity component that plays one (goes in Assets/Scripts/Lessons/)
 sasl_model.py           the saved artefact: classifier + 3-stage confidence gate
-sasl_classifier.py      GestureClassifier adapter -- what server.py constructs
+sasl_classifier.py      SASLGestureClassifier + RoutedGestureClassifier (what server.py constructs)
 gesture_classifier.py   real-time sliding-window validator
 train_gesture_model.py  training, confound audit, model selection, threshold calibration
 test_pipeline.py        verification suite (12 checks + warnings)
+compare_split.py        one 42-sign model vs the letters/phrases split, on windowed replay
+make_unity_assets.py    writes GestureData/LevelData assets with measured requiredConfidence
 live_demo.py            standalone webcam demo, no headset or network needed
 data/                   capture JSON
-models/sasl_gesture_model.joblib
+models/sasl_letters.joblib      26 letters   <- the runtime pair
+models/sasl_phrases.joblib      16 phrases   <-
+models/sasl_gesture_model.joblib  all 42 in one model, kept as a fallback
 ```
 
 ## Run it
 
 ```bash
 pip install -r requirements.txt          # now also needs scikit-learn + joblib
-python test_pipeline.py                  # 12/12 should pass, 1 warning
-python live_demo.py                      # sign at the webcam, no headset needed
-python server.py --port 8765             # the real thing
+
+python test_pipeline.py --model models/sasl_phrases.joblib   # 12/12, 1 warning
+python test_pipeline.py --model models/sasl_letters.joblib   # 10/12, both detection-rate
+
+python live_demo.py --model models/sasl_phrases.joblib       # sign at the webcam
+
+# the real thing -- pass --model twice, one model per level
+python server.py --port 8765 \
+    --model models/sasl_letters.joblib \
+    --model models/sasl_phrases.joblib
 ```
 
 `train_gesture_model.py` only needs re-running when you add signs or change
-features — the trained model is committed. See *Adding signs, or more data for
+features — the trained models are committed. See *Adding signs, or more data for
 existing ones* below.
 
 ## Read this first: the capture set has a confound
@@ -93,18 +109,56 @@ doesn't reconcile the two by hand.
 Clip-grouped cross-validation, augmented copies never crossing the fold boundary
 (leave-one-clip-out up to 60 clips, 10-fold above that):
 
-| | |
-|---|---|
-| Signs | 16 |
-| Clips | 311 (20 per sign; Drive has 11) |
-| Best model | logistic regression on 48 PCA components |
-| Accuracy | **98.4%**, 10-fold grouped CV |
-| Single-window acceptance of genuine clips | 90% |
-| Live sliding-window replay | 30/32 correct, 0 wrong |
-| Replay through the server adapter | 30/32 correct, 0 wrong |
-| Model size / training time | 600 KB / ~4 min full sweep, ~90s with `--quick` |
+| | letters | phrases | all 42 in one |
+|---|---|---|---|
+| Signs | 26 | 16 | 42 |
+| Clips | 259 | 311 | 570 |
+| Accuracy | **95.8%** (6-fold) | **98.4%** (10-fold) | 97.2% (6-fold) |
+| Confidence bar | 0.46 | 0.51 | 0.27 |
+| Liveness floor | 0.36 | 1.56 | 0.47 |
+| `test_pipeline.py` | 10/12 | 12/12, 1 warning | — |
+| Synthetic negatives rejected | 2 of 2 | 0 of 2 | 0 of 2 |
 
-Up from 97.4% one-handed. Three fixes got it there, in order of how much they
+Windowed replay, 84 clips, two takes per sign:
+
+| | correct | **wrong** | missed |
+|---|---|---|---|
+| one 42-sign model | 64 | **7** | 13 |
+| letters + phrases, routed | 65 | **1** | 18 |
+
+Every clip is still **one signer**. Cross-signer accuracy remains unmeasured and
+remains the number that matters.
+
+## The two-model split
+
+The single 42-sign model names the wrong sign seven times in 84 attempts —
+`Thank you→Hello`, `Bye→Help`, `K→N`, `K→R`, `U→R`, `U→R`, `I am→Toilet`. Split
+in two, only `I am→Toilet` survives, at no cost in detections.
+
+The cause is that **every threshold in the pipeline is calibrated against the
+class set**, and letters and phrases pull them in opposite directions:
+
+- The liveness floor comes from the quietest genuine clip. A held letter barely
+  moves, so mixing letters in drags the floor from 1.56 down to 0.47 — and the
+  gate stops rejecting a resting hand *for the phrases too*, which never needed
+  that concession.
+- The confidence bar falls as classes are added, because calibrated probability
+  spreads over more options. At 42 it lands at 0.27, low enough that a confusable
+  pair clears it.
+
+Split, each model keeps the thresholds its own signs justify. The letters model
+rejects both synthetic negatives (drift 11.5 > 4.6, scribble 27.8 > 4.6) that the
+combined model waves through.
+
+Routing is on **what a model knows**, not on the level number:
+`RoutedGestureClassifier` picks whichever model has the current target in its
+label set. There is no convention to keep in sync, and it survives a sign moving
+between levels. Re-run `compare_split.py` after any retrain — if the split ever
+stops winning, say so and drop back to the single model.
+
+## Two hands, chirality, and the window
+
+Three fixes took the phrases model from 97.4% to 98.4%, in order of how much they
 mattered:
 
 **Both hands are now read.** Four signs are genuinely two-handed — I Sign (two
@@ -131,9 +185,8 @@ than 2.9s, so every window carried a second of whatever came before or after.
 The window is now taken from the data at training time (2.2s here) and stored in
 the model. That alone recovered 3 detections out of 32 in replay.
 
-Confusions left: Bye/Hello (both waves) and I am/How are you. Cross-signer
-accuracy is still unmeasured — every clip is one person, and that remains the
-number that matters.
+Confusions left: Bye/Hello (both waves) and I am/How are you among the phrases;
+R, Z, H and U have the lowest recall among the letters.
 
 ## How it works
 
@@ -191,30 +244,56 @@ target and `GestureData.requiredConfidence`, exactly as with
 
 ## Wiring into server.py
 
-Two lines changed in the camera loop, and one in `classifier.py`:
-
 - `GestureClassifier.classify()` gained an optional `result=None` second
   argument, and `server.py` now calls `classifier.classify(landmarks, results)`.
   The model reads the raw HandLandmarker result because `rel` has already
   discarded where the hand is. `PlaceholderClassifier` ignores the argument, so
   both classifiers still satisfy one interface — swap back by flipping which one
   `server.py` constructs.
-- The classifier buffers ~3 seconds internally and reports a sign only after 3
-  overlapping windows agree, then holds it for 1.5s so the headset sees it
-  despite the underlying event being momentary.
+- The classifier buffers one window internally (length stored in the model, ~2.2s
+  for phrases) and reports a sign only after several overlapping windows agree,
+  then holds it so the headset sees it despite the underlying event being
+  momentary.
+- `--model` is repeatable. One path builds a `SASLGestureClassifier`; two or more
+  build a `RoutedGestureClassifier`, which forwards `set_target()` to every member
+  and classifies with whichever one knows that target.
+- When the target changes, `server.py` clears the rolling window and re-targets.
+  Without that, the next judgement is made partly from frames captured while the
+  *previous* sign was still on screen.
 
-## Unity has no GestureData for these signs
+### `targetConfidence`
 
-`Assets/Data/Gestures/` contains A–Z fingerspelling only. The model's labels are
-`Hello` and `Bye`, so **`LessonManager` can never set them as a target yet.**
-`SASLGestureClassifier` prints a warning about this at startup. Either:
+The wire `result` message now carries `targetConfidence` — the model's calibrated
+probability for **the sign that was asked for** — alongside `gestureId` and
+`confidence` (the argmax and its probability). `LessonManager` grades on
+`targetConfidence` when it is present and falls back to the argmax comparison
+when it isn't, so the old `FakeGestureRecognizer` still works. `gestureId`
+survives as the "that looked like *X*" hint on a failed attempt.
 
-- create `Gesture_Hello.asset` / `Gesture_Bye.asset` in Unity (matching
-  `gestureId` exactly), or
-- pass `gesture_id_map={"Hello": "A", ...}` to map onto existing ids for a
-  smoke test, or
-- capture A–Z clips per `DATASET_SPEC.md` and retrain — no code changes needed,
-  the label set comes from the data.
+Worth knowing: measured on this data, grading on `targetConfidence` rather than
+the argmax is roughly a wash (69 passes vs 68). It was kept because it makes the
+failure message useful and decouples pass/fail from a 42-way argmax, not because
+it moved the accuracy number.
+
+## Unity assets: all 42 signs now exist
+
+`make_unity_assets.py` writes them. All 26 letters plus all 16 phrases have a
+`GestureData` asset in `Assets/Data/Gestures/`, and `Level_2_Phrases` references
+the 16.
+
+**Never hand-pick `requiredConfidence`, and never copy the old 0.75.** That value
+was right for two classes; at 26 or 42 it fails almost every genuine attempt, and
+it silently fails them — the learner just never passes. `make_unity_assets.py`
+derives it per model from the trained model itself: the bar that passes 95% of
+that model's own genuine clips (`--target-pass`, default 0.95). Today that is
+**0.34 for letters and 0.42 for phrases**. The 26 letter assets were sitting at
+0.75 until this run.
+
+A per-sign bar was tried and measured *worse* than a flat per-model floor (61
+passes vs 69), so it stays behind a `--per-sign` flag and off by default.
+
+Retraining changes these numbers. Re-run `make_unity_assets.py` (dry run first,
+`--write` to apply) after every retrain, or the assets and the model disagree.
 
 ## Adding signs, or more data for existing ones
 
@@ -275,8 +354,20 @@ the accuracy underneath it.
 
 ## Known limits
 
-- **Two signs, one signer.** Cross-signer generalization is untested and is the
-  first thing to measure once a second person contributes captures.
+- **42 signs, one signer.** Cross-signer generalization is untested and is the
+  first thing to measure once a second person contributes captures. The learning
+  curve against takes-per-sign is flat past 8 (3 takes 87.5%, 5 takes 97.5%, 8
+  takes 98.4%, no gain to 20), so **more signers, not more takes, is the
+  bottleneck.**
+- **Letters detect less often than phrases** — 36 of 52 in windowed replay, but 0
+  wrong. Some of that is a replay artefact: letter clips run about 1.9s against a
+  1.9s window, so every window in the loop spans a seam. Confirm against a real
+  camera before tuning anything.
+- **Never run offline replay without `GestureValidator.reset()` clearing the
+  refractory clock.** It didn't, until this pass. Live it was invisible, because
+  time only moves forward; in replay it suppressed nearly every detection (6% vs
+  76%). Any offline measurement taken before that fix, in this file or elsewhere,
+  is wrong.
 - **Three hands or more is not handled** — two is the cap, which matches signing.
 - **The confidence gate is now the weakest part.** Two of the five synthetic
   negatives get through at 16 signs: a fast erratic scribble, and a real
