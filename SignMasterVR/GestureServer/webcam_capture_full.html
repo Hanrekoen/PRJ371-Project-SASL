@@ -497,6 +497,26 @@ function undoLast(){
   setStatus('undid last capture ('+removed.label+')');
 }
 
+/* ---- labels ----
+   This has to stay live. It used to be parsed once, inside the Start Camera
+   handler -- and that button disables itself on success, so the handler never
+   ran again. Editing the label box after starting the camera silently did
+   nothing: the old list stayed in `labels`, and every clip was filed under the
+   name you thought you had just changed. Nothing errored and the header kept
+   showing the stale name, so the only way to notice was to open the exported
+   JSON. Bound to `input` now, so what the box says is what gets recorded. */
+function syncLabels(){
+  const current = labels[labelIdx];
+  const next = document.getElementById('labelList').value
+                 .split(',').map(s=>s.trim()).filter(Boolean);
+  labels = next.length ? next : ['sign'];
+  // Stay on the same sign if it survived the edit, so fixing a typo further
+  // down the list doesn't throw away where you are in a long session.
+  const at = labels.indexOf(current);
+  labelIdx = at >= 0 ? at : Math.min(labelIdx, labels.length - 1);
+  refreshAll();
+}
+
 /* ---- UI refresh ---- */
 function refreshAll(){
   const label = labels[labelIdx];
@@ -553,8 +573,7 @@ startBtn.addEventListener('click', async () => {
     minTrackingConfidence: 0.6
   });
 
-  labels = document.getElementById('labelList').value.split(',').map(s=>s.trim()).filter(Boolean);
-  if (!labels.length) labels = ['sign'];
+  syncLabels();
   labelIdx = 0;
 
   supportEl.textContent = 'Requesting camera…';
@@ -580,6 +599,7 @@ startBtn.addEventListener('click', async () => {
 /* ---- controls ---- */
 snapBtn.onclick = () => startCountdown('snap');
 clipBtn.onclick = () => startCountdown('clip');
+document.getElementById('labelList').addEventListener('input', syncLabels);
 prevBtn.onclick = () => { if (labelIdx>0){ labelIdx--; refreshAll(); } };
 nextBtn.onclick = () => { if (labelIdx<labels.length-1){ labelIdx++; refreshAll(); } };
 undoBtn.onclick = undoLast;

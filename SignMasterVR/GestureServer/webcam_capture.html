@@ -311,6 +311,24 @@ function restore() {
   } catch (e) { console.warn('Could not restore autosave:', e.message); }
 }
 
+/* Keep `labels` in step with the box. It used to be parsed once, inside the
+   Start Camera handler -- and that button disables itself on success, so the
+   handler never ran again. Editing the label list after starting the camera
+   silently did nothing: the old list stayed in `labels` and every clip was
+   filed under the name you thought you had just changed. Nothing errored, so
+   the only way to notice was to open the exported JSON. */
+function syncLabels() {
+  const current = labels[labelIdx];
+  const next = document.getElementById('labelList').value
+                 .split(',').map(s => s.trim()).filter(Boolean);
+  labels = next.length ? next : ['pose'];
+  // Stay on the same sign if it survived the edit, so fixing a typo further
+  // down the list doesn't throw away where you are in a long session.
+  const at = labels.indexOf(current);
+  labelIdx = at >= 0 ? at : Math.min(labelIdx, labels.length - 1);
+  refreshLabelUI();
+}
+
 function refreshLabelUI() {
   const label = labels[labelIdx] || '—';
   const target = parseInt(document.getElementById('repeats').value, 10) || 1;
@@ -576,8 +594,7 @@ startBtn.addEventListener('click', async () => {
   supportEl.textContent = 'Requesting camera access...';
   indicatorText.textContent = 'Starting Camera';
 
-  labels = document.getElementById('labelList').value.split(',').map(s => s.trim()).filter(Boolean);
-  if (!labels.length) labels = ['pose'];
+  syncLabels();
   labelIdx = 0; takeCounts = {};
 
   try {
@@ -610,6 +627,7 @@ startBtn.addEventListener('click', async () => {
 ================================================================== */
 snapBtn.addEventListener('click', () => startCountdown('snap'));
 clipBtn.addEventListener('click', () => startCountdown('clip'));
+document.getElementById('labelList').addEventListener('input', syncLabels);
 prevBtn.addEventListener('click', () => { if (labelIdx > 0) { labelIdx--; refreshLabelUI(); } });
 nextBtn.addEventListener('click', () => { if (labelIdx < labels.length - 1) { labelIdx++; refreshLabelUI(); } });
 undoBtn.addEventListener('click', undoLast);

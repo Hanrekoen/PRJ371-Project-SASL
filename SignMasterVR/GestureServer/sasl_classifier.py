@@ -49,7 +49,12 @@ def unity_gesture_ids() -> set:
     for path in glob.glob(os.path.join(UNITY_GESTURE_DIR, "*.asset")):
         try:
             with open(path, encoding="utf-8", errors="ignore") as fh:
-                m = re.search(r"^\s*gestureId:\s*(\S+)\s*$", fh.read(), re.M)
+                # (.+?) not (\S+): most gestureIds here are phrases with spaces
+                # in them -- "Thank you", "Nice to meet you". \S+ stopped at the
+                # first space, so 8 of the 42 assets were invisible to this scan
+                # and the startup warning named signs that were wired up fine.
+                # A warning that cries wolf is worse than no warning.
+                m = re.search(r"^\s*gestureId:\s*(.+?)\s*$", fh.read(), re.M)
             if m:
                 found.add(m.group(1))
         except OSError:
