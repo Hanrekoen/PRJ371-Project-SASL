@@ -352,6 +352,88 @@ a shortcut introduced by a new capture session — one signer always closer to t
 camera, one sign only ever recorded left-handed — gets flagged before you trust
 the accuracy underneath it.
 
+## The alphabet was captured at a collapsing frame rate
+
+The browser capture tool slowed steadily across the two-hour alphabet session.
+Median frames per second actually recorded, per letter:
+
+```
+A 16.6   B 11.3   C  9.5   D  7.4   E  7.1   F  6.4   G  5.8   H  5.8   I  5.4
+J  4.9   K  4.7   L  4.6   M  4.0   N  4.0   O  3.9   P  3.9   Q  3.7   R  3.7
+S  3.6   T  3.5   U  3.5   V  3.4   W  3.1   X  3.0   Y  2.7   Z  2.3
+```
+
+Spearman rho against alphabet position is **-0.99** — an almost perfectly steady
+decline.
+
+**It is not only the alphabet.** A full audit (now built into the trainer) finds
+**31 of 42 signs recorded below 8 fps** — 23 of 26 letters and **8 of 16 phrases**:
+
+```
+Can you sign?  2.7    I am deaf  3.1    I Sign  4.2    Drive  6.0
+Help           6.3    Bye        6.9    Home    7.4    My pleasure 7.8
+```
+
+The healthy end is `Please` 15.6, `I am` 15.2, `How are you` 15.0, `Thank you`
+14.3, `Toilet` 13.5, `Nice to meet you` 11.4, `Hello` 9.8, `Sorry` 8.0. An earlier
+version of this file said the phrase data was captured at 9.8–14.3 fps; that was
+measured on two signs and was wrong about the other fourteen.
+
+Every take is the right *length* (~1.9s); only the sampling rate fell. That is why
+it was invisible at capture time and why it is worth writing down here: the failure
+mode leaves no trace in anything you would normally check.
+
+### It cannot be fixed in code — this is measured, not assumed
+
+The obvious idea is to interpolate the sparse clips back up. `extract_features`
+**already** resamples every clip onto a uniform time grid (`_resample`,
+`N_RESAMPLE`), so that is done, and it does not help: interpolation cannot put back
+a sample that was never taken.
+
+The causal test is to go the other way. Take the *healthy* phrase clips and
+decimate them:
+
+| phrase clips, 32 replays | correct | wrong | missed |
+|---|---|---|---|
+| as captured (9.8–15.6 fps) | 29 | 1 | 2 — **91%** |
+| decimated to 6 fps | 27 | 0 | 5 — 84% |
+| decimated to 4 fps | 19 | 2 | 11 — **59%** |
+| decimated to 3 fps | 14 | 3 | 15 — **44%** |
+
+That reproduces the letters failure (50% below 4.2 fps) from good data, which
+settles it: capture rate is sufficient on its own to cause the loss. Note the
+wrong-answer column — sparse capture does not only cause misses, it starts
+producing confident wrong answers. The letters model's current 0-wrong is partly
+luck.
+
+**Re-capture is the only fix.** `train_gesture_model.py` now audits capture rate
+every run and names the signs below `--min-capture-fps` (default 8).
+
+Consequences, all measured:
+
+| | |
+|---|---|
+| Letters detected, capture ≥ 4.2 fps | **92%** (22 of 24) |
+| Letters detected, capture < 4.2 fps | **50%** (14 of 28) |
+| Signs with no ghost-hand clip | V, W, X, Y, Z — every take under `--min-frames 8` |
+| Weakest letters for recall | R, Z, U — all from the low-rate end |
+
+4.2 fps is the rate that puts 8 samples in a 1.9s take.
+
+The fix is re-capture, not tuning. Short sessions, browser restarted between them,
+watching the frame counter rather than the clip length.
+
+### Real "not a sign" clips
+
+`--negative-label` (default `NotASign`) holds clips with that label out of the
+class set and scores them against the finished gate instead. Training them as a
+43rd sign would teach the model that fidgeting is a thing to recognise, which is
+the opposite of what is wanted. Record 20–30 — fidgeting, adjusting glasses,
+half-finished attempts, reaching for the keyboard — drop them in `data/` as their
+own file, and the trainer reports what share the gate rejects. The synthetic
+negatives in `test_pipeline.py` have stopped being fair tests at this many dynamic
+signs; these are the honest measurement.
+
 ## Known limits
 
 - **42 signs, one signer.** Cross-signer generalization is untested and is the
@@ -360,9 +442,11 @@ the accuracy underneath it.
   takes 98.4%, no gain to 20), so **more signers, not more takes, is the
   bottleneck.**
 - **Letters detect less often than phrases** — 36 of 52 in windowed replay, but 0
-  wrong. Some of that is a replay artefact: letter clips run about 1.9s against a
-  1.9s window, so every window in the loop spans a seam. Confirm against a real
-  camera before tuning anything.
+  wrong. **This is the capture frame rate, not the model.** Split by capture rate,
+  the letters model detects 92% of letters recorded at or above 4.2 fps and 50%
+  of those below; 14 of the 15 misses are in the low-rate group. See *The alphabet
+  was captured at a collapsing frame rate* below. Do not tune thresholds against
+  these numbers — re-capture M–Z and re-measure.
 - **Never run offline replay without `GestureValidator.reset()` clearing the
   refractory clock.** It didn't, until this pass. Live it was invisible, because
   time only moves forward; in replay it suppressed nearly every detection (6% vs

@@ -66,9 +66,9 @@ def score(pick_classifier, clips):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--combined", default="models/_all42.joblib")
-    ap.add_argument("--letters", default="models/_letters.joblib")
-    ap.add_argument("--phrases", default="models/_phrases.joblib")
+    ap.add_argument("--combined", default="models/sasl_gesture_model.joblib")
+    ap.add_argument("--letters", default="models/sasl_letters.joblib")
+    ap.add_argument("--phrases", default="models/sasl_phrases.joblib")
     ap.add_argument("--per-label", type=int, default=2)
     args = ap.parse_args()
 

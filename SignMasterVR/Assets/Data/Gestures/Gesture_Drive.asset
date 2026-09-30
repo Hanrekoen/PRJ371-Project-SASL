@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Drive
   tutorAnimationTrigger: Active
   referenceImage: {fileID: 0}
-  requiredConfidence: 0.42
+  requiredConfidence: 0.60
   successMessage: Excellent!
   successAudioKey: Correct
   tryAgainAudioKey: TryAgain
