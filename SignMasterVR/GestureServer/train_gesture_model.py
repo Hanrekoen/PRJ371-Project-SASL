@@ -32,7 +32,7 @@ import json
 import os
 import sys
 import time
-from collections import Counter
+from collections import Counter, defaultdict
 
 import numpy as np
 from sklearn.decomposition import PCA
@@ -325,6 +325,24 @@ def _clone(model):
 
 # --------------------------------------------------------------------------
 
+LETTERS = [chr(c) for c in range(ord("A"), ord("Z") + 1)]
+
+
+def _label_set(spec):
+    """Parse --labels / --exclude-labels. None means "no filter"."""
+    if spec is None:
+        return None
+    out = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        # 'letters' saves typing all 26 and, more usefully, saves someone
+        # mistyping one of them and quietly training a 25-sign model.
+        out += LETTERS if part.lower() == "letters" else [part]
+    return set(out)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--captures", nargs="+", default=["data/*.json"],
@@ -332,6 +350,26 @@ def main():
                          "file in data/, so adding a sign is: drop the export in "
                          "data/ and re-run")
     ap.add_argument("--out", default="models/sasl_gesture_model.joblib")
+    ap.add_argument("--labels", default=None,
+                    help="train on only these signs -- comma-separated, or the "
+                         "shorthand 'letters' for A-Z. This is how the two runtime "
+                         "models are built; every threshold below is calibrated "
+                         "against the class set, so a letters-only model and a "
+                         "phrases-only model end up with very different bars. See "
+                         "the two-model split in ML_MODEL.md.")
+    ap.add_argument("--exclude-labels", default=None,
+                    help="train on everything EXCEPT these (same syntax as --labels)")
+    ap.add_argument("--negative-label", default="NotASign",
+                    help="clips with this label are NOT a class to learn -- they are "
+                         "real 'not a sign' recordings (fidgeting, adjusting glasses, "
+                         "half-finished attempts) used to set the reject gate and to "
+                         "report how many of them it actually rejects")
+    ap.add_argument("--min-capture-fps", type=float, default=8.0,
+                    help="warn about signs captured below this rate. The feature "
+                         "pipeline resamples onto a fixed grid, so a sparse clip is "
+                         "not rescued by interpolation -- the samples were never "
+                         "taken. Measured: decimating healthy clips to 4fps drops "
+                         "detection from 91%% to 59%%")
     ap.add_argument("--n-aug", type=int, default=12,
                     help="augmented variants per clip (training folds only)")
     ap.add_argument("--min-confidence", type=float, default=None,
@@ -421,6 +459,63 @@ def main():
 
     if not clips:
         sys.exit("Capture files contained no usable clips.")
+
+    # Real "not a sign" recordings. These are held out of the class set -- training
+    # them as a 43rd sign would teach the model that fidgeting is a thing to
+    # recognise, when what we want is for it to be rejected. They are scored
+    # against the finished gate instead, below.
+    negatives = [c for c in clips if c[0] == args.negative_label]
+    if negatives:
+        clips = [c for c in clips if c[0] != args.negative_label]
+        print(f"\n  {len(negatives)} '{args.negative_label}' clips held out as real "
+              f"negatives -- not a class, used to score the reject gate")
+
+    # Capture-rate audit. The alphabet was recorded on a browser tool whose frame
+    # rate decayed from 16.6fps on A to 2.3 on Z while every clip stayed the right
+    # ~1.9s long, so nothing looked wrong at capture time and nothing downstream
+    # errored. It cost half the alphabet. This is the check that would have caught
+    # it on the day.
+    rates = defaultdict(list)
+    for label, _take, frames in clips:
+        ts = [f.t for f in frames if f.xyz is not None]
+        if len(ts) >= 3 and ts[-1] > ts[0]:
+            rates[label].append((len(ts) - 1) / (ts[-1] - ts[0]))
+    slow = sorted((float(np.median(v)), l) for l, v in rates.items()
+                  if float(np.median(v)) < args.min_capture_fps)
+    if slow:
+        print(f"\n  CAPTURE RATE -- {len(slow)} signs recorded below "
+              f"{args.min_capture_fps:g}fps:")
+        for fps, label in slow:
+            mark = "  <-- barely sampled" if fps < 4.2 else ""
+            print(f"    {label:<18} {fps:5.1f} fps{mark}")
+        print("    Clip LENGTH is not the problem -- these are the right duration, they\n"
+              "    just hold fewer samples. Interpolation cannot put back a sample that\n"
+              "    was never taken: decimating healthy clips to 4fps drops replay\n"
+              "    detection from 91% to 59%, and starts producing wrong answers, not\n"
+              "    just misses. Re-capture these in short sessions, restarting the\n"
+              "    browser between them, and watch the frame counter.")
+
+    keep = _label_set(args.labels)
+    drop = _label_set(args.exclude_labels)
+    if keep is not None or drop is not None:
+        before = len(clips)
+        if keep is not None:
+            missing = keep - {c[0] for c in clips}
+            if missing:
+                print(f"\n  --labels named {len(missing)} signs with no clips: "
+                      + ", ".join(sorted(missing)))
+            clips = [c for c in clips if c[0] in keep]
+        if drop is not None:
+            clips = [c for c in clips if c[0] not in drop]
+        if not clips:
+            sys.exit("The label filter left no clips. Check the spelling -- labels "
+                     "are matched exactly, and they are the gestureIds Unity uses.")
+        print(f"\n  Label filter: {before} clips -> {len(clips)} clips across "
+              f"{len({c[0] for c in clips})} signs")
+        for f in per_file:
+            for l in list(per_file[f]):
+                if (keep is not None and l not in keep) or (drop is not None and l in drop):
+                    per_file[f].pop(l, None)
 
     # A class with almost no examples can't be learned and breaks fold splitting.
     counts_raw = Counter(c[0] for c in clips)
@@ -561,6 +656,31 @@ def main():
     min_energy = float(0.6 * np.percentile(energies, 5))
     print(f"Liveness floor: motion energy >= {min_energy:.2f} "
           f"(quietest real clip {energies.min():.2f})")
+
+    # Score the gate against real negatives, if any were recorded. The synthetic
+    # negatives in test_pipeline.py (a drifting hand, an erratic scribble) have
+    # stopped being fair tests at this many dynamic signs -- widening the gate
+    # embedding from 8 to 48 dimensions never separated the drift case. Real
+    # recordings are the honest measurement.
+    neg_report = None
+    if negatives:
+        rejected = reasons = 0
+        for _l, _t, frames in negatives:
+            f, info = extract_features(frames)
+            if f is None:
+                rejected += 1
+                continue
+            z = embedder.transform(f.reshape(1, -1))[0]
+            if (gate.distance(z) > gate.threshold_
+                    or info["motion_energy"] < min_energy):
+                rejected += 1
+            else:
+                reasons += 1
+        neg_report = {"n": len(negatives), "rejected": rejected}
+        pct = rejected / len(negatives)
+        print(f"Real negatives rejected: {rejected}/{len(negatives)} ({pct:.0%})"
+              + ("" if pct >= 0.9 else
+                 "  <-- the gate is the weak point; consider --novelty-percentile lower"))
 
     # Confidence bar. Rather than a magic 0.75, it is set so that the two gates
     # together accept the target share of genuine clips -- an explicit trade

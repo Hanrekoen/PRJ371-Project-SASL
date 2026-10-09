@@ -73,8 +73,19 @@ class GestureValidator:
         return self.model.labels
 
     def reset(self):
+        """Forget everything about the attempt in progress.
+
+        `_last_fire` and `_last_eval` have to be cleared too, not just the frame
+        buffer. They are compared against the incoming timestamp, so leaving them
+        set means the refractory period keeps suppressing detections after a
+        reset. Live that is invisible because time only moves forward; it shows
+        up the moment anything replays clips on its own clock -- which is how the
+        offline comparisons measure reliability.
+        """
         self._frames.clear()
         self._votes.clear()
+        self._last_fire = -1e9
+        self._last_eval = 0.0
 
     def update(self, mp_result, t: float | None = None) -> SignEvent | None:
         """Feed one frame. Pass the FIRST value from HandTracker.process().
