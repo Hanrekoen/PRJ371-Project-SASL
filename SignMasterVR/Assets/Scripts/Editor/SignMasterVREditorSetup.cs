@@ -5,7 +5,6 @@ using UnityEditor.Animations;
 using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using System.Linq;
-using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -1753,7 +1752,7 @@ namespace SignMasterVR.EditorTools
             }
 
             // Every audio file in the prompts folder, keyed by a normalised name.
-            var byName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var byName = new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
             foreach (string guid in AssetDatabase.FindAssets("t:AudioClip", new[] { PromptAudioFolder }))
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
@@ -1767,7 +1766,7 @@ namespace SignMasterVR.EditorTools
 
             int assigned = 0;
             var missing = new List<string>();
-            var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var used = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
 
             foreach (string guid in AssetDatabase.FindAssets("t:GestureData", new[] { GestureFolder }))
             {

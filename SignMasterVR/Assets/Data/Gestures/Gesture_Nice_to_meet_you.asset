@@ -16,7 +16,8 @@ MonoBehaviour:
   displayName: Nice to meet you
   tutorAnimationTrigger: Active
   referenceImage: {fileID: 0}
-  requiredConfidence: 0.60
+  requiredConfidence: 0.6
   successMessage: Excellent!
   successAudioKey: Correct
   tryAgainAudioKey: TryAgain
+  promptAudioKey: Prompt_Nice_to_meet_you

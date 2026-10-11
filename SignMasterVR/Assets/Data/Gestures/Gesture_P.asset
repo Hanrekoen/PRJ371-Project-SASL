@@ -16,7 +16,8 @@ MonoBehaviour:
   displayName: Letter P
   tutorAnimationTrigger: Active
   referenceImage: {fileID: 21300000, guid: 3a598a9a4119fe241b1fa21554fcd0fa, type: 3}
-  requiredConfidence: 0.60
+  requiredConfidence: 0.6
   successMessage: Excellent!
   successAudioKey: Correct
   tryAgainAudioKey: TryAgain
+  promptAudioKey: Prompt_P
