@@ -41,5 +41,12 @@ namespace SignMasterVR.Lessons
 
         [Tooltip("Key looked up in AudioManager on failure.")]
         public string tryAgainAudioKey = "TryAgain";
+
+        [Header("Spoken prompt")]
+        [Tooltip("Key looked up in AudioManager when this gesture is PRESENTED, e.g. \"Letter B\". " +
+                 "Reinforcement only -- displayName carries the instruction, because a learner who " +
+                 "cannot hear must lose nothing. Missing keys are skipped silently, so leaving this " +
+                 "blank is safe. Assigned by Tools > SignMasterVR > 16.")]
+        public string promptAudioKey;
     }
 }

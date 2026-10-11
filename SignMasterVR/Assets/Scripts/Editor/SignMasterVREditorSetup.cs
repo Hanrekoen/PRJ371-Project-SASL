@@ -4,6 +4,8 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.Events;
 using UnityEditor.SceneManagement;
+using System.Linq;
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -124,6 +126,7 @@ namespace SignMasterVR.EditorTools
         private const string CharacterTextureFolder = "Assets/Texture_and_materials/Character";
         private const string AlphabetImageFolder = "Assets/Texture_and_materials/Alphabet";
         private const string FeedbackAudioFolder = "Assets/Audio/Feedback";
+        private const string PromptAudioFolder = "Assets/Audio/Prompts";
 
         // Shared neon UI palette (Lesson canvas + Main Menu cosmetic pass).
         private static readonly Color NeonCyan = new Color(0.05f, 0.95f, 1f);
@@ -1716,6 +1719,113 @@ namespace SignMasterVR.EditorTools
                       "In GestureServer/, run: python export_ghost_hand.py --out ../Assets/StreamingAssets/GhostHands " +
                       "-- then let Unity re-import and press Play.") +
                 " Save the scene (Ctrl+S).");
+        }
+
+
+        /// <summary>
+        /// Step 16 — wire the spoken prompts ("Letter B", "Thank you") to every
+        /// GestureData and register them with the AudioManager.
+        ///
+        /// Clip files are matched to gestureIds by name, using the same
+        /// non-alphanumeric-to-underscore rule GhostHandPlayer uses, so
+        /// "Can you sign?" -> Can_you_sign.mp3. The match is case-insensitive
+        /// because "I Sign" is easy to save as I_sign.mp3.
+        ///
+        /// Re-runnable: re-recording a clip means dropping the new file in and
+        /// running this again.
+        /// </summary>
+        [MenuItem("Tools/SignMasterVR/16 Assign Prompt Voiceovers")]
+        public static void AssignPromptVoiceovers()
+        {
+            if (!RequireActiveSceneIsNotMainMenu()) return;
+
+            GameObject managerGO = GameObject.Find("LessonSystem");
+            if (managerGO == null)
+            {
+                Debug.LogError("[SignMasterVR] No \"LessonSystem\" GameObject in the active scene. Open ClassRoom.unity and run Step 4 first.");
+                return;
+            }
+            var audio = managerGO.GetComponent<AudioManager>();
+            if (audio == null)
+            {
+                Debug.LogError("[SignMasterVR] \"LessonSystem\" has no AudioManager component. Run Step 4 first.");
+                return;
+            }
+
+            // Every audio file in the prompts folder, keyed by a normalised name.
+            var byName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string guid in AssetDatabase.FindAssets("t:AudioClip", new[] { PromptAudioFolder }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                byName[Path.GetFileNameWithoutExtension(path)] = path;
+            }
+            if (byName.Count == 0)
+            {
+                Debug.LogError($"[SignMasterVR] No AudioClips found in {PromptAudioFolder}. Drop the recordings in and let Unity import them first.");
+                return;
+            }
+
+            int assigned = 0;
+            var missing = new List<string>();
+            var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (string guid in AssetDatabase.FindAssets("t:GestureData", new[] { GestureFolder }))
+            {
+                string gPath = AssetDatabase.GUIDToAssetPath(guid);
+                var gesture = AssetDatabase.LoadAssetAtPath<GestureData>(gPath);
+                if (gesture == null || string.IsNullOrEmpty(gesture.gestureId)) continue;
+
+                string safe = SafeClipName(gesture.gestureId);
+                if (!byName.TryGetValue(safe, out string clipPath))
+                {
+                    missing.Add($"{gesture.gestureId} (expected {safe}.mp3)");
+                    continue;
+                }
+                used.Add(safe);
+
+                var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(clipPath);
+                string key = "Prompt_" + safe;
+
+                gesture.promptAudioKey = key;
+                EditorUtility.SetDirty(gesture);
+
+                int at = audio.clips.FindIndex(e => e.key == key);
+                var entry = new AudioManager.ClipEntry { key = key, clip = clip };
+                if (at >= 0) audio.clips[at] = entry; else audio.clips.Add(entry);
+                assigned++;
+            }
+
+            var orphans = byName.Keys.Where(n => !used.Contains(n)).OrderBy(n => n).ToList();
+
+            var src = managerGO.GetComponent<AudioSource>();
+            if (src == null)
+            {
+                src = managerGO.AddComponent<AudioSource>();
+                src.playOnAwake = false;
+                EditorUtility.SetDirty(managerGO);
+            }
+            audio.source = src;
+
+            EditorUtility.SetDirty(audio);
+            AssetDatabase.SaveAssets();
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+
+            string msg = $"[SignMasterVR] Assigned {assigned} spoken prompts. SAVE THE SCENE (Ctrl+S) -- the clip list lives on LessonSystem.";
+            if (missing.Count > 0)
+                msg += $"\n  No clip for {missing.Count}: {string.Join(", ", missing)}";
+            if (orphans.Count > 0)
+                msg += $"\n  {orphans.Count} clip(s) in {PromptAudioFolder} match no gestureId and were ignored: {string.Join(", ", orphans)}";
+            Debug.Log(msg);
+        }
+
+        /// Same rule as GhostHandPlayer.SafeName, so one naming convention covers
+        /// ghost clips and voiceovers alike.
+        private static string SafeClipName(string sign)
+        {
+            var chars = sign.ToCharArray();
+            for (int i = 0; i < chars.Length; i++)
+                if (!char.IsLetterOrDigit(chars[i])) chars[i] = '_';
+            return new string(chars).Trim('_');
         }
 
         [MenuItem("Tools/SignMasterVR/RUN ALL (0-6)")]

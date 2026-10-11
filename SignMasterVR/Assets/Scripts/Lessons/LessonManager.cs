@@ -75,6 +75,9 @@ namespace SignMasterVR.Lessons
             ui.ShowGesturePrompt(gesture, _gestureIndex, currentLevel.gestures.Length);
             tutor.Demonstrate(gesture.tutorAnimationTrigger);
             ghostHand?.Play(gesture.gestureId);
+            // Spoken prompt, on presentation only -- deliberately NOT on a retry.
+            // Failing four times should not mean hearing "Letter B" four times.
+            AudioManager.Instance?.Play(gesture.promptAudioKey);
             // Learner now attempts the sign. This week: press C / TEST CORRECT
             // or X / TEST WRONG. Later: XR Hands -> ML model -> OnGestureDetected
             // fires automatically — same code path either way.
