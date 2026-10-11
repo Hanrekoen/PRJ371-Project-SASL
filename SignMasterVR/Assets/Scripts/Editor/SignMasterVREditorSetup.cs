@@ -1807,9 +1807,18 @@ namespace SignMasterVR.EditorTools
 
             EditorUtility.SetDirty(audio);
             AssetDatabase.SaveAssets();
-            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 
-            string msg = $"[SignMasterVR] Assigned {assigned} spoken prompts. SAVE THE SCENE (Ctrl+S) -- the clip list lives on LessonSystem.";
+            // Save the scene here rather than asking. The gesture assets save
+            // themselves via SaveAssets(), but the clip list lives on
+            // LessonSystem in the scene -- so a forgotten Ctrl+S leaves every
+            // gesture pointing at a key the AudioManager has never heard of.
+            // Half-applied is worse than not applied: it logs 41 misses and
+            // plays nothing.
+            var scene = SceneManager.GetActiveScene();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+
+            string msg = $"[SignMasterVR] Assigned {assigned} spoken prompts and saved {scene.name}.";
             if (missing.Count > 0)
                 msg += $"\n  No clip for {missing.Count}: {string.Join(", ", missing)}";
             if (orphans.Count > 0)

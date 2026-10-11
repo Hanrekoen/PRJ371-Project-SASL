@@ -3119,6 +3119,88 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 4afc1dde92e89ae4dac32daf9f65254c, type: 3}
   - key: LevelComplete
     clip: {fileID: 8300000, guid: e17322bc6f1d50440bac00211da892bb, type: 3}
+  - key: Prompt_A
+    clip: {fileID: 8300000, guid: 8f76fb691691ca24da0d7cb3ff402e65, type: 3}
+  - key: Prompt_B
+    clip: {fileID: 8300000, guid: da3f96c6e3323314b9a7ca515d79d203, type: 3}
+  - key: Prompt_C
+    clip: {fileID: 8300000, guid: 7bc5b4548bc70f3409f6d3a85fe69b95, type: 3}
+  - key: Prompt_Can_you_sign
+    clip: {fileID: 8300000, guid: ea6a2f292bf8f44489b69e1a5bc79616, type: 3}
+  - key: Prompt_D
+    clip: {fileID: 8300000, guid: 037e12fb0350fa141bb17f33ef85ec38, type: 3}
+  - key: Prompt_Drive
+    clip: {fileID: 8300000, guid: 96a7c0472fcad3444a33d59b4b64f3d0, type: 3}
+  - key: Prompt_E
+    clip: {fileID: 8300000, guid: c615e2c9d0277d2408bcff3a05ce61ae, type: 3}
+  - key: Prompt_F
+    clip: {fileID: 8300000, guid: f8f499c2e7790cf43bc454e526f76464, type: 3}
+  - key: Prompt_G
+    clip: {fileID: 8300000, guid: fcc8cbef015171c4b896d6537ddc3894, type: 3}
+  - key: Prompt_H
+    clip: {fileID: 8300000, guid: 675514afba1abae48a57c77b75538a60, type: 3}
+  - key: Prompt_Hello
+    clip: {fileID: 8300000, guid: 01a8054bf68d244438961225d71990b1, type: 3}
+  - key: Prompt_Help
+    clip: {fileID: 8300000, guid: e2f9ba5d1a6a3b040bfa5e337c9deeb0, type: 3}
+  - key: Prompt_Home
+    clip: {fileID: 8300000, guid: 632d7f714c15b6d4cae33083ed4a404b, type: 3}
+  - key: Prompt_How_are_you
+    clip: {fileID: 8300000, guid: 5f166bb86ea3736469fb04c4611879cd, type: 3}
+  - key: Prompt_I
+    clip: {fileID: 8300000, guid: 7e12f6e28e0903e4dacdf5c1b003a97b, type: 3}
+  - key: Prompt_I_am
+    clip: {fileID: 8300000, guid: 727197ae585a6ed42834381410d01bac, type: 3}
+  - key: Prompt_I_am_deaf
+    clip: {fileID: 8300000, guid: ad1d0875a7c01914ebdfd13418507703, type: 3}
+  - key: Prompt_I_Sign
+    clip: {fileID: 8300000, guid: 34d13ceced990854fa38d33a7c9f2208, type: 3}
+  - key: Prompt_J
+    clip: {fileID: 8300000, guid: 67a407363e457bd4c91dd196ad043518, type: 3}
+  - key: Prompt_K
+    clip: {fileID: 8300000, guid: a37ba582d9f673b41a15181d463bbdc5, type: 3}
+  - key: Prompt_L
+    clip: {fileID: 8300000, guid: ffcc4478ef2559240bd79b98a6f5dfd6, type: 3}
+  - key: Prompt_M
+    clip: {fileID: 8300000, guid: 57bf011ef08bc3f4cb4280f2e9816d59, type: 3}
+  - key: Prompt_My_pleasure
+    clip: {fileID: 8300000, guid: 54d236e439f87eb43bcb91f82de5a461, type: 3}
+  - key: Prompt_N
+    clip: {fileID: 8300000, guid: 61b60345e006bfb409deb1ceb5f19fd6, type: 3}
+  - key: Prompt_Nice_to_meet_you
+    clip: {fileID: 8300000, guid: 125bbb3d3c99ace489ffcb71198e0130, type: 3}
+  - key: Prompt_O
+    clip: {fileID: 8300000, guid: 3f74fa153beed7e48bd9ad3dcd67de7f, type: 3}
+  - key: Prompt_P
+    clip: {fileID: 8300000, guid: 2d4acb53d4411fc4698254e002355dfa, type: 3}
+  - key: Prompt_Please
+    clip: {fileID: 8300000, guid: 5661e1cc0c67d7c4d86cc9954f338033, type: 3}
+  - key: Prompt_Q
+    clip: {fileID: 8300000, guid: 5b6ad316f8f2deb418d01b02cff4c9e6, type: 3}
+  - key: Prompt_R
+    clip: {fileID: 8300000, guid: 302d43213ffed6e4f875c0de2fb8bf2f, type: 3}
+  - key: Prompt_S
+    clip: {fileID: 8300000, guid: 5bf1bc01ed1768f49a31d70848c242dd, type: 3}
+  - key: Prompt_Sorry
+    clip: {fileID: 8300000, guid: 829e39f172863194a9c185219b11fbfe, type: 3}
+  - key: Prompt_T
+    clip: {fileID: 8300000, guid: 02f66015f90baaa429e4c1544931824e, type: 3}
+  - key: Prompt_Thank_you
+    clip: {fileID: 8300000, guid: ef89ae019e55cfa438d89bb0ae5474dd, type: 3}
+  - key: Prompt_Toilet
+    clip: {fileID: 8300000, guid: 025b5d07790497e42955582690f1609e, type: 3}
+  - key: Prompt_U
+    clip: {fileID: 8300000, guid: 3c18bff858ab9b44781ed1dc8e00bfa7, type: 3}
+  - key: Prompt_V
+    clip: {fileID: 8300000, guid: 29c0e918911efdf45a84c6c935dfb982, type: 3}
+  - key: Prompt_W
+    clip: {fileID: 8300000, guid: 2ea1f8b9ec0542f44babfd1c05b5ec70, type: 3}
+  - key: Prompt_X
+    clip: {fileID: 8300000, guid: 236232726908f5648bb41e7894262485, type: 3}
+  - key: Prompt_Y
+    clip: {fileID: 8300000, guid: 04b18f1cd49b1c14a9e21ae2ad5b2d32, type: 3}
+  - key: Prompt_Z
+    clip: {fileID: 8300000, guid: 10d6fe81587509a45a075553449a83ae, type: 3}
   source: {fileID: 1683347012}
 --- !u!114 &1683347010
 MonoBehaviour:
