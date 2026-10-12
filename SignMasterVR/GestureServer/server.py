@@ -137,6 +137,23 @@ def main():
                              "e.g. a letters model and a phrases model. Measured on this "
                              "data, splitting that way cut wrong-sign fires from 7 to 1 "
                              "out of 84. Default: models/sasl_gesture_model.joblib")
+    parser.add_argument("--novelty-threshold", type=float, default=None,
+                        help="Override the trained Mahalanobis novelty gate on every loaded "
+                             "model. The trained value is a percentile of the TRAINING clips' "
+                             "own distances, which is optimistically small -- live attempts "
+                             "measured 9.0-9.4 against a trained bar of 5.0 while the "
+                             "classifier was 84%% sure of the answer. Measure with --debug "
+                             "before picking a number: sign properly, then move randomly with "
+                             "your hands down, and put the bar between the two.")
+    parser.add_argument("--min-confidence", type=float, default=None,
+                        help="Override the trained calibrated-probability bar on every loaded "
+                             "model. Rarely the problem -- check the --debug read-out first.")
+    parser.add_argument("--debug", action="store_true",
+                        help="Print every window evaluation to the console: the reason, the "
+                             "novelty distance, the detection rate and the top few class "
+                             "probabilities. This is the same information live_demo.py shows "
+                             "with its 'd' key -- without it, a rejection looks identical "
+                             "whether the model is 2%% short of the bar or on another planet.")
     parser.add_argument("--placeholder", action="store_true",
                         help="Use the old open-hand/fist PlaceholderClassifier instead of the "
                              "trained model -- handy for testing the network path on a machine "
@@ -174,14 +191,20 @@ def main():
         from sasl_classifier import (DEFAULT_MODEL, RoutedGestureClassifier,
                                      SASLGestureClassifier)
         paths = args.model or [DEFAULT_MODEL]
+        overrides = {}
+        if args.novelty_threshold is not None:
+            overrides["novelty_threshold"] = args.novelty_threshold
+        if args.min_confidence is not None:
+            overrides["min_confidence"] = args.min_confidence
         if len(paths) == 1:
-            classifier = SASLGestureClassifier(model_path=paths[0])
+            classifier = SASLGestureClassifier(model_path=paths[0], **overrides)
         else:
-            classifier = RoutedGestureClassifier(paths)
+            classifier = RoutedGestureClassifier(paths, **overrides)
 
     last_sent = None
     last_sent_time = 0.0
     last_target = None
+    last_debug = None
     RESEND_INTERVAL_SECONDS = 2.0  # safety-net resend even when the guess hasn't changed
 
     try:
@@ -229,6 +252,21 @@ def main():
             elif gesture_id == "NONE":
                 last_sent = "NONE"
 
+            if args.debug:
+                st_dbg = getattr(classifier, "status", {}) or {}
+                # Print on change, not every frame: at evaluate_every=0.05 that
+                # would be 20 lines a second and unreadable.
+                dbg = (st_dbg.get("reason"), st_dbg.get("label"))
+                if dbg != last_debug:
+                    last_debug = dbg
+                    probs = st_dbg.get("probabilities") or {}
+                    top = ", ".join(f"{k}={v:.2f}" for k, v in list(probs.items())[:5])
+                    print(f"[debug] target={target_now} "
+                          f"label={st_dbg.get('label')} conf={st_dbg.get('confidence', 0.0):.2f} "
+                          f"dist={st_dbg.get('novelty_distance')} "
+                          f"reason={st_dbg.get('reason')!r} "
+                          f"top=[{top}]")
+
             if not args.no_preview:
                 tracker.draw(frame, results)
                 target = session.target_gesture_id() if session else None
@@ -239,9 +277,20 @@ def main():
                 # The trained classifier explains its silence -- "hand is holding
                 # still", "doesn't match any known sign" -- which is far easier to
                 # debug in front of a camera than a blank "NONE".
-                reason = getattr(classifier, "status", {}).get("reason")
+                st = getattr(classifier, "status", {}) or {}
+                reason = st.get("reason")
                 if reason:
                     cv2.putText(frame, reason[:64], (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
+
+                # The top few candidates, always visible. "NONE" on its own
+                # cannot distinguish "the model has no idea" from "it is sure
+                # it is a B and you asked for an A", and those need completely
+                # different fixes. probabilities arrives already sorted
+                # descending, so the first three are the three to show.
+                probs = st.get("probabilities") or {}
+                if probs:
+                    top = "  ".join(f"{k} {v:.0%}" for k, v in list(probs.items())[:3])
+                    cv2.putText(frame, top, (10, 122), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (160, 220, 160), 1)
                 cv2.imshow("SignMasterVR Gesture Server", frame)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break

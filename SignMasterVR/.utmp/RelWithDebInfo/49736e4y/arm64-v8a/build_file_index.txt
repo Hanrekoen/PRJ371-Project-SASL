@@ -1,0 +1,2 @@
+C:\Users\hanre\OneDrive\Documents\PRJ371\PRJ371-Project-SASL\SignMasterVR\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\CMakeLists.txt
+C:\Users\hanre\OneDrive\Documents\PRJ371\PRJ371-Project-SASL\SignMasterVR\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\GameActivity\CMakeLists.txt

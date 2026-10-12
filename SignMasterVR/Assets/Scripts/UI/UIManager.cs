@@ -29,6 +29,11 @@ namespace SignMasterVR.UI
         public GameObject levelCompletePanel;
         public TMP_Text levelCompleteText;
 
+        [Tooltip("The NEXT LEVEL button on the level-complete panel. Hidden automatically on " +
+                 "the last level. Assigned by Tools > SignMasterVR > 18; leaving it null is " +
+                 "safe, the button just never hides.")]
+        public GameObject nextLevelButton;
+
         private void Awake()
         {
             HideFeedback();
@@ -67,10 +72,15 @@ namespace SignMasterVR.UI
             if (feedbackPanel != null) feedbackPanel.SetActive(false);
         }
 
-        public void ShowLevelComplete(LevelData level, float scorePercent)
+        /// <summary>
+        /// `hasNextLevel` defaults to true so older callers still compile; LessonManager passes
+        /// the real answer, which is what hides NEXT LEVEL on the final level.
+        /// </summary>
+        public void ShowLevelComplete(LevelData level, float scorePercent, bool hasNextLevel = true)
         {
             if (levelCompletePanel != null) levelCompletePanel.SetActive(true);
             if (levelCompleteText != null) levelCompleteText.text = $"LEVEL COMPLETE\n{level.levelName} completed!\nScore: {scorePercent:0}%";
+            if (nextLevelButton != null) nextLevelButton.SetActive(hasNextLevel);
         }
 
         public void HideLevelComplete()

@@ -68,6 +68,7 @@ class SASLGestureClassifier(GestureClassifier):
                  votes: int = 2,
                  evaluate_every: float = 0.05,
                  min_confidence: float | None = None,
+                 novelty_threshold: float | None = None,
                  gesture_id_map: dict | None = None,
                  verbose: bool = True):
         """
@@ -82,12 +83,38 @@ class SASLGestureClassifier(GestureClassifier):
                        headset sees it even though the underlying event is
                        momentary. server.py re-sends every 2s, so this should
                        stay a little under that.
+        novelty_threshold overrides the trained Mahalanobis gate.
+
+                       Why this override exists: the trained threshold is the
+                       97th percentile of the distances of the TRAINING clips,
+                       measured against a covariance fitted on those same
+                       clips. In-sample distances are optimistically small, so
+                       anything genuinely new -- including a perfectly good
+                       live attempt -- lands further out. Measured here: live
+                       windows of a clean letter B sat at distance 9.0-9.4,
+                       stable, while the classifier was 84% sure it was a B.
+                       The trained bar of 5.0 was not one a live attempt could
+                       ever clear.
+
+                       Calibrating this honestly needs recorded NotASign clips
+                       to measure where real non-signs land. Until those exist,
+                       set it from the live read-out: sign properly, note the
+                       distances; then move randomly with your hands down, note
+                       those; put the bar between the two populations.
+
         gesture_id_map maps model labels to Unity gestureIds where they differ,
                        e.g. {"Hello": "HELLO"}. Unmapped labels pass through.
         """
         self._validator = GestureValidator(model_path, votes_needed=votes,
                                            evaluate_every=evaluate_every,
                                            min_confidence=min_confidence)
+        if novelty_threshold is not None:
+            was = float(self._validator.model.gate.threshold_)
+            self._validator.model.gate.threshold_ = float(novelty_threshold)
+            if verbose:
+                print(f"[SASLGestureClassifier] novelty gate overridden: "
+                      f"{was:.2f} -> {novelty_threshold:.2f} (in memory only; "
+                      f"the model file is unchanged)")
         self._map = dict(gesture_id_map or {})
         self._hold_seconds = hold_seconds
         self._held = None          # (gesture_id, confidence, expires_at)

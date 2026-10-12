@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using SignMasterVR.Tutor;
 using SignMasterVR.UI;
 using SignMasterVR.ML;
@@ -34,6 +35,12 @@ namespace SignMasterVR.Lessons
 
         [Header("Runtime state (read-only)")]
         public LevelData currentLevel;
+
+        [Header("Navigation")]
+        [Tooltip("Scene the Main Menu button loads. Must also be in File > Build Profiles > " +
+                 "Scenes In Build, or the button does nothing in a build while working fine in " +
+                 "the Editor.")]
+        public string mainMenuSceneName = "MainMenu";
         private int _gestureIndex;
         private int _correctCount;
         private GestureData CurrentGesture => currentLevel.gestures[_gestureIndex];
@@ -81,6 +88,77 @@ namespace SignMasterVR.Lessons
             // Learner now attempts the sign. This week: press C / TEST CORRECT
             // or X / TEST WRONG. Later: XR Hands -> ML model -> OnGestureDetected
             // fires automatically — same code path either way.
+        }
+
+        /// <summary>
+        /// Move past the current sign without passing it. Wired to the Skip button by
+        /// Tools > SignMasterVR > 18.
+        ///
+        /// This matters more for a sign-language tutor than for most lessons: a learner can be
+        /// physically unable to form a particular handshape, and a recognizer that will not
+        /// accept them has no way to tell the difference between "cannot" and "will not". Being
+        /// trapped on letter G with no way forward is the worst possible experience, and it is
+        /// also the most likely thing to happen in front of an examiner.
+        ///
+        /// A skip is NOT a pass: _correctCount is deliberately left alone, so the end-of-level
+        /// score tells the truth, and ProgressManager is not told the sign was completed.
+        /// </summary>
+        public void SkipCurrentGesture()
+        {
+            if (currentLevel == null || currentLevel.gestures.Length == 0) return;
+
+            // A feedback coroutine already in flight would advance the index again when it
+            // finishes, so one press of Skip would jump two signs. Stopping it first is the
+            // whole reason this is not simply "_gestureIndex++".
+            StopAllCoroutines();
+            ui.HideFeedback();
+
+            Debug.Log($"[LessonManager] Skipped \"{CurrentGesture.gestureId}\" -- not counted as correct.");
+
+            _gestureIndex++;
+            if (_gestureIndex >= currentLevel.gestures.Length) CompleteLevel();
+            else LoadCurrentGesture();
+        }
+
+        /// <summary>The level that follows this one, or null when this is the last.</summary>
+        public LevelData NextLevel =>
+            levelManager != null && currentLevel != null ? levelManager.GetNextLevel(currentLevel) : null;
+
+        /// <summary>
+        /// Leave the lesson and go back to the main menu. Wired to the Menu buttons by
+        /// Tools > SignMasterVR > 18.
+        ///
+        /// Stops any running coroutine first: a feedback coroutine that survives the scene load
+        /// would come back to touch a UIManager that no longer exists.
+        /// </summary>
+        public void GoToMainMenu()
+        {
+            StopAllCoroutines();
+            SceneManager.LoadScene(mainMenuSceneName);
+        }
+
+        /// <summary>
+        /// Move straight on to the next level from the level-complete panel.
+        ///
+        /// Before this existed, finishing a level was a dead end: CompleteLevel showed the
+        /// panel, logged "Level 2 is now unlocked" to a console nobody in a headset can read,
+        /// and left the learner with no way to reach it or to get out. Falls back to the main
+        /// menu when there is no next level, so the last level is not a dead end either.
+        /// </summary>
+        public void StartNextLevel()
+        {
+            var next = NextLevel;
+            if (next == null)
+            {
+                Debug.Log("[LessonManager] No level after this one -- returning to the main menu.");
+                GoToMainMenu();
+                return;
+            }
+
+            StopAllCoroutines();
+            ui.HideLevelComplete();
+            ui.HideFeedback();
+            StartLevel(next);
         }
 
         private void HandleGestureResult(GestureResult result)
@@ -144,12 +222,14 @@ namespace SignMasterVR.Lessons
         {
             float scorePercent = 100f * _correctCount / currentLevel.gestures.Length;
             tutor.PlayComplete();
-            ui.ShowLevelComplete(currentLevel, scorePercent);
+            // Pass whether a next level exists so the panel can hide its NEXT LEVEL button on
+            // the last one rather than offering a button that silently does nothing.
+            ui.ShowLevelComplete(currentLevel, scorePercent, NextLevel != null);
             ProgressManager.Instance?.MarkLevelComplete(currentLevel, scorePercent);
             AudioManager.Instance?.Play("LevelComplete");
 
-            var next = levelManager != null ? levelManager.GetNextLevel(currentLevel) : null;
-            if (next != null) Debug.Log($"[LessonManager] {next.levelName} is now unlocked.");
+            var next = NextLevel;
+            if (next != null) Debug.Log($"[LessonManager] {next.levelName} is now unlocked -- the NEXT LEVEL button on the panel starts it.");
         }
     }
 }

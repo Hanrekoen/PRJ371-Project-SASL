@@ -14,6 +14,9 @@ using SignMasterVR.Tutor;
 using SignMasterVR.UI;
 using SignMasterVR.Core;
 using SignMasterVR.ML;
+using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.UI;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 
 namespace SignMasterVR.EditorTools
 {
@@ -105,6 +108,30 @@ namespace SignMasterVR.EditorTools
     ///     in GestureServer/ first). No clips yet = the ghost silently stays
     ///     hidden, nothing breaks. Not part of RUN ALL since it depends on
     ///     Step 4 already having run.
+    ///   Tools > SignMasterVR > 16 Assign Prompt Voiceovers
+    ///     -- run this once the 41 prompt mp3s are in Assets/Audio/Prompts/.
+    ///     Fills in GestureData.promptAudioKey on every gesture asset AND
+    ///     registers the clips on the AudioManager living on "LessonSystem"
+    ///     in ClassRoom, then saves the scene itself -- the scene half is
+    ///     easy to lose if you forget Ctrl+S, which is exactly what happened
+    ///     the first time (41 asset keys, 0 scene entries).
+    ///   Tools > SignMasterVR > 17 Make Scenes VR-Ready
+    ///     -- RUN THIS BEFORE EVERY BUILD YOU PUT ON A HEADSET. It fixes the
+    ///     three things that made the app render pure black on a Quest while
+    ///     looking perfect in the Editor: a Main Menu with no XR Origin (so
+    ///     no head pose), a ScreenSpaceOverlay canvas (nothing in the world
+    ///     to draw on), and StandaloneInputModule on the EventSystem of both
+    ///     scenes (throws InvalidOperationException every frame, because this
+    ///     project uses the Input System package only). It also attaches a
+    ///     WorldPanelPlacer to the menu canvas so the panel appears in front
+    ///     of wherever the learner is actually looking -- a fixed world
+    ///     position assumes a tracking origin mode and a startup facing
+    ///     direction we do not control, and the first attempt put the menu on
+    ///     the floor at the learner's feet. It adds an AudioListener only if
+    ///     the scene genuinely has none; the XR rig prefab already brings one,
+    ///     so normally this is a no-op.
+    ///     Idempotent -- safe to run as often as you like. Step 6 now calls
+    ///     it inline, so a freshly built menu is VR-correct from the start.
     /// ...or just run "RUN ALL (0-6)" once everything below has compiled cleanly.
     ///
     /// Safe to re-run any step — each one looks for what it already built
@@ -131,6 +158,8 @@ namespace SignMasterVR.EditorTools
         private static readonly Color NeonCyan = new Color(0.05f, 0.95f, 1f);
         private static readonly Color NeonPink = new Color(1f, 0.1f, 0.65f);
         private static readonly Color MenuNearBlack = new Color(0.02f, 0.02f, 0.04f);
+        // Warm, but not green: Skip must never read as "you got it right".
+        private static readonly Color SkipAmber = new Color(1f, 0.78f, 0.25f);
         private static readonly Color MenuPanelDark = new Color(0.06f, 0.08f, 0.1f, 0.95f);
 
         // ------------------------------------------------------------------
@@ -491,7 +520,12 @@ namespace SignMasterVR.EditorTools
             {
                 GameObject es = new GameObject("EventSystem");
                 es.AddComponent<UnityEngine.EventSystems.EventSystem>();
-                es.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+                // XRUIInputModule, NOT StandaloneInputModule. This is where ClassRoom's broken
+                // EventSystem came from: the legacy module reads UnityEngine.Input, which this
+                // project disables (Active Input Handling = Input System Package), so it threw
+                // InvalidOperationException on every frame of the build -- thousands of
+                // exceptions a second, and a UI that could never be clicked.
+                es.AddComponent<XRUIInputModule>();
             }
 
             GameObject managerGO = GameObject.Find("LessonSystem");
@@ -532,13 +566,6 @@ namespace SignMasterVR.EditorTools
         // "Complete XR Origin Set Up Hands Variant" prefab, confirmed by
         // reading your project).
         // ------------------------------------------------------------------
-        private static readonly string[] LocomotionObjectNames =
-        {
-            "continuousmoveprovider", "continuousturnprovider", "snapturnprovider",
-            "teleportationprovider", "climbprovider", "grabmoveprovider",
-            "twohandedgrabmoveprovider", "gravityprovider", "charactercontrollerdriver",
-        };
-
         [MenuItem("Tools/SignMasterVR/5 Improve Player Rig (stationary, positioned)")]
         public static void ImprovePlayerRig()
         {
@@ -558,27 +585,12 @@ namespace SignMasterVR.EditorTools
             player.transform.position = standMark;
             player.transform.rotation = Quaternion.identity;
 
-            // Belt-and-braces: explicitly disable any locomotion-provider objects by their
-            // standard XR Interaction Toolkit names, in case they're still active. This doesn't
-            // guess at component types (which vary by package version) — it matches on the
-            // well-known default GameObject names, normalized (spaces/hyphens/case ignored), so
-            // it's very unlikely to catch anything that isn't actually a locomotion provider.
-            int disabledCount = 0;
-            foreach (Transform t in player.GetComponentsInChildren<Transform>(true))
-            {
-                if (!t.gameObject.activeSelf) continue;
-                string normalized = Normalize(t.name);
-                foreach (var keyword in LocomotionObjectNames)
-                {
-                    if (normalized == keyword)
-                    {
-                        t.gameObject.SetActive(false);
-                        disabledCount++;
-                        Debug.Log($"[SignMasterVR] Disabled locomotion object \"{t.name}\" under Player.");
-                        break;
-                    }
-                }
-            }
+            // Was: a list of guessed GameObject names ("continuousmoveprovider" and friends),
+            // normalized and matched. It never disabled anything, because the rig's objects are
+            // actually called "Move", "Turn", "Gravity", "Teleportation", "Climb", "Grab Move"
+            // and "Jump". A silent no-op that logged "Disabled 0 locomotion object(s)" and read
+            // like success. Matching on the component type cannot drift like that.
+            int disabledCount = DisableLocomotion(player.transform, SceneManager.GetActiveScene());
 
             // Make sure the Lesson UI actually points at this rig's real camera rather than
             // relying on the "MainCamera" tag, which some XR template versions don't set.
@@ -592,17 +604,9 @@ namespace SignMasterVR.EditorTools
 
             EditorUtility.SetDirty(player);
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-            Debug.Log($"[SignMasterVR] Player moved to the standing mark and rotated to face the tutor. Disabled {disabledCount} locomotion object(s) by name" +
+            Debug.Log($"[SignMasterVR] Player moved to the standing mark and rotated to face the tutor. Disabled {disabledCount} locomotion provider(s) by component type" +
                 (cam != null ? $"; Lesson UI now points at \"{cam.name}\"." : ". No camera found under Player — check the rig manually.") +
-                " Double-check the Player hierarchy in the Inspector — name-matching is safe but not infallible.");
-        }
-
-        private static string Normalize(string name)
-        {
-            var sb = new System.Text.StringBuilder();
-            foreach (char c in name)
-                if (char.IsLetterOrDigit(c)) sb.Append(char.ToLowerInvariant(c));
-            return sb.ToString();
+                " A count of 0 now genuinely means there was nothing left to disable, rather than that the search missed.");
         }
 
         // ------------------------------------------------------------------
@@ -666,7 +670,10 @@ namespace SignMasterVR.EditorTools
                 {
                     GameObject es = new GameObject("EventSystem");
                     es.AddComponent<UnityEngine.EventSystems.EventSystem>();
-                    es.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+                    // Deliberately NOT StandaloneInputModule. This project has Active Input
+                    // Handling set to "Input System Package (New)", so the legacy module throws
+                    // InvalidOperationException on every frame it ticks. UpgradeSceneForVr below
+                    // attaches XRUIInputModule instead.
                     SceneManager.MoveGameObjectToScene(es, menuScene);
                 }
 
@@ -684,7 +691,12 @@ namespace SignMasterVR.EditorTools
                 var canvas = canvasGO.GetComponent<Canvas>();
                 if (canvas == null)
                     throw new System.InvalidOperationException("MenuCanvas exists but has no Canvas component even after atomic creation — something outside this script is removing it. Check for other Editor tools/scripts touching \"MenuCanvas\".");
-                canvas.renderMode = RenderMode.ScreenSpaceOverlay; // simple 2D menu — no world-space wiring needed for a PC/Editor demo
+                // Built screen-space because CreateText/CreateButton below lay everything out
+                // against a 1280x720 reference resolution and that is simplest to reason about.
+                // UpgradeSceneForVr converts it to World Space at the end of this method, which
+                // keeps that layout pixel-for-pixel. Do NOT leave it screen-space: a
+                // ScreenSpaceOverlay canvas renders as pure black in a headset.
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                 var scaler = canvasGO.GetComponent<CanvasScaler>();
                 scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
                 scaler.referenceResolution = new Vector2(1280, 720);
@@ -735,6 +747,10 @@ namespace SignMasterVR.EditorTools
                 WireButton(canvasRect, "ResetProgressButton", menuController.ResetProgress);
                 WireButton(listRect, "Level1Button", menuController.StartFirstLevel);
                 WireButton(listRect, "BackButton", menuController.HideLevelList);
+
+                // Make it a VR scene before it ever hits disk. Without this the menu is a flat
+                // 2D panel that looks right in the Editor and is invisible on a Quest.
+                UpgradeSceneForVr(menuScene, isMenu: true);
 
                 Debug.Log("[SignMasterVR] Main Menu hierarchy built, saving...");
             }
@@ -1834,6 +1850,795 @@ namespace SignMasterVR.EditorTools
             for (int i = 0; i < chars.Length; i++)
                 if (!char.IsLetterOrDigit(chars[i])) chars[i] = '_';
             return new string(chars).Trim('_');
+        }
+
+        // ------------------------------------------------------------------
+        // STEP 17 -- make the shipped scenes survive an actual headset.
+        //
+        // This exists because of a bug that hid in plain sight: the Main Menu
+        // was built as a flat 2D PC menu, and nobody went back for it once
+        // the project became a VR build. In the Editor it looked perfect. On
+        // a Quest it was BLACK -- a ScreenSpaceOverlay canvas has no surface
+        // in the world to draw on, and a bare Camera with no XR Origin above
+        // it never receives a head pose. MainMenu is scene 0, so "black on
+        // launch" was the whole app.
+        //
+        // The second half is the exception that filled the device log:
+        //   InvalidOperationException: You are trying to read Input using the
+        //   UnityEngine.Input class, but you have switched active Input
+        //   handling to Input System package in Player Settings.
+        // thrown by StandaloneInputModule, once per frame. Both scenes
+        // shipped with the legacy module while ProjectSettings has
+        // activeInputHandler: 1 (Input System only). Nothing could ever be
+        // clicked, and the exception spam alone is a frame-rate disaster.
+        //
+        // It does NOT touch the XR rig's own canvases (hand menus, tooltips,
+        // affordance callouts). An earlier version did, and added raycasters
+        // to nine of them; this version removes those again on sight.
+        //
+        // Idempotent and additive: run it as often as you like. The only
+        // thing it ever deletes is the orphaned non-XR camera it replaces and
+        // the broken input module it replaces.
+        // ------------------------------------------------------------------
+        private const string VrRigPrefabPath =
+            "Assets/VRTemplateAssets/Prefabs/Setup/Complete XR Origin Set Up Hands Variant.prefab";
+
+        // Step 6 lays every button out against a 1280x720 reference resolution, so giving the
+        // converted rect exactly that size preserves the design pixel-for-pixel. 0.001 world
+        // units per pixel then makes it a 1.28m x 0.72m panel -- roughly a 58" TV, read
+        // comfortably at 1.6m, which is where we place it.
+        private static readonly Vector2 MenuCanvasPixelSize = new Vector2(1280f, 720f);
+        // 0.00125 m/px puts the menu at 1.60m x 0.90m. It was 0.001 (1.28m x 0.72m), which read
+        // as small and far away at 1.6m. Change this one number to resize the whole menu --
+        // every child is anchored, so nothing needs re-laying-out.
+        private const float MenuCanvasMetresPerPixel = 0.00125f;
+
+        // Only a resting pose so the panel is sensible in the Scene view and in a non-XR Play
+        // mode. At runtime WorldPanelPlacer overrides it from the live head pose, because a fixed
+        // world position assumes a tracking origin mode and a startup facing direction that we do
+        // not control. Rotation is identity: a world-space Canvas is readable from its -Z side,
+        // so a panel ahead of a rig at the origin needs no rotation. ClassRoom's LessonCanvas is
+        // placed the same way, which is the empirical proof.
+        private static readonly Vector3 MenuCanvasFallbackPlacement = new Vector3(0f, 1.35f, 1.6f);
+
+        [MenuItem("Tools/SignMasterVR/17 Make Scenes VR-Ready")]
+        public static void MakeScenesVrReady()
+        {
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            {
+                Debug.Log("[SignMasterVR] Step 17 cancelled -- nothing was changed.");
+                return;
+            }
+
+            string returnTo = SceneManager.GetActiveScene().path;
+            var targets = new[]
+            {
+                new KeyValuePair<string, bool>("Assets/Scenes/MainMenu.unity", true),
+                new KeyValuePair<string, bool>("Assets/Room/Scenes/ClassRoom.unity", false),
+            };
+
+            foreach (var target in targets)
+            {
+                string path = target.Key;
+                if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) == null)
+                {
+                    Debug.LogWarning($"[SignMasterVR] {path} not found -- skipped.");
+                    continue;
+                }
+
+                // Clearing the selection first, for the same reason Step 6 does it: a stale
+                // Inspector selection can be redrawn mid-script while a component is briefly
+                // absent, and throw a MissingComponentException that looks like our bug.
+                Selection.activeObject = null;
+
+                Scene scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+                int changes = UpgradeSceneForVr(scene, target.Value);
+                if (changes > 0)
+                {
+                    EditorSceneManager.MarkSceneDirty(scene);
+                    EditorSceneManager.SaveScene(scene);
+                    Debug.Log($"[SignMasterVR] {System.IO.Path.GetFileName(path)}: {changes} change(s) applied and SAVED.");
+                }
+                else
+                {
+                    Debug.Log($"[SignMasterVR] {System.IO.Path.GetFileName(path)}: already VR-ready, nothing to change.");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(returnTo) && AssetDatabase.LoadAssetAtPath<SceneAsset>(returnTo) != null)
+                EditorSceneManager.OpenScene(returnTo, OpenSceneMode.Single);
+
+            Debug.Log("[SignMasterVR] Step 17 finished. Build and Run: the menu should now be a panel floating in front of you, and your hands/controllers should get a ray you can point at START LESSON.");
+        }
+
+        /// <summary>
+        /// Makes one already-open scene work in a headset. Returns the number of changes made so
+        /// the caller can skip a pointless re-save.
+        ///
+        /// Scene-scoped on purpose: it walks scene.GetRootGameObjects() rather than calling
+        /// FindObjectsByType, so running it against an additively-loaded scene (which is exactly
+        /// how Step 6 builds MainMenu) can never reach into whatever else you had open.
+        /// </summary>
+        private static int UpgradeSceneForVr(Scene scene, bool isMenu)
+        {
+            int changes = 0;
+
+            // --- 1. An XR Origin, or the camera never learns where your head is. -------------
+            XROrigin origin = FirstInScene<XROrigin>(scene);
+            if (origin == null)
+            {
+                var rigAsset = AssetDatabase.LoadAssetAtPath<GameObject>(VrRigPrefabPath);
+                if (rigAsset == null)
+                {
+                    Debug.LogError($"[SignMasterVR] Cannot find the VR rig prefab at {VrRigPrefabPath}. It ships with the Unity VR template and ClassRoom already uses it, so if it is missing something has deleted it. Skipping \"{scene.name}\" rather than guessing.");
+                    return changes;
+                }
+
+                var rig = (GameObject)PrefabUtility.InstantiatePrefab(rigAsset);
+                if (rig.scene != scene) SceneManager.MoveGameObjectToScene(rig, scene);
+                rig.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+                origin = rig.GetComponentInChildren<XROrigin>(true);
+                changes++;
+                Debug.Log($"[SignMasterVR] {scene.name}: added the XR rig \"{rig.name}\" -- this scene had no XR Origin, so its camera was never head-tracked.");
+
+                // The flat Camera is now a second, untracked camera competing with the rig's.
+                // Two enabled cameras at the same depth render in an undefined order, which on
+                // device looks like flicker or a frozen view. Only ever removes a root object
+                // literally named "Main Camera" that is not part of an XR rig.
+                foreach (var root in scene.GetRootGameObjects())
+                {
+                    if (root == rig || root.name != "Main Camera") continue;
+                    if (root.GetComponentInChildren<XROrigin>(true) != null) continue;
+                    Debug.Log($"[SignMasterVR] {scene.name}: removed the old non-XR \"Main Camera\" -- the rig brings its own tracked one.");
+                    Object.DestroyImmediate(root);
+                    changes++;
+                }
+            }
+
+            Camera xrCamera = origin != null ? origin.Camera : null;
+            if (xrCamera == null && origin != null) xrCamera = origin.GetComponentInChildren<Camera>(true);
+            if (xrCamera == null)
+                Debug.LogWarning($"[SignMasterVR] {scene.name}: found an XR Origin but no Camera under it. Canvas and audio wiring below will be skipped -- inspect that rig by hand.");
+
+            // --- 2. An AudioListener, or every voiceover plays into the void. ----------------
+            if (xrCamera != null && FirstInScene<AudioListener>(scene) == null)
+            {
+                xrCamera.gameObject.AddComponent<AudioListener>();
+                changes++;
+                Debug.Log($"[SignMasterVR] {scene.name}: added an AudioListener to \"{xrCamera.name}\". Without one AudioManager plays all 41 prompt clips and nobody hears a thing.");
+            }
+
+            // --- 3. The input module. ---------------------------------------------------------
+            var eventSystem = FirstInScene<UnityEngine.EventSystems.EventSystem>(scene);
+            if (eventSystem == null)
+            {
+                var esGO = new GameObject("EventSystem");
+                SceneManager.MoveGameObjectToScene(esGO, scene);
+                eventSystem = esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                changes++;
+                Debug.Log($"[SignMasterVR] {scene.name}: created an EventSystem.");
+            }
+
+            var legacyModule = eventSystem.GetComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+            if (legacyModule != null)
+            {
+                Object.DestroyImmediate(legacyModule);
+                changes++;
+                Debug.Log($"[SignMasterVR] {scene.name}: removed StandaloneInputModule. It reads the legacy UnityEngine.Input API, which this project disables, so it threw InvalidOperationException on every frame.");
+            }
+
+            if (eventSystem.GetComponent<XRUIInputModule>() == null)
+            {
+                eventSystem.gameObject.AddComponent<XRUIInputModule>();
+                changes++;
+                Debug.Log($"[SignMasterVR] {scene.name}: added XRUIInputModule, which is what lets an XR ray drive the UI.");
+            }
+
+            // --- 4. Locomotion, and something to stand on. ---------------------------------
+            // The rig ships with a CharacterController and a full locomotion stack: Move, Turn,
+            // Teleportation, Climb, Grab Move, Jump and Gravity. MainMenu has no colliders at
+            // all, so Gravity had the learner falling through an empty world forever -- which
+            // from inside the headset looks exactly like the menu flying upwards to infinity.
+            //
+            // A signing tutor has nowhere to walk to anyway: the learner stands still and signs.
+            // So the providers come off in both scenes, and the menu scene gets an invisible
+            // floor as a backstop in case one is ever switched back on.
+            if (origin != null) changes += DisableLocomotion(origin.transform.root, scene);
+            if (isMenu) changes += EnsureMenuFloor(scene);
+
+            // --- 4. Canvases. --------------------------------------------------------------
+            // Only OUR canvases. The XR rig prefab carries its own canvases (hand menus,
+            // tooltips, affordance callouts) and the first version of this step walked straight
+            // into all nine of them, adding raycasters they never asked for. They are the rig
+            // vendor's business, not ours.
+            Transform rigRoot = origin != null ? origin.transform.root : null;
+
+            foreach (var canvas in AllInScene<Canvas>(scene))
+            {
+                if (rigRoot != null && canvas.transform.IsChildOf(rigRoot))
+                {
+                    // Clean up after that earlier mistake. IsAddedComponentOverride is the
+                    // discriminator: the rig prefab itself ships none of these, so any one
+                    // sitting on a rig child as an instance override was added by us.
+                    var strayRaycaster = canvas.GetComponent<TrackedDeviceGraphicRaycaster>();
+                    if (strayRaycaster != null && PrefabUtility.IsAddedComponentOverride(strayRaycaster))
+                    {
+                        Debug.Log($"[SignMasterVR] {scene.name}: removed a TrackedDeviceGraphicRaycaster an earlier run of this step wrongly added to the rig's \"{canvas.name}\".");
+                        Object.DestroyImmediate(strayRaycaster);
+                        changes++;
+                    }
+                    continue;
+                }
+
+                bool isMenuCanvas = isMenu && canvas.name == "MenuCanvas";
+
+                if (canvas.renderMode != RenderMode.WorldSpace)
+                {
+                    canvas.renderMode = RenderMode.WorldSpace;
+                    changes++;
+                    Debug.Log($"[SignMasterVR] {scene.name}: \"{canvas.name}\" converted from ScreenSpaceOverlay to World Space. A screen-space canvas has no surface in the world, which is why the headset showed black.");
+
+                    // While the canvas was ScreenSpaceOverlay it DROVE this rect -- Unity owned
+                    // its size and position and overwrote them every frame. Changing renderMode
+                    // hands control back, but not until the canvas next updates, so writing the
+                    // rect in the same breath gets silently clobbered. ForceUpdateCanvases makes
+                    // the handover happen now.
+                    Canvas.ForceUpdateCanvases();
+                }
+
+                if (isMenuCanvas)
+                {
+                    // Deliberately OUTSIDE the conversion branch above. The first version only
+                    // normalised the rect when it converted the canvas, so a canvas converted by
+                    // an earlier run kept its stale screen-space values forever -- localPosition
+                    // (0, 0, 1.6) sitting on the floor while anchoredPosition still held
+                    // (455, 252.5), which is half of a 910x505 Game view. Re-running the step
+                    // did nothing because the render mode was already right. Normalise every
+                    // time: it is cheap, and it means one more run always fixes it.
+                    var rect = canvas.GetComponent<RectTransform>();
+                    bool rectWasWrong =
+                        rect.sizeDelta != MenuCanvasPixelSize ||
+                        rect.anchoredPosition3D != MenuCanvasFallbackPlacement ||
+                        rect.localScale != Vector3.one * MenuCanvasMetresPerPixel;
+
+                    rect.anchorMin = new Vector2(0.5f, 0.5f);
+                    rect.anchorMax = new Vector2(0.5f, 0.5f);
+                    rect.pivot = new Vector2(0.5f, 0.5f);
+                    rect.sizeDelta = MenuCanvasPixelSize;
+                    rect.localScale = Vector3.one * MenuCanvasMetresPerPixel;
+                    rect.localRotation = Quaternion.identity;
+
+                    // anchoredPosition3D, not position: for a root RectTransform the two mean the
+                    // same thing, but writing the RectTransform field keeps the serialized
+                    // anchoredPosition and localPosition agreeing with each other. Writing only
+                    // position left them contradicting, and the scene reloaded with the panel on
+                    // the floor.
+                    rect.anchoredPosition3D = MenuCanvasFallbackPlacement;
+
+                    // ScaleWithScreenSize is meaningless in world space -- there is no screen.
+                    var scaler = canvas.GetComponent<CanvasScaler>();
+                    if (scaler != null) scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+
+                    if (rectWasWrong)
+                    {
+                        changes++;
+                        Debug.Log($"[SignMasterVR] {scene.name}: \"{canvas.name}\" rect normalised -- {MenuCanvasPixelSize.x}x{MenuCanvasPixelSize.y}px at {MenuCanvasMetresPerPixel}m/px, a {MenuCanvasPixelSize.x * MenuCanvasMetresPerPixel:0.00}m x {MenuCanvasPixelSize.y * MenuCanvasMetresPerPixel:0.00}m panel, resting at {MenuCanvasFallbackPlacement}. WorldPanelPlacer overrides the position at runtime.");
+                    }
+
+                    changes += EnsureMenuBackPanel(rect, scene);
+                }
+
+                if (xrCamera != null && canvas.worldCamera != xrCamera)
+                {
+                    canvas.worldCamera = xrCamera;
+                    changes++;
+                }
+
+                // A fixed world position is a guess about the tracking origin mode AND about
+                // which way the learner happens to be facing at startup. Let the MENU panel
+                // place itself off the live head pose instead -- see WorldPanelPlacer for why.
+                //
+                // Only the menu. An earlier version added this to every canvas, which tore
+                // LessonCanvas off the classroom's board and left it floating in front of the
+                // learner's face. The lesson UI belongs ON the board: it is diegetic, it gives
+                // the learner something to turn towards, and it does not follow them around.
+                var placer = canvas.GetComponent<WorldPanelPlacer>();
+                if (isMenuCanvas && placer == null)
+                {
+                    canvas.gameObject.AddComponent<WorldPanelPlacer>();
+                    changes++;
+                    Debug.Log($"[SignMasterVR] {scene.name}: \"{canvas.name}\" got a WorldPanelPlacer, so it appears in front of the learner wherever they are looking when the scene loads.");
+                }
+                else if (!isMenuCanvas && placer != null)
+                {
+                    Object.DestroyImmediate(placer);
+                    changes++;
+                    Debug.Log($"[SignMasterVR] {scene.name}: removed the WorldPanelPlacer an earlier run wrongly put on \"{canvas.name}\" -- that is what made the lesson UI float in front of you instead of staying on the board.");
+                }
+
+                if (!isMenu && canvas.name == "LessonCanvas")
+                    changes += MountLessonCanvasOnBoard(canvas, scene);
+
+                // GraphicRaycaster only understands a mouse position. TrackedDeviceGraphicRaycaster
+                // is the one an XR interactor's ray can hit. Add before removing, so the canvas is
+                // never left with no raycaster at all.
+                if (canvas.GetComponent<TrackedDeviceGraphicRaycaster>() == null)
+                {
+                    canvas.gameObject.AddComponent<TrackedDeviceGraphicRaycaster>();
+                    changes++;
+                    Debug.Log($"[SignMasterVR] {scene.name}: \"{canvas.name}\" got a TrackedDeviceGraphicRaycaster so an XR ray can hit its buttons.");
+                }
+                var flatRaycaster = canvas.GetComponent<GraphicRaycaster>();
+                if (flatRaycaster != null)
+                {
+                    Object.DestroyImmediate(flatRaycaster);
+                    changes++;
+                }
+            }
+            return changes;
+        }
+
+        /// <summary>
+        /// Sits the lesson UI flat on the classroom's LearningBoard.
+        ///
+        /// Reads the board's own transform rather than hard-coding coordinates, so moving the
+        /// board in the scene moves the UI with it. Deliberately does NOT parent the canvas to
+        /// the board: the board is a cube scaled (3.2, 2, 0.05), and a child of a
+        /// non-uniformly-scaled transform is sheared. Matching the world transform gets the
+        /// same result with none of the distortion.
+        ///
+        /// Rotation is identity for the same reason as everywhere else in this file: a
+        /// world-space Canvas reads from its -Z side, and the learner stands at z = -2 looking
+        /// towards +Z.
+        /// </summary>
+        private static int MountLessonCanvasOnBoard(Canvas canvas, Scene scene)
+        {
+            GameObject board = null;
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                var hit = root.transform.Find("LearningBoard") ?? FindDeep(root.transform, "LearningBoard");
+                if (hit != null) { board = hit.gameObject; break; }
+            }
+            if (board == null)
+            {
+                Debug.LogWarning($"[SignMasterVR] {scene.name}: no \"LearningBoard\" found, so the lesson UI was left where it is. Run Step 0 to build the classroom, or position LessonCanvas by hand.");
+                return 0;
+            }
+
+            var rect = canvas.GetComponent<RectTransform>();
+            Vector3 boardScale = board.transform.lossyScale;
+
+            // Inset a little so the UI reads as printed on the board rather than overhanging it,
+            // and sit just in front of the face so there is no z-fighting with the board itself.
+            const float Inset = 0.9f;
+            float targetWidth = boardScale.x * Inset;
+            float metresPerPixel = targetWidth / Mathf.Max(1f, rect.sizeDelta.x);
+            float halfDepth = boardScale.z * 0.5f;
+
+            Vector3 target = board.transform.position - new Vector3(0f, 0f, halfDepth + 0.02f);
+            Vector3 targetScale = Vector3.one * metresPerPixel;
+
+            bool changed = (rect.position - target).sqrMagnitude > 1e-6f
+                           || (rect.localScale - targetScale).sqrMagnitude > 1e-12f
+                           || rect.rotation != Quaternion.identity;
+            if (!changed) return 0;
+
+            rect.localScale = targetScale;
+            rect.SetPositionAndRotation(target, Quaternion.identity);
+
+            Debug.Log($"[SignMasterVR] {scene.name}: mounted \"{canvas.name}\" on LearningBoard -- {targetWidth:0.00}m wide at {target}, read from the learner's mark at z = -2.");
+            return 1;
+        }
+
+        /// <summary>Depth-first search for a descendant by name. Transform.Find is one level only.</summary>
+        private static Transform FindDeep(Transform parent, string name)
+        {
+            foreach (Transform child in parent)
+            {
+                if (child.name == name) return child;
+                var hit = FindDeep(child, name);
+                if (hit != null) return hit;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Switches off every locomotion provider under a rig -- Move, Turn, Teleportation,
+        /// Climb, Grab Move, Jump and Gravity, since GravityProvider derives from
+        /// LocomotionProvider too. Returns how many it disabled.
+        ///
+        /// Matches on the component type rather than on GameObject names. The previous
+        /// name-matching version looked for "continuousmoveprovider" and friends, which are not
+        /// what the objects are called, so it quietly disabled nothing for months while logging
+        /// a cheerful success message. A type is checked by the compiler; a guessed name is not.
+        ///
+        /// Disables the component rather than deactivating its GameObject: those objects also
+        /// carry the input action references, and switching the whole object off is a blunter
+        /// instrument than this needs to be.
+        /// </summary>
+        private static int DisableLocomotion(Transform rigRoot, Scene scene)
+        {
+            if (rigRoot == null) return 0;
+
+            int disabled = 0;
+            foreach (var provider in rigRoot.GetComponentsInChildren<LocomotionProvider>(true))
+            {
+                if (!provider.enabled) continue;
+                provider.enabled = false;
+                disabled++;
+                Debug.Log($"[SignMasterVR] {scene.name}: disabled {provider.GetType().Name} on \"{provider.gameObject.name}\" -- the learner stands still and signs; nothing here should move them.");
+            }
+            return disabled;
+        }
+
+        /// <summary>
+        /// Puts an invisible floor under the menu. Belt-and-braces: with the locomotion
+        /// providers off nothing should fall, but an empty scene with a CharacterController in
+        /// it is one re-enabled component away from an infinite drop, and that failure is
+        /// horrible to diagnose from inside a headset -- the world looks fine and the UI simply
+        /// recedes upward forever.
+        ///
+        /// Collider only, no renderer, so it is never seen.
+        /// </summary>
+        private static int EnsureMenuFloor(Scene scene)
+        {
+            const string FloorName = "MenuFloor (invisible)";
+            foreach (var root in scene.GetRootGameObjects())
+                if (root.name == FloorName) return 0;
+
+            var floor = new GameObject(FloorName);
+            SceneManager.MoveGameObjectToScene(floor, scene);
+            var box = floor.AddComponent<BoxCollider>();
+            box.size = new Vector3(40f, 0.2f, 40f);
+
+            // Top face flush with y = 0, so a learner standing on it is at the height the rig
+            // expects rather than 10cm above it.
+            floor.transform.position = new Vector3(0f, -0.1f, 0f);
+
+            Debug.Log($"[SignMasterVR] {scene.name}: added \"{FloorName}\" -- a 40x40m collider with no renderer, so the rig has something to land on.");
+            return 1;
+        }
+
+        /// <summary>
+        /// Gives the menu an actual background. Floating neon text on nothing is hard to read in
+        /// a headset: it sits over whatever happens to be behind it, and with no surface the eye
+        /// has nothing to fix convergence on, which is tiring. A dark plate with a thin cyan edge
+        /// fixes both and matches the Step 12 neon styling.
+        ///
+        /// Built as two stretched Images rather than one with an Outline effect, because Outline
+        /// offsets the graphic in four directions and goes soft at this scale. Returns the number
+        /// of changes so the caller can keep its running total honest.
+        /// </summary>
+        private static int EnsureMenuBackPanel(RectTransform canvasRect, Scene scene)
+        {
+            const string BorderName = "MenuBackPanel";
+            const string FillName = "MenuBackPanelFill";
+            const float BorderThickness = 6f;
+
+            if (canvasRect.Find(BorderName) != null) return 0;
+
+            // Full-bleed to the canvas edge: anchors stretched, zero size delta.
+            GameObject border = CreatePanel(canvasRect, BorderName, NeonCyan,
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var borderRect = border.GetComponent<RectTransform>();
+
+            GameObject fill = CreatePanel(borderRect, FillName, MenuNearBlack,
+                Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-BorderThickness * 2f, -BorderThickness * 2f));
+
+            // Nothing on the back panel should ever swallow a ray meant for a button behind it --
+            // and it IS behind them, but raycast-blocking is independent of draw order.
+            border.GetComponent<Image>().raycastTarget = false;
+            fill.GetComponent<Image>().raycastTarget = false;
+
+            // Behind everything. CreatePanel appends, so without this it would cover the menu.
+            border.transform.SetAsFirstSibling();
+
+            Debug.Log($"[SignMasterVR] {scene.name}: added \"{BorderName}\" -- a dark backing plate with a {BorderThickness}px cyan edge, behind all the menu content.");
+            return 1;
+        }
+
+        /// <summary>First component of type T anywhere in this scene, inactive objects included.</summary>
+        private static T FirstInScene<T>(Scene scene) where T : Component
+        {
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                var hit = root.GetComponentInChildren<T>(true);
+                if (hit != null) return hit;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Every component of type T in this scene, inactive included. Materialized into a list
+        /// before returning because callers add and destroy components while iterating it.
+        /// </summary>
+        private static List<T> AllInScene<T>(Scene scene) where T : Component
+        {
+            var found = new List<T>();
+            foreach (var root in scene.GetRootGameObjects())
+                found.AddRange(root.GetComponentsInChildren<T>(true));
+            return found;
+        }
+
+        // ------------------------------------------------------------------
+        // STEP 18 — Lesson UI for an audience: a Skip button, and the Phase 15
+        // debug buttons out of sight.
+        //
+        // TEST CORRECT / TEST WRONG were the fake-ML harness from before the
+        // real recognizer existed. They are wired to FakeGestureRecognizer,
+        // which is DISABLED on LessonSystem now -- so on the headset they are
+        // two buttons that do nothing at all, sitting in the middle of the
+        // lesson UI. Worse than clutter: an examiner will press them.
+        //
+        // They are deactivated rather than deleted, so re-enabling the fake
+        // recognizer for a dry run without a webcam is still one checkbox away.
+        //
+        // This step also fixes the dead end at the end of a level. CompleteLevel
+        // showed a score panel and wrote "Level 2 is now unlocked" to a console
+        // that nobody wearing a headset can read -- there was no way to reach
+        // Level 2 and no way back to the menu. The panel now carries NEXT LEVEL
+        // and MAIN MENU, and the lesson UI carries MAIN MENU throughout.
+        // ------------------------------------------------------------------
+        [MenuItem("Tools/SignMasterVR/18 Lesson UI: Skip / Menu / Next Level Buttons")]
+        public static void BuildLessonUIForDemo()
+        {
+            if (!RequireActiveSceneIsNotMainMenu()) return;
+
+            GameObject canvasInstance = GameObject.Find("LessonCanvas");
+            if (canvasInstance == null)
+            {
+                Debug.LogError("[SignMasterVR] No \"LessonCanvas\" in the open scene. Open ClassRoom.unity and make sure Step 4 has run.");
+                return;
+            }
+            var canvasRect = canvasInstance.GetComponent<RectTransform>();
+
+            GameObject managerGO = GameObject.Find("LessonSystem");
+            var lessonManager = managerGO != null ? managerGO.GetComponent<LessonManager>() : null;
+            if (lessonManager == null)
+            {
+                Debug.LogError("[SignMasterVR] No LessonManager on \"LessonSystem\". Run Step 4 first.");
+                return;
+            }
+
+            int hidden = 0;
+            foreach (var name in new[] { "TestCorrectButton", "TestWrongButton" })
+            {
+                var t = canvasRect.Find(name);
+                if (t == null || !t.gameObject.activeSelf) continue;
+                t.gameObject.SetActive(false);
+                hidden++;
+            }
+
+            // Centred along the bottom, where the two debug buttons used to be. Anchors (0,0)
+            // and the default (0.5, 0.5) pivot mean this is the button's CENTRE measured from
+            // the canvas's bottom-left, on a 1000x650 canvas -- same convention as Step 3.
+            Transform existing = canvasRect.Find("SkipButton");
+            bool created = existing == null;
+            if (created)
+            {
+                CreateButton(canvasRect, "SkipButton", "SKIP THIS SIGN",
+                    new Vector2(0, 0), new Vector2(0, 0), new Vector2(500, 55), new Vector2(300, 60),
+                    MenuPanelDark, SkipAmber);
+            }
+
+            // Re-wire every run: the listener is cleared first, so this cannot stack duplicates,
+            // and a Skip button whose wiring was lost to a prefab revert silently does nothing.
+            WireButton(canvasRect, "SkipButton", lessonManager.SkipCurrentGesture);
+
+            // --- Main Menu, always reachable mid-lesson. ------------------------------------
+            // Bottom-left, clear of the Skip button (which spans x = 350..650).
+            if (canvasRect.Find("ReturnToMenuButton") == null)
+                CreateButton(canvasRect, "ReturnToMenuButton", "MAIN MENU",
+                    new Vector2(0, 0), new Vector2(0, 0), new Vector2(160, 55), new Vector2(260, 60),
+                    MenuPanelDark, NeonCyan);
+            WireButton(canvasRect, "ReturnToMenuButton", lessonManager.GoToMainMenu);
+
+            // --- The level-complete panel was a dead end. -----------------------------------
+            // It showed a score and nothing else: no way to Level 2, no way out. Everything
+            // below is what turns it into an actual end-of-level screen.
+            var completePanel = canvasRect.Find("LevelCompletePanel") as RectTransform;
+            if (completePanel == null)
+            {
+                Debug.LogWarning("[SignMasterVR] No LevelCompletePanel found -- skipping the end-of-level buttons. Re-run Step 3, then Step 4.");
+            }
+            else
+            {
+                // The text stretches edge to edge by default and would sit under the buttons.
+                // Lift its bottom edge by 120px to make room.
+                var completeText = completePanel.Find("LevelCompleteText") as RectTransform;
+                if (completeText != null)
+                {
+                    completeText.anchorMin = Vector2.zero;
+                    completeText.anchorMax = Vector2.one;
+                    completeText.sizeDelta = new Vector2(0, -120);
+                    completeText.anchoredPosition = new Vector2(0, 60);
+                }
+
+                // Anchored to the panel's bottom centre, so x is an offset from the middle.
+                if (completePanel.Find("NextLevelButton") == null)
+                    CreateButton(completePanel, "NextLevelButton", "NEXT LEVEL",
+                        new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-170, 55), new Vector2(300, 64),
+                        MenuPanelDark, NeonCyan);
+                WireButton(completePanel, "NextLevelButton", lessonManager.StartNextLevel);
+
+                if (completePanel.Find("CompleteMenuButton") == null)
+                    CreateButton(completePanel, "CompleteMenuButton", "MAIN MENU",
+                        new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(170, 55), new Vector2(300, 64),
+                        MenuPanelDark, NeonCyan);
+                WireButton(completePanel, "CompleteMenuButton", lessonManager.GoToMainMenu);
+
+                // So UIManager can hide NEXT LEVEL on the final level instead of offering a
+                // button that quietly does nothing.
+                var ui = canvasInstance.GetComponent<UIManager>();
+                var nextBtn = completePanel.Find("NextLevelButton");
+                if (ui != null && nextBtn != null)
+                {
+                    ui.nextLevelButton = nextBtn.gameObject;
+                    EditorUtility.SetDirty(ui);
+                }
+            }
+
+            EditorUtility.SetDirty(canvasInstance);
+            EditorUtility.SetDirty(lessonManager);
+            var scene = SceneManager.GetActiveScene();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+
+            Debug.Log($"[SignMasterVR] Lesson UI updated and {scene.name} saved. " +
+                      (created ? "Added a \"SKIP THIS SIGN\" button" : "Re-wired the existing Skip button") +
+                      $" to LessonManager.SkipCurrentGesture, and hid {hidden} debug button(s). " +
+                      "A skip is not scored as correct, so the end-of-level percentage still tells the truth. " +
+                      "Also added MAIN MENU to the lesson UI, and NEXT LEVEL + MAIN MENU to the level-complete panel. " +
+                      "Check MainMenu and ClassRoom are BOTH in File > Build Profiles > Scenes In Build, or the menu button will do nothing in a build.");
+        }
+
+        // ------------------------------------------------------------------
+        // STEP 19 — Main menu: a Quit button, and every level actually listed.
+        //
+        // Two gaps, both only visible once the app was running on a headset.
+        // There was no way to leave the application at all -- a sideloaded
+        // Quest app with no Quit button leaves the learner pressing the Meta
+        // button, which is fine for us and baffling for anyone else.
+        //
+        // And MainMenuController.levels held only Level 1, because Step 6 was
+        // written when Level 1 was all there was. Step 14 registered Level 2
+        // with the LevelManager in ClassRoom but nothing taught the MENU about
+        // it, so a learner who finished the letters and came back had no way
+        // to reach the phrases. This reads whatever LevelData assets exist and
+        // lists them all.
+        // ------------------------------------------------------------------
+        [MenuItem("Tools/SignMasterVR/19 Main Menu: Quit Button + All Levels")]
+        public static void MainMenuQuitAndLevels()
+        {
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+
+            const string scenePath = "Assets/Scenes/MainMenu.unity";
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) == null)
+            {
+                Debug.LogError($"[SignMasterVR] {scenePath} not found. Run Step 6 first.");
+                return;
+            }
+
+            string returnTo = SceneManager.GetActiveScene().path;
+            Selection.activeObject = null;
+            Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+
+            GameObject canvasGO = null;
+            foreach (var root in scene.GetRootGameObjects())
+                if (root.name == "MenuCanvas") { canvasGO = root; break; }
+            if (canvasGO == null)
+            {
+                Debug.LogError("[SignMasterVR] No \"MenuCanvas\" in MainMenu.unity. Run Step 6 first.");
+                return;
+            }
+
+            var canvasRect = canvasGO.GetComponent<RectTransform>();
+            var menu = canvasGO.GetComponent<MainMenuController>();
+            if (menu == null)
+            {
+                Debug.LogError("[SignMasterVR] MenuCanvas has no MainMenuController. Run Step 6 first.");
+                return;
+            }
+
+            // --- Quit, top-right corner. ---------------------------------------------------
+            // Dark plate with a pink label rather than a solid pink button: Reset Progress is
+            // already solid pink, and two identical-looking destructive buttons is a trap.
+            if (canvasRect.Find("QuitButton") == null)
+                CreateButton(canvasRect, "QuitButton", "QUIT",
+                    new Vector2(1, 1), new Vector2(1, 1), new Vector2(-110, -60), new Vector2(170, 56),
+                    MenuPanelDark, NeonPink);
+            WireButton(canvasRect, "QuitButton", menu.QuitApp);
+
+            // --- Every level the project has, in order. ------------------------------------
+            var levelAssets = AssetDatabase.FindAssets("t:LevelData", new[] { "Assets/Data/Levels" })
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .OrderBy(path => path, System.StringComparer.OrdinalIgnoreCase)
+                .Select(AssetDatabase.LoadAssetAtPath<LevelData>)
+                .Where(l => l != null)
+                .ToArray();
+
+            if (levelAssets.Length == 0)
+            {
+                Debug.LogWarning("[SignMasterVR] No LevelData assets found in Assets/Data/Levels -- the menu's level list was left alone.");
+            }
+            else
+            {
+                menu.levels = levelAssets;
+
+                var listPanel = canvasRect.Find("LevelListPanel") as RectTransform;
+                var rows = new List<MainMenuController.LevelRow>();
+                if (listPanel == null)
+                {
+                    Debug.LogWarning("[SignMasterVR] No LevelListPanel -- levels are registered but the Levels screen has no buttons for them.");
+                }
+                else
+                {
+                    for (int i = 0; i < levelAssets.Length; i++)
+                    {
+                        var level = levelAssets[i];
+                        string btnName = $"Level{i + 1}Button";
+                        string statusName = $"Level{i + 1}StatusText";
+
+                        // Rows stack downward from the panel's top edge, 110px apart: button at
+                        // -70, its status label 45px under it. Matches Step 6's row 1 exactly,
+                        // so an existing Level 1 row is left where it already is.
+                        float y = -70f - (110f * i);
+
+                        if (listPanel.Find(btnName) == null)
+                            CreateButton(listPanel, btnName, level.levelName.ToUpperInvariant(),
+                                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, y), new Vector2(400, 60),
+                                MenuPanelDark, NeonCyan);
+
+                        TMP_Text status = null;
+                        var existingStatus = listPanel.Find(statusName);
+                        if (existingStatus == null)
+                            status = CreateText(listPanel, statusName, "", 16, TextAlignmentOptions.Center,
+                                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, y - 45f), new Vector2(400, 30), NeonCyan);
+                        else
+                            status = existingStatus.GetComponent<TMP_Text>();
+
+                        // AddIntPersistentListener, not a closure: a lambda capturing `i` cannot
+                        // be serialized into a UnityEvent, so it would survive this Editor
+                        // session and be gone from the build.
+                        var t = listPanel.Find(btnName);
+                        var btn = t != null ? t.GetComponent<Button>() : null;
+                        if (btn != null)
+                        {
+                            for (int k = btn.onClick.GetPersistentEventCount() - 1; k >= 0; k--)
+                                UnityEventTools.RemovePersistentListener(btn.onClick, k);
+                            UnityEventTools.AddIntPersistentListener(
+                                btn.onClick, menu.StartLevelByIndex, i);
+                        }
+
+                        rows.Add(new MainMenuController.LevelRow { level = level, statusText = status });
+                    }
+
+                    menu.levelRows = rows.ToArray();
+
+                    // Keep BACK below the last row rather than overlapping it.
+                    var back = listPanel.Find("BackButton") as RectTransform;
+                    float neededHeight = 70f + 110f * levelAssets.Length + 90f;
+                    if (listPanel.sizeDelta.y < neededHeight)
+                        listPanel.sizeDelta = new Vector2(listPanel.sizeDelta.x, neededHeight);
+                    if (back != null)
+                    {
+                        back.anchorMin = new Vector2(0.5f, 0f);
+                        back.anchorMax = new Vector2(0.5f, 0f);
+                        back.anchoredPosition = new Vector2(0, 40);
+                    }
+                }
+            }
+
+            EditorUtility.SetDirty(menu);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+
+            if (!string.IsNullOrEmpty(returnTo) && AssetDatabase.LoadAssetAtPath<SceneAsset>(returnTo) != null)
+                EditorSceneManager.OpenScene(returnTo, OpenSceneMode.Single);
+
+            Debug.Log($"[SignMasterVR] Main menu updated and saved: QUIT button added, " +
+                      $"{levelAssets.Length} level(s) listed ({string.Join(", ", levelAssets.Select(l => l.levelName))}). " +
+                      "Quit does nothing in the Editor by design -- it calls EditorApplication.isPlaying = false there so you can still test it.");
         }
 
         [MenuItem("Tools/SignMasterVR/RUN ALL (0-6)")]

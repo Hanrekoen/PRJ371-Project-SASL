@@ -66,6 +66,28 @@ namespace SignMasterVR.UI
             Debug.Log("[MainMenuController] Progress reset.");
         }
 
+        /// <summary>
+        /// Close the application. Wired to the QUIT button by
+        /// Tools > SignMasterVR > 19.
+        ///
+        /// Application.Quit() does nothing in the Editor -- it is a no-op there by design, which
+        /// makes a broken Quit button impossible to tell apart from a working one until you are
+        /// standing in a headset. The Editor branch exists so the button is actually testable in
+        /// Play mode.
+        ///
+        /// On Quest this returns the learner to the Meta home environment, which is the correct
+        /// and expected behaviour for a sideloaded app.
+        /// </summary>
+        public void QuitApp()
+        {
+            Debug.Log("[MainMenuController] Quit requested.");
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
+
         private void RefreshLevelStatus()
         {
             if (levelRows == null || ProgressManager.Instance == null) return;
