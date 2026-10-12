@@ -1700,19 +1700,55 @@ namespace SignMasterVR.EditorTools
                 return;
             }
 
-            Transform ghostTransform = tutorInstance.transform.Find("GhostHandDemo");
-            GameObject ghostGO;
-            if (ghostTransform != null)
+            // The ghost used to be parented to the Tutor at local (0, 1.1, -0.6), with the
+            // comment "in front of the tutor, roughly chest height, facing the player". That
+            // was wrong in practice for two reasons. The Tutor sits at z = 4.8, hard against
+            // the LearningBoard, so "in front of the tutor" is still six metres from a learner
+            // standing at z = -2 -- a 0.35-scale hand at that range is a smudge. And with the
+            // Tutor's rotation left at identity, the offset put it on the board side of the
+            // avatar, where the body occludes it.
+            //
+            // The ghost is the actual demonstration -- there are no signing animations on the
+            // avatar, so if the ghost is not visible, nothing shows the learner the sign. That
+            // is why "the tutor doesn't sign the phrases to me": the phrase clips were playing
+            // all along, just where nobody could see them.
+            //
+            // So: a root object, placed off the LearnerStandingMark rather than off the Tutor,
+            // an arm's length in front of the learner and a little below eye level. Read from
+            // the mark so moving the mark moves the ghost with it.
+            Transform ghostTransform = null;
+            foreach (var root in SceneManager.GetActiveScene().GetRootGameObjects())
             {
-                ghostGO = ghostTransform.gameObject;
+                ghostTransform = root.name == "GhostHandDemo" ? root.transform : FindDeep(root.transform, "GhostHandDemo");
+                if (ghostTransform != null) break;
             }
-            else
-            {
-                ghostGO = new GameObject("GhostHandDemo");
-                ghostGO.transform.SetParent(tutorInstance.transform, false);
-                // In front of the tutor, roughly chest height, facing the player.
-                ghostGO.transform.localPosition = new Vector3(0f, 1.1f, -0.6f);
-            }
+
+            GameObject ghostGO = ghostTransform != null ? ghostTransform.gameObject : new GameObject("GhostHandDemo");
+
+            // Unparent whatever it was under -- worldPositionStays: false, because the world
+            // position is about to be set explicitly anyway.
+            ghostGO.transform.SetParent(null, false);
+
+            GameObject mark = GameObject.Find("LearnerStandingMark");
+            Vector3 learnerFeet = mark != null ? mark.transform.position : new Vector3(0f, 0f, -2f);
+            if (mark == null)
+                Debug.LogWarning("[SignMasterVR] No \"LearnerStandingMark\" in the scene -- falling back to z = -2 for the ghost's placement. Run Step 0 to rebuild the classroom.");
+
+            // 0.45m ahead of the mark, 1.10m up -- roughly where a standing adult's hands sit
+            // when signing. The ghost is a TEMPLATE, not a diagram: the learner puts their own
+            // hands into it and matches the shape, so it has to be at hand height and within
+            // reach, not floating at eye level like a poster.
+            //
+            // Rotation is identity for the same reason as every other flat surface here: the
+            // hand is drawn in this object's local XY plane and reads from its -Z side, and the
+            // learner stands at -Z looking towards +Z.
+            //
+            // The tutor avatar deliberately does NOT sign. There is no per-sign animation on it
+            // and no retargeting from the Holistic captures in GestureServer/data/tutor/ --
+            // driving a humanoid rig from monocular MediaPipe pose is days of work and usually
+            // looks broken. This ghost is the demonstration.
+            ghostGO.transform.SetPositionAndRotation(
+                learnerFeet + new Vector3(0f, 1.10f, 0.45f), Quaternion.identity);
 
             var ghostHand = ghostGO.GetComponent<GhostHandPlayer>() ?? ghostGO.AddComponent<GhostHandPlayer>();
             lessonManager.ghostHand = ghostHand;
@@ -1727,7 +1763,9 @@ namespace SignMasterVR.EditorTools
 
             bool hasClips = Directory.Exists(GhostHandsFolder) &&
                 Directory.GetFiles(GhostHandsFolder, "*.json", SearchOption.TopDirectoryOnly).Length > 0;
-            Debug.Log("[SignMasterVR] GhostHandDemo added under Tutor and wired to LessonManager.ghostHand. " +
+            EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
+            Debug.Log($"[SignMasterVR] GhostHandDemo placed at {ghostGO.transform.position} -- about an arm's length in front of the learner's mark, not six metres away behind the tutor -- and wired to LessonManager.ghostHand. Scene saved. " +
+                "If the hand still reads small from the mark, raise \"Scale\" on the GhostHandPlayer component (0.35 by default). " +
                 (hasClips
                     ? "Clip files found in Assets/StreamingAssets/GhostHands/ — it should play automatically in Play mode."
                     : "Assets/StreamingAssets/GhostHands/ is empty, so it'll stay hidden for now (that's expected, nothing is broken). " +
