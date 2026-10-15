@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quest Sign Capture — 26 Joints</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0f; color: #e6e6e6;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh; padding: 24px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 4px; }
+  p.sub { color: #8a8a99; font-size: 0.9rem; margin-bottom: 20px; text-align: center; }
+  .panel {
+    width: min(92vw, 760px); background: #0f0f16;
+    border: 1px solid #21212e; border-radius: 12px; padding: 18px; margin-bottom: 14px;
+  }
+  .panel h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #6ee7ff; margin-bottom: 12px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+  label.f { font-size: 0.82rem; color: #8a8a99; min-width: 128px; }
+  input[type="text"], input[type="number"], textarea {
+    background: #14141c; border: 1px solid #2a2a38; color: #e6e6e6;
+    padding: 9px 11px; border-radius: 8px; font-size: 0.88rem; font-family: inherit;
+  }
+  input[type="text"] { flex: 1; min-width: 200px; }
+  input[type="number"] { width: 92px; }
+  input:focus, textarea:focus { outline: none; border-color: #6ee7ff; }
+  button {
+    background: #6ee7ff; color: #0a0a0f; border: none; padding: 11px 20px;
+    border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.92rem; font-family: inherit;
+  }
+  button:hover { background: #8ff0ff; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  button.ghost { background: transparent; color: #6ee7ff; box-shadow: inset 0 0 0 1px #2c3b46; }
+  button.ghost:hover { background: #12222b; }
+  #support { font-size: 0.86rem; margin-bottom: 14px; min-height: 1.3em; text-align: center; }
+  .ok { color: #7dffa8; } .bad { color: #ff7d7d; } .warn { color: #ffd166; }
+  textarea { width: 100%; height: 170px; font-family: ui-monospace, Consolas, monospace; font-size: 0.74rem; resize: vertical; }
+  .hint { font-size: 0.8rem; color: #6a6a7a; line-height: 1.7; }
+  .hint code { color: #ff5fd2; font-family: ui-monospace, Consolas, monospace; }
+  table.g { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  table.g td { padding: 7px 0; border-bottom: 1px solid #1c1c28; vertical-align: top; }
+  table.g td:first-child { color: #6ee7ff; font-weight: 600; width: 46%; padding-right: 14px; }
+  table.g tr:last-child td { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<h1>Quest Sign Capture — 26 Joints</h1>
+<p class="sub">WebXR hand tracking. In-headset HUD and pinch controls — no DOM overlay needed.</p>
+
+<div id="support">Checking WebXR support…</div>
+
+<div class="panel">
+  <h2>Session setup</h2>
+  <div class="row">
+    <label class="f">Labels to capture</label>
+    <input type="text" id="labelList" value="A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z" />
+  </div>
+  <div class="row">
+    <label class="f">Countdown (s)</label>
+    <input type="number" id="countdownSec" value="3" min="0" max="10" />
+    <label class="f">Clip length (ms)</label>
+    <input type="number" id="clipMs" value="1500" min="200" max="8000" step="100" />
+    <label class="f">Repeats per label</label>
+    <input type="number" id="repeats" value="5" min="1" max="20" />
+  </div>
+  <div class="row">
+    <label class="toggle" style="font-size:0.85rem;color:#8a8a99;display:inline-flex;align-items:center;gap:7px;cursor:pointer;">
+      <input type="checkbox" id="auditMode" /> Audit mode — show live nearest-match in the headset
+    </label>
+  </div>
+  <div class="row">
+    <button id="enterBtn" disabled>Enter headset</button>
+    <button id="downloadBtn" class="ghost" disabled>Download JSON</button>
+    <button id="copyBtn" class="ghost" disabled>Copy JSON</button>
+    <button id="clearBtn" class="ghost" disabled>Clear</button>
+    <span id="count" style="color:#8a8a99;font-size:0.85rem;"></span>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Controls in the headset</h2>
+  <table class="g">
+    <tr><td>Right hand — pinch thumb + index</td><td>Capture a snapshot (after the countdown)</td></tr>
+    <tr><td>Right hand — pinch thumb + middle</td><td>Record a clip</td></tr>
+    <tr><td>Left hand — pinch thumb + index</td><td>Next label</td></tr>
+    <tr><td>Left hand — pinch thumb + middle</td><td>Previous label</td></tr>
+    <tr><td>Both index pinches, hold 1.5 s</td><td>End the session</td></tr>
+  </table>
+  <p class="hint" style="margin-top:12px;">
+    Set your controllers down and out of view before starting — while a controller is active the
+    headset reports it instead of your hand. Your tracked joints are drawn as dots so you can see
+    tracking is live even before you capture anything.
+  </p>
+</div>
+
+<div class="panel">
+  <h2>Separation report</h2>
+  <div class="row">
+    <button id="reportBtn" class="ghost" disabled>Build report</button>
+    <span class="hint">Which of your labels does the tracker actually tell apart?</span>
+  </div>
+  <div id="report"></div>
+</div>
+
+<div class="panel">
+  <h2>Captured data</h2>
+  <textarea id="dump" readonly placeholder="Captures appear here when you leave the headset session. They also autosave to this browser and live in window.captures."></textarea>
+</div>
+
+<script>
+/* ==================================================================
+   26-JOINT SKELETON (OpenXR / Unity XR Hands order)
+   WebXR exposes 25 — the OpenXR set minus `palm`, which we derive at
+   the centre of the middle metacarpal bone where OpenXR defines it.
+================================================================== */
+const JOINT_ORDER = [
+  ['palm',                null],
+  ['wrist',               'wrist'],
+  ['thumbMetacarpal',     'thumb-metacarpal'],
+  ['thumbProximal',       'thumb-phalanx-proximal'],
+  ['thumbDistal',         'thumb-phalanx-distal'],
+  ['thumbTip',            'thumb-tip'],
+  ['indexMetacarpal',     'index-finger-metacarpal'],
+  ['indexProximal',       'index-finger-phalanx-proximal'],
+  ['indexIntermediate',   'index-finger-phalanx-intermediate'],
+  ['indexDistal',         'index-finger-phalanx-distal'],
+  ['indexTip',            'index-finger-tip'],
+  ['middleMetacarpal',    'middle-finger-metacarpal'],
+  ['middleProximal',      'middle-finger-phalanx-proximal'],
+  ['middleIntermediate',  'middle-finger-phalanx-intermediate'],
+  ['middleDistal',        'middle-finger-phalanx-distal'],
+  ['middleTip',           'middle-finger-tip'],
+  ['ringMetacarpal',      'ring-finger-metacarpal'],
+  ['ringProximal',        'ring-finger-phalanx-proximal'],
+  ['ringIntermediate',    'ring-finger-phalanx-intermediate'],
+  ['ringDistal',          'ring-finger-phalanx-distal'],
+  ['ringTip',             'ring-finger-tip'],
+  ['littleMetacarpal',    'pinky-finger-metacarpal'],
+  ['littleProximal',      'pinky-finger-phalanx-proximal'],
+  ['littleIntermediate',  'pinky-finger-phalanx-intermediate'],
+  ['littleDistal',        'pinky-finger-phalanx-distal'],
+  ['littleTip',           'pinky-finger-tip']
+];
+const JOINT_NAMES = JOINT_ORDER.map(j => j[0]);
+const J = {}; JOINT_NAMES.forEach((n, i) => J[n] = i);
+const BONES = [
+  ['wrist','thumbMetacarpal'],['thumbMetacarpal','thumbProximal'],['thumbProximal','thumbDistal'],['thumbDistal','thumbTip'],
+  ['wrist','indexMetacarpal'],['indexMetacarpal','indexProximal'],['indexProximal','indexIntermediate'],['indexIntermediate','indexDistal'],['indexDistal','indexTip'],
+  ['wrist','middleMetacarpal'],['middleMetacarpal','middleProximal'],['middleProximal','middleIntermediate'],['middleIntermediate','middleDistal'],['middleDistal','middleTip'],
+  ['wrist','ringMetacarpal'],['ringMetacarpal','ringProximal'],['ringProximal','ringIntermediate'],['ringIntermediate','ringDistal'],['ringDistal','ringTip'],
+  ['wrist','littleMetacarpal'],['littleMetacarpal','littleProximal'],['littleProximal','littleIntermediate'],['littleIntermediate','littleDistal'],['littleDistal','littleTip'],
+  ['indexProximal','middleProximal'],['middleProximal','ringProximal'],['ringProximal','littleProximal']
+];
+const FINGERS = {
+  thumb:  ['thumbMetacarpal','thumbProximal','thumbDistal','thumbTip'],
+  index:  ['indexMetacarpal','indexProximal','indexIntermediate','indexDistal','indexTip'],
+  middle: ['middleMetacarpal','middleProximal','middleIntermediate','middleDistal','middleTip'],
+  ring:   ['ringMetacarpal','ringProximal','ringIntermediate','ringDistal','ringTip'],
+  little: ['littleMetacarpal','littleProximal','littleIntermediate','littleDistal','littleTip']
+};
+
+/* ---------------- vector / quaternion / matrix helpers ---------------- */
+const v = (x,y,z) => ({x,y,z});
+const vSub  = (a,b) => v(a.x-b.x, a.y-b.y, a.z-b.z);
+const vAdd  = (a,b) => v(a.x+b.x, a.y+b.y, a.z+b.z);
+const vMul  = (a,s) => v(a.x*s, a.y*s, a.z*s);
+const vLen  = (a)   => Math.hypot(a.x,a.y,a.z);
+const vDot  = (a,b) => a.x*b.x + a.y*b.y + a.z*b.z;
+const vCross= (a,b) => v(a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x);
+const vNorm = (a)   => { const l = vLen(a) || 1; return vMul(a, 1/l); };
+const vLerp = (a,b,t) => v(a.x+(b.x-a.x)*t, a.y+(b.y-a.y)*t, a.z+(b.z-a.z)*t);
+const qConj = (q) => ({x:-q.x, y:-q.y, z:-q.z, w:q.w});
+function qMul(a, b) {
+  return {
+    x: a.w*b.x + a.x*b.w + a.y*b.z - a.z*b.y,
+    y: a.w*b.y - a.x*b.z + a.y*b.w + a.z*b.x,
+    z: a.w*b.z + a.x*b.y - a.y*b.x + a.z*b.w,
+    w: a.w*b.w - a.x*b.x - a.y*b.y - a.z*b.z
+  };
+}
+function qRot(q, p) {
+  const t = vMul(vCross(v(q.x,q.y,q.z), p), 2);
+  return vAdd(vAdd(p, vMul(t, q.w)), vCross(v(q.x,q.y,q.z), t));
+}
+const r5 = (n) => Math.round(n * 100000) / 100000;
+const rv = (p) => ({ x: r5(p.x), y: r5(p.y), z: r5(p.z) });
+const rq = (q) => ({ x: r5(q.x), y: r5(q.y), z: r5(q.z), w: r5(q.w) });
+const angleBetween = (a, b) => {
+  const d = vDot(vNorm(a), vNorm(b));
+  return Math.acos(Math.max(-1, Math.min(1, d))) * 180 / Math.PI;
+};
+// column-major 4x4 multiply, out = a * b
+function mat4Mul(a, b) {
+  const o = new Float32Array(16);
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+    o[c*4+r] = a[r]*b[c*4] + a[4+r]*b[c*4+1] + a[8+r]*b[c*4+2] + a[12+r]*b[c*4+3];
+  }
+  return o;
+}
+const mat4Translate = (x, y, z) => new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1]);
+
+/* ==================================================================
+   SAMPLING ONE HAND
+================================================================== */
+function sampleHand(frame, refSpace, inputSource, headPose) {
+  const hand = inputSource.hand;
+  if (!hand) return null;
+
+  const raw = {}, missing = [];
+  for (const [name, xrName] of JOINT_ORDER) {
+    if (!xrName) continue;
+    const space = hand.get(xrName);
+    const jp = space ? frame.getJointPose(space, refSpace) : null;
+    if (!jp) { missing.push(name); raw[name] = null; continue; }
+    raw[name] = {
+      pos: v(jp.transform.position.x, jp.transform.position.y, jp.transform.position.z),
+      rot: jp.transform.orientation,
+      radius: jp.radius
+    };
+  }
+
+  // Wrist is the only joint we truly need. If fingertips drop out (Quest
+  // does this constantly at the edge of tracking) inherit down the chain
+  // rather than discarding the whole frame.
+  if (!raw.wrist) return null;
+  for (const chain of Object.values(FINGERS)) {
+    let prev = raw.wrist;
+    for (const n of chain) {
+      if (!raw[n]) raw[n] = { pos: prev.pos, rot: prev.rot, radius: prev.radius, filled: true };
+      prev = raw[n];
+    }
+  }
+  raw.palm = {
+    pos: vLerp(raw.middleMetacarpal.pos, raw.middleProximal.pos, 0.5),
+    rot: raw.middleMetacarpal.rot,
+    radius: raw.middleMetacarpal.radius
+  };
+
+  const wrist = raw.wrist;
+  const wq = qConj(wrist.rot);
+  const scale = vLen(vSub(raw.middleProximal.pos, wrist.pos)) || 1;
+
+  const joints = JOINT_NAMES.map((name, i) => {
+    const jt = raw[name];
+    const local = vMul(qRot(wq, vSub(jt.pos, wrist.pos)), 1 / scale);
+    return {
+      i, name,
+      src: JOINT_ORDER[i][1] ? 'webxr' : 'derived',
+      tracked: !jt.filled,
+      pos: rv(jt.pos), rot: rq(jt.rot), local: rv(local),
+      radius: r5(jt.radius || 0)
+    };
+  });
+
+  const nWorld = vNorm(vCross(
+    vSub(raw.indexProximal.pos, wrist.pos),
+    vSub(raw.littleProximal.pos, wrist.pos)
+  ));
+  const handedness = inputSource.handedness;
+  const palmNormal = handedness === 'left' ? vMul(nWorld, -1) : nWorld;
+
+  let wristRelToHead = null, palmFacing = null;
+  if (headPose) {
+    const hp = v(headPose.transform.position.x, headPose.transform.position.y, headPose.transform.position.z);
+    const hq = headPose.transform.orientation, hqc = qConj(hq);
+    wristRelToHead = {
+      position: rv(qRot(hqc, vSub(wrist.pos, hp))),
+      rotation: rq(qMul(hqc, wrist.rot)),
+      distance: r5(vLen(vSub(wrist.pos, hp)))
+    };
+    palmFacing = r5(vDot(palmNormal, vNorm(vSub(hp, wrist.pos))));
+  }
+
+  const curl = {};
+  for (const [fname, chain] of Object.entries(FINGERS)) {
+    let total = 0;
+    for (let k = 0; k < chain.length - 2; k++) {
+      total += angleBetween(
+        vSub(raw[chain[k+1]].pos, raw[chain[k]].pos),
+        vSub(raw[chain[k+2]].pos, raw[chain[k+1]].pos)
+      );
+    }
+    curl[fname] = r5(total);
+  }
+  const spreadPair = (a, b) => r5(angleBetween(
+    vSub(raw[a[a.length-1]].pos, raw[a[1]].pos),
+    vSub(raw[b[b.length-1]].pos, raw[b[1]].pos)
+  ));
+
+  const features = [];
+  joints.forEach(j => features.push(j.local.x, j.local.y, j.local.z));
+
+  return {
+    handedness, handScale: r5(scale), missingJoints: missing, joints,
+    palmNormal: rv(palmNormal), palmFacing, wristRelToHead,
+    metrics: {
+      curl,
+      spread: {
+        thumbIndex:  spreadPair(FINGERS.thumb,  FINGERS.index),
+        indexMiddle: spreadPair(FINGERS.index,  FINGERS.middle),
+        middleRing:  spreadPair(FINGERS.middle, FINGERS.ring),
+        ringLittle:  spreadPair(FINGERS.ring,   FINGERS.little)
+      }
+    },
+    // pinch distances in metres, used for the in-headset gestures
+    pinch: {
+      index:  vLen(vSub(raw.thumbTip.pos, raw.indexTip.pos)),
+      middle: vLen(vSub(raw.thumbTip.pos, raw.middleTip.pos))
+    },
+    features
+  };
+}
+
+function sampleFrame(frame, refSpace, session) {
+  const headPose = frame.getViewerPose(refSpace);
+  const hands = {};
+  for (const src of session.inputSources) {
+    if (!src.hand) continue;
+    const h = sampleHand(frame, refSpace, src, headPose);
+    if (h) hands[src.handedness] = h;
+  }
+  if (!Object.keys(hands).length) return { hands: null, headPose };
+
+  let betweenHands = null;
+  if (hands.left && hands.right) {
+    const lw = hands.left.joints[J.wrist], rw = hands.right.joints[J.wrist];
+    const lq = qConj(lw.rot);
+    const d = vSub(v(rw.pos.x, rw.pos.y, rw.pos.z), v(lw.pos.x, lw.pos.y, lw.pos.z));
+    betweenHands = {
+      separation: r5(vLen(d)),
+      rightInLeftFrame: rv(qRot(lq, d)),
+      relativeRotation: rq(qMul(lq, rw.rot))
+    };
+  }
+  return { hands, betweenHands, headPose };
+}
+
+/* ==================================================================
+   WEBGL: a head-locked HUD quad + a dot per tracked joint.
+   Deliberately does NOT use dom-overlay — that feature is AR-only and
+   is not always granted, which is what made the previous build
+   invisible once the session started.
+================================================================== */
+let gl, hudProg, dotProg, quadBuf, dotBuf, hudTex;
+const hudCanvas = document.createElement('canvas');
+hudCanvas.width = 1024; hudCanvas.height = 512;
+const hctx = hudCanvas.getContext('2d');
+let hudDirty = true;
+
+function compile(src, type) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function program(vsrc, fsrc) {
+  const p = gl.createProgram();
+  gl.attachShader(p, compile(vsrc, gl.VERTEX_SHADER));
+  gl.attachShader(p, compile(fsrc, gl.FRAGMENT_SHADER));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+
+function initGL() {
+  hudProg = program(
+    'attribute vec3 aPos; attribute vec2 aUV; uniform mat4 uMVP; varying vec2 vUV;' +
+    'void main(){ vUV = aUV; gl_Position = uMVP * vec4(aPos, 1.0); }',
+    'precision mediump float; varying vec2 vUV; uniform sampler2D uTex;' +
+    'void main(){ vec4 c = texture2D(uTex, vUV); if (c.a < 0.02) discard; gl_FragColor = c; }'
+  );
+  dotProg = program(
+    'attribute vec3 aPos; uniform mat4 uVP; uniform float uSize;' +
+    'void main(){ gl_Position = uVP * vec4(aPos, 1.0); gl_PointSize = uSize; }',
+    'precision mediump float; uniform vec3 uColor;' +
+    'void main(){ vec2 d = gl_PointCoord - vec2(0.5);' +
+    'if (dot(d, d) > 0.25) discard; gl_FragColor = vec4(uColor, 1.0); }'
+  );
+
+  const W = 0.45, H = 0.225;   // panel is 0.9 m x 0.45 m
+  quadBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    -W,-H,0, 0,0,   W,-H,0, 1,0,   -W,H,0, 0,1,
+     W,-H,0, 1,0,   W, H,0, 1,1,   -W,H,0, 0,1
+  ]), gl.STATIC_DRAW);
+
+  dotBuf = gl.createBuffer();
+
+  hudTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, hudTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.disable(gl.DEPTH_TEST);
+}
+
+/* ---- HUD text state ---- */
+const hud = { label: '—', sub: '', status: 'Raise your hands', diag: '', big: '', rec: false, match: '' };
+function setHud(patch) {
+  let changed = false;
+  for (const k in patch) if (hud[k] !== patch[k]) { hud[k] = patch[k]; changed = true; }
+  if (changed) hudDirty = true;
+}
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x+r, y); c.arcTo(x+w, y, x+w, y+h, r); c.arcTo(x+w, y+h, x, y+h, r);
+  c.arcTo(x, y+h, x, y, r); c.arcTo(x, y, x+w, y, r); c.closePath();
+}
+
+function drawHudTexture() {
+  const c = hctx, W = hudCanvas.width, H = hudCanvas.height;
+  c.clearRect(0, 0, W, H);
+  c.fillStyle = 'rgba(10,10,15,0.90)';
+  roundRect(c, 8, 8, W-16, H-16, 28); c.fill();
+  c.strokeStyle = '#2c3b46'; c.lineWidth = 3; c.stroke();
+  c.textAlign = 'center';
+
+  if (hud.big) {
+    c.fillStyle = '#ff5fd2';
+    c.font = 'bold 210px -apple-system, Segoe UI, Roboto, sans-serif';
+    c.fillText(hud.big, W/2, H/2 + 74);
+  } else {
+    c.fillStyle = '#6ee7ff';
+    c.font = 'bold 104px -apple-system, Segoe UI, Roboto, sans-serif';
+    c.fillText(hud.label, W/2, 132);
+
+    c.fillStyle = '#8a8a99';
+    c.font = '34px -apple-system, Segoe UI, Roboto, sans-serif';
+    c.fillText(hud.sub, W/2, 184);
+
+    c.fillStyle = hud.rec ? '#ff5f5f' : '#e6e6e6';
+    c.font = (hud.rec ? 'bold ' : '') + '40px -apple-system, Segoe UI, Roboto, sans-serif';
+    c.fillText(hud.rec ? '● RECORDING' : hud.status, W/2, 268);
+
+    c.fillStyle = '#ffd166';
+    c.font = '28px ui-monospace, Consolas, monospace';
+    c.fillText(hud.diag, W/2, 326);
+
+    if (hud.match) {
+      c.fillStyle = hud.match.indexOf('⚠') !== -1 ? '#ff7d7d' : '#7dffa8';
+      c.font = 'bold 34px ui-monospace, Consolas, monospace';
+      c.fillText(hud.match, W/2, 382);
+      c.fillStyle = '#5a5a6a';
+      c.font = '24px -apple-system, Segoe UI, Roboto, sans-serif';
+      c.fillText('R pinch = snapshot · R middle = clip · L pinch = next · both = exit', W/2, 440);
+    } else {
+      c.fillStyle = '#5a5a6a';
+      c.font = '26px -apple-system, Segoe UI, Roboto, sans-serif';
+      c.fillText('R pinch index = snapshot   ·   R pinch middle = clip', W/2, 400);
+      c.fillText('L pinch index = next label   ·   both held = exit', W/2, 440);
+    }
+  }
+
+  gl.bindTexture(gl.TEXTURE_2D, hudTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, hudCanvas);
+  hudDirty = false;
+}
+
+function renderXR(pose, layer) {
+  gl.bindFramebuffer(gl.FRAMEBUFFER, layer.framebuffer);
+  gl.clearColor(0, 0, 0, 0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  if (!pose) return;
+  if (hudDirty) drawHudTexture();
+
+  // panel sits 1.1 m ahead, a little below eye line, locked to the head
+  const model = mat4Mul(pose.transform.matrix, mat4Translate(0, -0.30, -1.1));
+
+  for (const view of pose.views) {
+    const vp = layer.getViewport(view);
+    gl.viewport(vp.x, vp.y, vp.width, vp.height);
+    const viewProj = mat4Mul(view.projectionMatrix, view.transform.inverse.matrix);
+
+    // --- bones, so you can read the handshape the tracker believes in ---
+    if (linePositions.length) {
+      gl.useProgram(dotProg);
+      gl.bindBuffer(gl.ARRAY_BUFFER, dotBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(linePositions), gl.DYNAMIC_DRAW);
+      const aL = gl.getAttribLocation(dotProg, 'aPos');
+      gl.enableVertexAttribArray(aL);
+      gl.vertexAttribPointer(aL, 3, gl.FLOAT, false, 0, 0);
+      gl.uniformMatrix4fv(gl.getUniformLocation(dotProg, 'uVP'), false, viewProj);
+      gl.uniform1f(gl.getUniformLocation(dotProg, 'uSize'), 1.0);
+      gl.uniform3f(gl.getUniformLocation(dotProg, 'uColor'), 0.25, 0.55, 0.65);
+      gl.drawArrays(gl.LINES, 0, linePositions.length / 3);
+      gl.disableVertexAttribArray(aL);
+    }
+
+    // --- joint dots, so you can see tracking is alive ---
+    if (dotPositions.length) {
+      gl.useProgram(dotProg);
+      gl.bindBuffer(gl.ARRAY_BUFFER, dotBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(dotPositions), gl.DYNAMIC_DRAW);
+      const aP = gl.getAttribLocation(dotProg, 'aPos');
+      gl.enableVertexAttribArray(aP);
+      gl.vertexAttribPointer(aP, 3, gl.FLOAT, false, 0, 0);
+      gl.uniformMatrix4fv(gl.getUniformLocation(dotProg, 'uVP'), false, viewProj);
+      gl.uniform1f(gl.getUniformLocation(dotProg, 'uSize'), 11.0);
+      gl.uniform3f(gl.getUniformLocation(dotProg, 'uColor'), 0.43, 0.91, 1.0);
+      gl.drawArrays(gl.POINTS, 0, dotPositions.length / 3);
+      gl.disableVertexAttribArray(aP);
+    }
+
+    // --- HUD panel ---
+    gl.useProgram(hudProg);
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+    const aPos = gl.getAttribLocation(hudProg, 'aPos');
+    const aUV  = gl.getAttribLocation(hudProg, 'aUV');
+    gl.enableVertexAttribArray(aPos); gl.enableVertexAttribArray(aUV);
+    gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 20, 0);
+    gl.vertexAttribPointer(aUV,  2, gl.FLOAT, false, 20, 12);
+    gl.uniformMatrix4fv(gl.getUniformLocation(hudProg, 'uMVP'), false, mat4Mul(viewProj, model));
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, hudTex);
+    gl.uniform1i(gl.getUniformLocation(hudProg, 'uTex'), 0);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    gl.disableVertexAttribArray(aPos); gl.disableVertexAttribArray(aUV);
+  }
+}
+
+/* ==================================================================
+   SESSION + CAPTURE
+================================================================== */
+const supportEl   = document.getElementById('support');
+const enterBtn    = document.getElementById('enterBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const copyBtn     = document.getElementById('copyBtn');
+const clearBtn    = document.getElementById('clearBtn');
+const countEl     = document.getElementById('count');
+const dumpEl      = document.getElementById('dump');
+
+let xrSession = null, xrRefSpace = null, sessionMode = 'immersive-ar';
+let labels = [], labelIdx = 0, takeCounts = {};
+let mode = 'idle';
+let clipFrames = [], clipEndsAt = 0, pendingKind = null, countdownEndsAt = 0;
+let dotPositions = [], linePositions = [];
+let diagTick = 0;
+
+/* ==================================================================
+   AUDIT: is the tracker actually telling these handshapes apart?
+
+   Every capture stores a 78-float wrist-local feature vector per hand.
+   `poseDist` is the mean per-joint distance between two of them, in
+   units of hand size — so it is comparable across people and hand
+   positions. Live in the headset we show the nearest stored pose and
+   the runner-up: if you form T and it reports M at a similar distance,
+   the tracker cannot separate them and no classifier downstream will
+   either. That is the finding you want BEFORE building a dataset.
+================================================================== */
+function poseDist(a, b) {
+  let s = 0;
+  for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; }
+  return Math.sqrt(s / (a.length / 3));
+}
+
+// flatten every stored capture into {label, handedness, features}
+function buildPoseIndex() {
+  const idx = [];
+  for (const cap of window.captures) {
+    const f = cap.frames[Math.floor(cap.frames.length / 2)];  // middle frame of a clip
+    if (!f || !f.hands) continue;
+    for (const side in f.hands) {
+      const h = f.hands[side];
+      if (h.features) idx.push({ label: cap.label, handedness: h.handedness, features: h.features });
+    }
+  }
+  return idx;
+}
+let poseIndex = [];
+
+function nearestReport(hands) {
+  if (!poseIndex.length || !hands) return '';
+  const side = hands.right ? 'right' : Object.keys(hands)[0];
+  const h = hands[side];
+  const cands = poseIndex.filter(p => p.handedness === h.handedness);
+  if (!cands.length) return '';
+
+  let best = null, second = null;
+  for (const c of cands) {
+    const d = poseDist(h.features, c.features);
+    if (!best || d < best.d) { second = best; best = { label: c.label, d: d }; }
+    else if ((!second || d < second.d) && c.label !== best.label) second = { label: c.label, d: d };
+  }
+  let out = best.label + ' ' + best.d.toFixed(3);
+  if (second) {
+    out += '   vs ' + second.label + ' ' + second.d.toFixed(3);
+    if (second.d - best.d < 0.06) out += '  ⚠';   // too close to call
+  }
+  return out;
+}
+
+window.captures = [];
+
+/* ---- autosave ---- */
+const LS_KEY = 'signCaptures.v1';
+function persist() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(window.captures)); return true; }
+  catch (e) { console.warn('Autosave failed (storage full?):', e.message); return false; }
+}
+function restore() {
+  try {
+    const s = localStorage.getItem(LS_KEY);
+    if (!s) return;
+    const parsed = JSON.parse(s);
+    if (Array.isArray(parsed) && parsed.length) {
+      window.captures = parsed;
+      dumpEl.value = JSON.stringify(window.captures, null, 2);
+      console.log('%cRestored ' + parsed.length + ' capture(s) from autosave.', 'color:#7dffa8');
+    }
+  } catch (e) { console.warn('Could not restore autosave:', e.message); }
+}
+
+/* ---- what is the headset actually reporting? ---- */
+function diagnose(session, frame) {
+  const sources = Array.from(session.inputSources);
+  if (!sources.length) return 'no input sources — set controllers down';
+  const parts = [];
+  let handCount = 0;
+  for (const s of sources) {
+    if (!s.hand) { parts.push((s.handedness || '?') + ':CONTROLLER'); continue; }
+    handCount++;
+    let ok = 0;
+    for (const pair of JOINT_ORDER) {
+      const xrName = pair[1];
+      if (!xrName) continue;
+      const sp = s.hand.get(xrName);
+      if (sp && frame.getJointPose(sp, xrRefSpace)) ok++;
+    }
+    parts.push(s.handedness + ' ' + ok + '/25');
+  }
+  if (!handCount) return parts.join(' ') + ' — controllers active';
+  return parts.join('   ');
+}
+
+/* ---- support probe ---- */
+if (!navigator.xr) {
+  supportEl.innerHTML = '<span class="bad">WebXR not available. Open in Quest Browser over HTTPS.</span>';
+} else {
+  Promise.all([
+    navigator.xr.isSessionSupported('immersive-ar').catch(() => false),
+    navigator.xr.isSessionSupported('immersive-vr').catch(() => false)
+  ]).then(function (res) {
+    const ar = res[0], vr = res[1];
+    if (ar || vr) {
+      sessionMode = ar ? 'immersive-ar' : 'immersive-vr';
+      supportEl.innerHTML = '<span class="ok">WebXR ready — ' + sessionMode +
+        (ar ? ' (passthrough)' : ' (no passthrough on this device)') + '.</span>';
+      enterBtn.disabled = false;
+    } else {
+      supportEl.innerHTML = '<span class="bad">No immersive session supported here.</span>';
+    }
+  });
+}
+
+enterBtn.addEventListener('click', async () => {
+  labels = document.getElementById('labelList').value.split(',').map(s => s.trim()).filter(Boolean);
+  if (!labels.length) labels = ['pose'];
+  labelIdx = 0; takeCounts = {};
+
+  try {
+    xrSession = await navigator.xr.requestSession(sessionMode, {
+      requiredFeatures: ['hand-tracking'],
+      optionalFeatures: ['local-floor']
+    });
+  } catch (e) {
+    supportEl.innerHTML = '<span class="bad">Could not start: ' + e.message +
+      '. Enable Hand Tracking in Settings → Movement Tracking.</span>';
+    return;
+  }
+
+  const canvas = document.createElement('canvas');
+  gl = canvas.getContext('webgl2', { xrCompatible: true, alpha: true })
+    || canvas.getContext('webgl', { xrCompatible: true, alpha: true });
+  await gl.makeXRCompatible();
+  xrSession.updateRenderState({ baseLayer: new XRWebGLLayer(xrSession, gl) });
+  xrRefSpace = await xrSession.requestReferenceSpace('local-floor')
+    .catch(() => xrSession.requestReferenceSpace('local'));
+
+  initGL();
+  updateHud();
+  setHud({ status: 'Raise your hands', big: '' });
+  console.log('%cSession started — 26 joints per hand.', 'color:#6ee7ff;font-weight:bold');
+
+  xrSession.addEventListener('end', onSessionEnd);
+  xrSession.requestAnimationFrame(onXRFrame);
+});
+
+function onSessionEnd() {
+  xrSession = null; mode = 'idle'; dotPositions = [];
+  dumpEl.value = JSON.stringify(window.captures, null, 2);
+  refreshButtons();
+  console.log('%cSession ended.', 'color:#6ee7ff', window.captures);
+}
+
+/* ---- pinch gesture state machine ---- */
+const PINCH_ON = 0.022, PINCH_OFF = 0.040;   // metres, with hysteresis
+const pinchState = { left: { index: false, middle: false }, right: { index: false, middle: false } };
+let bothPinchSince = 0;
+
+function updateGestures(hands, now) {
+  const events = [];
+  const sides = ['left', 'right'], fingers = ['index', 'middle'];
+  for (const side of sides) {
+    const h = hands && hands[side];
+    for (const finger of fingers) {
+      const was = pinchState[side][finger];
+      if (!h) { pinchState[side][finger] = false; continue; }
+      const d = h.pinch[finger];
+      const is = was ? d < PINCH_OFF : d < PINCH_ON;
+      pinchState[side][finger] = is;
+      if (is && !was) events.push(side + ':' + finger);
+    }
+  }
+  const both = pinchState.left.index && pinchState.right.index;
+  if (both) {
+    if (!bothPinchSince) bothPinchSince = now;
+    else if (now - bothPinchSince > 1500) { bothPinchSince = 0; return ['exit']; }
+  } else bothPinchSince = 0;
+  return events;
+}
+
+function onXRFrame(t, frame) {
+  const session = frame.session;
+  session.requestAnimationFrame(onXRFrame);
+  const layer = session.renderState.baseLayer;
+
+  const snap = sampleFrame(frame, xrRefSpace, session);
+  const hands = snap.hands;
+
+  dotPositions = []; linePositions = [];
+  if (hands) {
+    for (const key in hands) {
+      const h = hands[key];
+      for (const j of h.joints) dotPositions.push(j.pos.x, j.pos.y, j.pos.z);
+      for (const b of BONES) {
+        const a = h.joints[J[b[0]]].pos, z = h.joints[J[b[1]]].pos;
+        linePositions.push(a.x, a.y, a.z, z.x, z.y, z.z);
+      }
+    }
+  }
+
+  const now = performance.now();
+  const events = updateGestures(hands, now);
+  if (events.indexOf('exit') !== -1) { session.end(); return; }
+
+  if (mode === 'idle') {
+    if (events.indexOf('right:index') !== -1)  startCountdown('snap');
+    if (events.indexOf('right:middle') !== -1) startCountdown('clip');
+    if (events.indexOf('left:index') !== -1)  { if (labelIdx < labels.length - 1) labelIdx++; updateHud(); }
+    if (events.indexOf('left:middle') !== -1) { if (labelIdx > 0) labelIdx--; updateHud(); }
+
+    setHud({
+      status: hands ? 'tracking ' + Object.keys(hands).join(' + ') : 'no hands — see line below',
+      big: ''
+    });
+    if (++diagTick % 15 === 0) {
+      setHud({ diag: diagnose(session, frame) });
+      if (auditOn()) setHud({ match: nearestReport(hands) });
+      else if (hud.match) setHud({ match: '' });
+    }
+
+  } else if (mode === 'countdown') {
+    const left = Math.ceil((countdownEndsAt - now) / 1000);
+    setHud({ big: left > 0 ? String(left) : '' });
+    if (now >= countdownEndsAt) fire(t, snap);
+
+  } else if (mode === 'clip') {
+    if (hands) clipFrames.push({ t: r5(t), hands: hands, betweenHands: snap.betweenHands });
+    if (now >= clipEndsAt) finishClip();
+  }
+
+  renderXR(snap.headPose, layer);
+}
+
+function startCountdown(kind) {
+  if (mode !== 'idle') return;
+  pendingKind = kind;
+  const secs = parseInt(document.getElementById('countdownSec').value, 10) || 0;
+  mode = 'countdown';
+  countdownEndsAt = performance.now() + secs * 1000;
+  setHud({ status: kind === 'clip' ? 'sign through the clip' : 'hold the sign', rec: false });
+}
+
+function fire(t, snap) {
+  if (pendingKind === 'snap') {
+    mode = 'idle';
+    setHud({ big: '' });
+    if (!snap.hands) { setHud({ status: 'missed — no hands tracked' }); return; }
+    store({ kind: 'snapshot', frames: [{ t: r5(t), hands: snap.hands, betweenHands: snap.betweenHands }] });
+  } else {
+    clipFrames = [];
+    clipEndsAt = performance.now() + (parseInt(document.getElementById('clipMs').value, 10) || 1500);
+    mode = 'clip';
+    setHud({ big: '', rec: true });
+  }
+}
+
+function finishClip() {
+  mode = 'idle';
+  setHud({ rec: false });
+  if (!clipFrames.length) { setHud({ status: 'missed — no hands tracked' }); return; }
+  store({ kind: 'clip', frames: clipFrames });
+  clipFrames = [];
+}
+
+function store(payload) {
+  const label = labels[labelIdx];
+  takeCounts[label] = (takeCounts[label] || 0) + 1;
+
+  const entry = {
+    label: label, take: takeCounts[label], kind: payload.kind,
+    timestamp: new Date().toISOString(),
+    source: 'webxr-quest', units: 'metres',
+    jointOrder: JOINT_NAMES,
+    frameCount: payload.frames.length,
+    frames: payload.frames
+  };
+  window.captures.push(entry);
+  poseIndex = buildPoseIndex();
+
+  const f0 = payload.frames[0];
+  console.group('%c⬤ ' + label + ' · take ' + entry.take + ' · ' + payload.kind +
+    ' · ' + payload.frames.length + ' frame(s)', 'color:#6ee7ff;font-weight:bold');
+  for (const key in f0.hands) {
+    const h = f0.hands[key];
+    console.log('%c' + h.handedness + ' — palmFacing ' + h.palmFacing, 'color:#ff5fd2;font-weight:bold');
+    console.table(h.joints.map(j => ({
+      idx: j.i, joint: j.name, src: j.src, tracked: j.tracked,
+      x: j.pos.x, y: j.pos.y, z: j.pos.z,
+      lx: j.local.x, ly: j.local.y, lz: j.local.z
+    })));
+  }
+  console.groupEnd();
+
+  const saved = persist();
+  const target = parseInt(document.getElementById('repeats').value, 10) || 1;
+  setHud({ status: 'saved ' + label + ' (' + takeCounts[label] + '/' + target + ')' +
+    (saved ? '' : ' ⚠ storage full') });
+  if (takeCounts[label] >= target && labelIdx < labels.length - 1) labelIdx++;
+  updateHud();
+  refreshButtons();
+}
+
+function updateHud() {
+  const label = labels[labelIdx] || '—';
+  const target = parseInt(document.getElementById('repeats').value, 10) || 1;
+  setHud({
+    label: label,
+    sub: 'take ' + (takeCounts[label] || 0) + ' / ' + target +
+         '   ·   ' + (labelIdx + 1) + ' of ' + labels.length +
+         '   ·   ' + window.captures.length + ' saved'
+  });
+}
+
+function refreshButtons() {
+  const has = window.captures.length > 0;
+  downloadBtn.disabled = copyBtn.disabled = clearBtn.disabled = !has;
+  document.getElementById('reportBtn').disabled = !has;
+  countEl.textContent = has ? window.captures.length + ' capture(s)' : '';
+}
+
+/* ==================================================================
+   SEPARATION REPORT
+
+   For each label, average its captures into a centroid, and measure
+   how far apart the centroids are relative to how much each label
+   varies within itself. That ratio — between-class distance over
+   within-class spread — is what decides whether ANY classifier can
+   separate them. A pair whose centroids sit closer than the noise in
+   either one is not a modelling problem, it is a sensing problem.
+================================================================== */
+function auditOn() { return document.getElementById('auditMode').checked; }
+
+function buildReport() {
+  const idx = buildPoseIndex();
+  const groups = {};
+  for (const p of idx) {
+    const key = p.label + ' (' + p.handedness + ')';
+    (groups[key] = groups[key] || []).push(p.features);
+  }
+  const names = Object.keys(groups).filter(k => groups[k].length > 0);
+  if (names.length < 2) {
+    document.getElementById('report').innerHTML =
+      '<p class="hint">Capture at least two labels first.</p>';
+    return;
+  }
+
+  // centroid + mean internal spread per label
+  const stats = {};
+  for (const n of names) {
+    const rows = groups[n], len = rows[0].length;
+    const c = new Array(len).fill(0);
+    for (const r of rows) for (let i = 0; i < len; i++) c[i] += r[i] / rows.length;
+    let spread = 0;
+    for (const r of rows) spread += poseDist(r, c);
+    stats[n] = { centroid: c, spread: rows.length > 1 ? spread / rows.length : 0, n: rows.length };
+  }
+
+  const pairs = [];
+  for (let i = 0; i < names.length; i++) {
+    for (let k = i + 1; k < names.length; k++) {
+      const a = stats[names[i]], b = stats[names[k]];
+      const d = poseDist(a.centroid, b.centroid);
+      const noise = (a.spread + b.spread) / 2;
+      pairs.push({ a: names[i], b: names[k], d: d, noise: noise, ratio: noise > 0 ? d / noise : Infinity });
+    }
+  }
+  pairs.sort((x, y) => x.ratio - y.ratio);
+
+  let html = '<table class="g" style="font-size:0.82rem"><tr>' +
+    '<td style="width:34%">Pair</td><td>Centroid gap</td><td>Within-label noise</td><td>Ratio</td><td>Verdict</td></tr>';
+  for (const p of pairs.slice(0, 40)) {
+    let verdict, color;
+    if (p.ratio < 1.5)      { verdict = 'not separable';   color = '#ff7d7d'; }
+    else if (p.ratio < 3)   { verdict = 'marginal';        color = '#ffd166'; }
+    else                    { verdict = 'clean';           color = '#7dffa8'; }
+    html += '<tr><td style="color:#e6e6e6">' + p.a + '  ·  ' + p.b + '</td>' +
+      '<td>' + p.d.toFixed(3) + '</td>' +
+      '<td>' + p.noise.toFixed(3) + '</td>' +
+      '<td>' + (isFinite(p.ratio) ? p.ratio.toFixed(2) : '—') + '</td>' +
+      '<td style="color:' + color + '">' + verdict + '</td></tr>';
+  }
+  html += '</table><p class="hint" style="margin-top:12px">' +
+    'Ratio = how far apart two labels sit, divided by how much each wobbles on its own. ' +
+    'Below 1.5 the tracker is not resolving the difference — adding training data will not help; ' +
+    'the signs need a disambiguating cue (movement, location, the other hand) or should be dropped ' +
+    'from the static-handshape set.</p>';
+  document.getElementById('report').innerHTML = html;
+}
+document.getElementById('reportBtn').addEventListener('click', buildReport);
+
+/* ---- desktop export ---- */
+downloadBtn.addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(window.captures, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sign-captures-' + Date.now() + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+copyBtn.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(window.captures, null, 2));
+    copyBtn.textContent = 'Copied!';
+    setTimeout(() => copyBtn.textContent = 'Copy JSON', 1200);
+  } catch (e) { dumpEl.value = JSON.stringify(window.captures, null, 2); }
+});
+clearBtn.addEventListener('click', () => {
+  window.captures = []; takeCounts = {}; dumpEl.value = '';
+  try { localStorage.removeItem(LS_KEY); } catch (e) {}
+  refreshButtons();
+});
+
+restore();
+poseIndex = buildPoseIndex();
+refreshButtons();
+</script>
+
+</body>
+</html>
